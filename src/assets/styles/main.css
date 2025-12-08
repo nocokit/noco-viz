@@ -1,0 +1,148 @@
+:root {
+  /* NocoViz Color Palette */
+  --noco-bg-body: #0a0b0d;
+  --noco-bg-sidebar: #141519;
+  --noco-bg-card: #1c1d21;
+  --noco-bg-input: #0f1012; /* Deep dark for inputs */
+  --noco-border: #2d2e33;
+  --noco-primary: #3b82f6;
+  --noco-text-main: #ffffff;
+  --noco-text-secondary: #9ca3af;
+
+  /* Element Plus Variable Overrides */
+  --el-color-primary: var(--noco-primary);
+  --el-color-primary-light-3: #60a5fa; /* Lighter blue */
+  --el-color-primary-light-5: #93c5fd;
+  --el-color-primary-light-7: #bfdbfe;
+  --el-color-primary-light-9: rgba(59, 130, 246, 0.1);
+  --el-color-primary-dark-2: #2563eb;
+
+  --el-bg-color: var(--noco-bg-card);
+  --el-bg-color-page: var(--noco-bg-body);
+  --el-bg-color-overlay: #1c1d21; /* Dropdowns, Dialogs */
+  
+  --el-text-color-primary: var(--noco-text-main);
+  --el-text-color-regular: var(--noco-text-secondary);
+  --el-text-color-secondary: #6b7280;
+  --el-text-color-placeholder: #4b5563;
+
+  --el-border-color: var(--noco-border);
+  --el-border-color-light: #333;
+  --el-border-color-lighter: #222;
+  --el-border-color-extra-light: #1a1a1a;
+
+  --el-fill-color-blank: var(--noco-bg-input); /* Input background */
+  --el-fill-color: #26272c; /* Hover states */
+  --el-fill-color-light: #1f2024;
+  --el-fill-color-lighter: #18191d;
+}
+
+body {
+  background-color: var(--el-bg-color-page);
+  color: var(--el-text-color-primary);
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* =========================================
+   Form Elements Overrides
+   ========================================= */
+
+/* Inputs & Textareas */
+.el-input__wrapper, 
+.el-textarea__inner {
+  background-color: var(--noco-bg-input) !important;
+  box-shadow: 0 0 0 1px var(--noco-border) inset !important;
+  padding-top: 1px;
+}
+
+.el-input__wrapper:hover,
+.el-textarea__inner:hover {
+  box-shadow: 0 0 0 1px #6b7280 inset !important;
+}
+
+.el-input__wrapper.is-focus,
+.el-textarea__inner:focus {
+  box-shadow: 0 0 0 1px var(--noco-primary) inset !important;
+}
+
+.el-input__inner {
+  color: #fff !important;
+}
+
+/* Search Input Specifics */
+/* Use this class for search bars to get rounded look */
+.search-input .el-input__wrapper {
+  border-radius: 20px;
+  padding-left: 15px;
+}
+
+/* Selects */
+.el-select {
+  --el-select-input-focus-border-color: var(--noco-primary);
+}
+
+.el-select__wrapper {
+  background-color: var(--noco-bg-input) !important;
+  box-shadow: 0 0 0 1px var(--noco-border) inset !important;
+}
+
+.el-select-dropdown__item.hover, 
+.el-select-dropdown__item:hover {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  color: var(--noco-primary) !important;
+}
+
+.el-select-dropdown__item.selected {
+  color: var(--noco-primary) !important;
+  font-weight: 600;
+}
+
+/* Buttons */
+.el-button {
+  font-weight: 500;
+  border-radius: 6px;
+}
+
+/* Default Button (Dark Theme) */
+/* Excluding text/link buttons to avoid breaking them */
+.el-button--default:not(.is-text):not(.is-link):not(.is-plain) {
+  background-color: #1c1d21;
+  border-color: var(--noco-border);
+  color: var(--noco-text-secondary);
+}
+
+.el-button--default:not(.is-text):not(.is-link):not(.is-plain):hover,
+.el-button--default:not(.is-text):not(.is-link):not(.is-plain):focus {
+  background-color: #26272c;
+  border-color: #fff;
+  color: #fff;
+}
+
+/* Primary Button */
+.el-button--primary {
+  --el-button-bg-color: var(--noco-primary);
+  --el-button-border-color: var(--noco-primary);
+  --el-button-hover-bg-color: #2563eb;
+  --el-button-hover-border-color: #2563eb;
+  --el-button-active-bg-color: #1d4ed8;
+  --el-button-active-border-color: #1d4ed8;
+}
+
+/* Dialog/Modal Overrides */
+.el-dialog {
+  background-color: var(--noco-bg-card);
+  border: 1px solid var(--noco-border);
+}
+
+.el-dialog__title {
+  color: #fff;
+}
+
+.el-dialog__headerbtn .el-dialog__close {
+  color: var(--noco-text-secondary);
+}
+
+.el-dialog__headerbtn:hover .el-dialog__close {
+  color: #fff;
+}
