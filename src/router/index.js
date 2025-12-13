@@ -29,10 +29,16 @@ const routes = [
         meta: { title: '项目管理', hideLayoutHeader: true }
       },
       {
-        path: 'datasource',
-        name: 'Datasource',
-        component: () => import('@/views/DatasourceManagement.vue'),
-        meta: { title: '数据源管理', hideLayoutHeader: true }
+        path: 'connections',
+        name: 'Connections',
+        component: () => import('@/views/ConnectionManagement.vue'),
+        meta: { title: '连接配置', hideLayoutHeader: true }
+      },
+      {
+        path: 'datasets',
+        name: 'Datasets',
+        component: () => import('@/views/DatasetManagementNew.vue'),
+        meta: { title: '数据集管理', hideLayoutHeader: true }
       },
       {
         path: 'playlist',
@@ -139,6 +145,18 @@ const routes = [
     name: 'ScreenEditor',
     component: () => import('@/views/ScreenEditor.vue'),
     meta: { title: '大屏编辑器' }
+  },
+  {
+    path: '/datasource/excel/:id',
+    name: 'ExcelDataDetail',
+    component: () => import('@/views/ExcelDataDetail.vue'),
+    meta: { title: 'Excel数据源详情' }
+  },
+  {
+    path: '/preview/:id',
+    name: 'Preview',
+    component: () => import('@/views/PreviewScreen.vue'),
+    meta: { title: '大屏预览' }
   },
   {
     path: '/:pathMatch(.*)*',

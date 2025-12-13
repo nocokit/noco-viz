@@ -17,12 +17,6 @@ export const menuConfig = [
         path: '/projects'
       },
       {
-        id: 'datasource',
-        title: '数据源管理',
-        icon: 'Coin',
-        path: '/datasource'
-      },
-      {
         id: 'playlist',
         title: '轮播管理',
         icon: 'VideoPlay',
@@ -33,6 +27,29 @@ export const menuConfig = [
         title: '企业模板库',
         icon: 'DocumentCopy',
         path: '/templates'
+      }
+    ]
+  },
+
+  // ========== 数据中心 (Data Center) ==========
+  {
+    id: 'data',
+    label: '数据中心',
+    type: 'group',
+    items: [
+      {
+        id: 'connections',
+        title: '连接配置',
+        icon: 'Connection',
+        path: '/connections',
+        description: '管理数据库和API连接'
+      },
+      {
+        id: 'datasets',
+        title: '数据集管理',
+        icon: 'Coin',
+        path: '/datasets',
+        description: '管理SQL、Excel和API数据集'
       }
     ]
   },

@@ -34,9 +34,17 @@
           class="project-card"
           :class="`type-${project.type}`"
         >
-          <div class="card-type-line"></div>
-          <div class="card-thumb">
-            <img :src="project.thumbnail" class="thumb-img" :alt="project.title">
+          <div class="card-image-header">
+            <img
+              v-if="project.coverImage"
+              :src="project.coverImage"
+              class="header-img"
+              :alt="project.title"
+            >
+            <div v-else class="header-img-default" :class="`type-${project.type}`">
+              <component :is="getIcon(project.type)" class="default-icon" />
+              <div class="default-text">{{ project.type === 'screen' ? '数据可视化大屏' : '中国式复杂报表' }}</div>
+            </div>
             <div class="card-overlay">
               <button class="overlay-btn btn-edit" @click="handleEnterEditor(project)">
                 {{ project.type === 'screen' ? '进入大屏编辑器' : '进入报表编辑器' }}
@@ -68,15 +76,24 @@
     </div>
 
     <!-- Create Modal -->
-    <div class="modal-overlay" :class="{ open: modalVisible }" @click.self="modalVisible = false">
-      <div class="type-modal">
+    <div class="modal-overlay" :class="{ open: modalVisible }" @click.self="closeModal">
+      <div class="type-modal" :class="{ 'step-2': modalStep === 2 }">
         <div class="modal-header">
-          <h3>新建项目</h3>
-          <div class="close-btn" @click="modalVisible = false">✕</div>
+          <div class="header-left">
+            <div v-if="modalStep === 2" class="back-btn" @click="modalStep = 1">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+              </svg>
+            </div>
+            <h3>{{ modalStep === 1 ? '新建项目' : '填写项目信息' }}</h3>
+          </div>
+          <div class="close-btn" @click="closeModal">✕</div>
         </div>
-        <div class="type-grid">
+
+        <!-- Step 1: 选择类型 -->
+        <div v-show="modalStep === 1" class="type-grid">
           <!-- Screen Option -->
-          <div class="select-card screen" @click="handleCreate('screen')">
+          <div class="select-card screen" @click="selectType('screen')">
             <div class="select-icon">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/></svg>
             </div>
@@ -88,7 +105,7 @@
           </div>
 
           <!-- Report Option -->
-          <div class="select-card report" @click="handleCreate('report')">
+          <div class="select-card report" @click="selectType('report')">
             <div class="select-icon">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 19V5h12v14H6zm2-4h8v2H8v-2zm0-4h8v2H8v-2zm0-4h8v2H8V7z"/></svg>
             </div>
@@ -99,13 +116,61 @@
             </div>
           </div>
         </div>
+
+        <!-- Step 2: 填写信息 -->
+        <div v-show="modalStep === 2" class="form-content">
+          <div class="selected-type-banner" :class="newProject.type">
+            <div class="banner-icon">
+              <svg v-if="newProject.type === 'screen'" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/>
+              </svg>
+              <svg v-else viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 19V5h12v14H6zm2-4h8v2H8v-2zm0-4h8v2H8v-2zm0-4h8v2H8V7z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="banner-title">{{ newProject.type === 'screen' ? '数据可视化大屏' : '中国式复杂报表' }}</div>
+              <div class="banner-subtitle">{{ newProject.type === 'screen' ? 'Screen Visualization' : 'Enterprise Report' }}</div>
+            </div>
+          </div>
+
+          <el-form :model="newProject" label-position="top" :rules="projectRules" ref="projectFormRef">
+            <el-form-item label="项目名称" prop="title">
+              <el-input
+                v-model="newProject.title"
+                placeholder="请输入项目名称，例如：智慧城市交通大脑"
+                maxlength="50"
+                show-word-limit
+                size="large"
+              />
+            </el-form-item>
+
+            <el-form-item label="项目描述" prop="description">
+              <el-input
+                v-model="newProject.description"
+                type="textarea"
+                :rows="4"
+                placeholder="请简要描述项目用途和功能..."
+                maxlength="200"
+                show-word-limit
+              />
+            </el-form-item>
+          </el-form>
+
+          <div class="form-footer">
+            <el-button @click="modalStep = 1">上一步</el-button>
+            <el-button type="primary" @click="handleCreateProject" :loading="creating">
+              创建项目
+            </el-button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, h } from 'vue'
+import { ref, h, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
@@ -113,6 +178,9 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const searchQuery = ref('')
 const modalVisible = ref(false)
+const modalStep = ref(1) // 1: 选择类型, 2: 填写信息
+const creating = ref(false)
+const projectFormRef = ref(null)
 
 // Icons components for direct usage in v-for
 const ScreenIcon = {
@@ -131,6 +199,24 @@ const getIcon = (type) => {
   return type === 'screen' ? ScreenIcon : ReportIcon
 }
 
+// 新项目表单数据
+const newProject = reactive({
+  type: '',
+  title: '',
+  description: ''
+})
+
+// 表单验证规则
+const projectRules = {
+  title: [
+    { required: true, message: '请输入项目名称', trigger: 'blur' },
+    { min: 2, max: 50, message: '项目名称长度在 2 到 50 个字符', trigger: 'blur' }
+  ],
+  description: [
+    { max: 200, message: '项目描述不能超过 200 个字符', trigger: 'blur' }
+  ]
+}
+
 // Mock Data
 const projects = ref([
   {
@@ -138,7 +224,7 @@ const projects = ref([
     title: '智慧城市交通大脑',
     type: 'screen',
     description: '展示全市交通流量、拥堵指数及实时摄像头画面，集成 3D 城市模型。',
-    thumbnail: '/images/project-cover.svg',
+    coverImage: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80',
     status: 'published',
     updatedAt: '2h ago'
   },
@@ -147,7 +233,7 @@ const projects = ref([
     title: 'Q4 财务与销售季报',
     type: 'report',
     description: '包含复杂表头、多级汇总及填报功能的财务报表，支持 A4 打印导出。',
-    thumbnail: '/images/project-cover.svg', // In CSS we adjust hue for report
+    coverImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
     status: 'draft',
     updatedAt: '1 day ago'
   },
@@ -156,20 +242,71 @@ const projects = ref([
     title: '数字化工厂监控',
     type: 'screen',
     description: '连接 IoT 设备，实时展示产线良率、设备运行状态及故障告警。',
-    thumbnail: '/images/project-cover.svg',
+    coverImage: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80',
     status: 'draft',
     updatedAt: '3 days ago'
   }
 ])
 
-const handleCreate = (type) => {
-  if (type === 'report') {
-    // Mock new project ID
-    router.push('/editor/report/new')
-  } else {
-    router.push('/editor/screen/new')
-  }
+// 选择项目类型
+const selectType = (type) => {
+  newProject.type = type
+  modalStep.value = 2
+}
+
+// 关闭弹窗
+const closeModal = () => {
   modalVisible.value = false
+  setTimeout(() => {
+    modalStep.value = 1
+    newProject.type = ''
+    newProject.title = ''
+    newProject.description = ''
+    projectFormRef.value?.clearValidate()
+  }, 300)
+}
+
+// 创建项目
+const handleCreateProject = async () => {
+  if (!projectFormRef.value) return
+
+  await projectFormRef.value.validate((valid) => {
+    if (!valid) return
+
+    creating.value = true
+
+    // 模拟创建项目
+    setTimeout(() => {
+      const newId = Date.now()
+      const newProjectData = {
+        id: newId,
+        title: newProject.title,
+        type: newProject.type,
+        description: newProject.description,
+        coverImage: newProject.type === 'screen'
+          ? 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80'
+          : 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80',
+        status: 'draft',
+        updatedAt: 'Just now'
+      }
+
+      // 添加到项目列表
+      projects.value.unshift(newProjectData)
+
+      ElMessage.success(`项目 "${newProject.title}" 创建成功`)
+      creating.value = false
+      closeModal()
+
+      // 跳转到编辑器
+      setTimeout(() => {
+        if (newProject.type === 'report') {
+          router.push(`/editor/report/${newId}`)
+        } else {
+          router.push(`/editor/screen/${newId}`)
+        }
+      }, 500)
+    }, 1000)
+  })
 }
 
 const handleEnterEditor = (project) => {
@@ -244,18 +381,67 @@ const handleEnterEditor = (project) => {
   border-color: var(--el-text-color-secondary);
 }
 
-/* Type Line */
-.card-type-line { height: 3px; width: 100%; }
-.project-card.type-screen .card-type-line { background: var(--el-color-primary); }
-.project-card.type-report .card-type-line { background: #10b981; }
-
-/* Thumb */
-.card-thumb {
-  height: 180px; width: 100%; background: #111; position: relative; overflow: hidden;
+/* Image Header */
+.card-image-header {
+  height: 200px; width: 100%; position: relative; overflow: hidden;
 }
-.thumb-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; transition: 0.4s; }
-.project-card.type-report .thumb-img { filter: hue-rotate(120deg) brightness(0.8); }
-.project-card:hover .thumb-img { opacity: 0.4; transform: scale(1.05); filter: blur(3px); }
+
+.header-img {
+  width: 100%; height: 100%; object-fit: cover; transition: 0.4s;
+  filter: brightness(0.85);
+}
+.project-card:hover .header-img { transform: scale(1.05); filter: brightness(0.6); }
+
+/* Default Image */
+.header-img-default {
+  width: 100%; height: 100%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px;
+  position: relative; overflow: hidden;
+}
+
+.header-img-default.type-screen {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.25) 100%);
+}
+
+.header-img-default.type-report {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.25) 100%);
+}
+
+.header-img-default::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.default-icon {
+  width: 64px;
+  height: 64px;
+  opacity: 0.6;
+  position: relative;
+  z-index: 1;
+}
+
+.project-card.type-screen .default-icon { color: var(--el-color-primary); }
+.project-card.type-report .default-icon { color: #10b981; }
+
+.default-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--el-text-color-secondary);
+  position: relative;
+  z-index: 1;
+  letter-spacing: 0.5px;
+}
 
 /* Overlay */
 .card-overlay {
@@ -308,11 +494,19 @@ const handleEnterEditor = (project) => {
   background: var(--el-bg-color); width: 700px; border-radius: 16px; border: 1px solid var(--el-border-color);
   box-shadow: 0 30px 80px rgba(0,0,0,0.6); overflow: hidden; transform: scale(0.95); transition: 0.3s;
 }
+.type-modal.step-2 { width: 600px; }
 .modal-overlay.open .type-modal { transform: scale(1); }
 
 .modal-header {
   padding: 20px 30px; border-bottom: 1px solid var(--el-border-color); display: flex; justify-content: space-between; align-items: center;
 }
+.header-left { display: flex; align-items: center; gap: 12px; }
+.back-btn {
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border-radius: 6px; cursor: pointer; color: var(--el-text-color-secondary); transition: 0.2s;
+  border: 1px solid var(--el-border-color);
+}
+.back-btn:hover { background: var(--el-fill-color); color: #fff; }
 .modal-header h3 { font-size: 18px; font-weight: 600; color: #fff; margin: 0; }
 .close-btn { cursor: pointer; color: var(--el-text-color-secondary); font-size: 20px; transition: 0.2s; }
 .close-btn:hover { color: #fff; }
@@ -345,4 +539,50 @@ const handleEnterEditor = (project) => {
 .select-info h4 { font-size: 18px; color: #fff; margin-bottom: 6px; }
 .select-info p { font-size: 12px; color: var(--el-text-color-secondary); margin-bottom: 16px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
 .select-desc { font-size: 13px; color: var(--el-text-color-secondary); line-height: 1.6; }
+
+/* Step 2: Form Content */
+.form-content { padding: 30px; }
+
+.selected-type-banner {
+  display: flex; align-items: center; gap: 16px; padding: 20px;
+  border-radius: 12px; margin-bottom: 32px; border: 2px solid transparent;
+  transition: 0.3s;
+}
+.selected-type-banner.screen {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+.selected-type-banner.report {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.banner-icon {
+  width: 56px; height: 56px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.selected-type-banner.screen .banner-icon {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--el-color-primary);
+}
+.selected-type-banner.report .banner-icon {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+.banner-icon svg { width: 28px; height: 28px; }
+
+.banner-title {
+  font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;
+}
+.banner-subtitle {
+  font-size: 12px; color: var(--el-text-color-secondary);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.form-footer {
+  display: flex; justify-content: flex-end; gap: 12px;
+  margin-top: 32px; padding-top: 24px;
+  border-top: 1px solid var(--el-border-color);
+}
 </style>

@@ -85,7 +85,38 @@
           </el-form>
         </div>
 
-        <!-- 2. 品牌化 -->
+        <!-- 2. 外观主题 -->
+        <div id="theme" class="section-card">
+          <div class="section-header">
+            <div class="section-title">外观主题</div>
+            <div class="section-desc">选择您喜欢的界面配色方案。</div>
+          </div>
+
+          <div class="theme-grid">
+            <div
+              v-for="theme in allThemes"
+              :key="theme.key"
+              :class="['theme-card', { active: currentTheme === theme.key }]"
+              @click="handleThemeChange(theme.key)"
+            >
+              <div class="theme-preview" :style="getThemePreviewStyle(theme.key)">
+                <div class="preview-sidebar"></div>
+                <div class="preview-content">
+                  <div class="preview-header"></div>
+                  <div class="preview-body"></div>
+                </div>
+              </div>
+              <div class="theme-info">
+                <div class="theme-name">{{ theme.name }}</div>
+                <div v-if="currentTheme === theme.key" class="theme-check">
+                  <el-icon color="#10b981"><CircleCheck /></el-icon>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 品牌化 -->
         <div id="branding" class="section-card">
           <div class="section-header">
             <div class="section-title">品牌化 (OEM)</div>
@@ -287,11 +318,17 @@
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Picture, Upload } from '@element-plus/icons-vue'
+import { Picture, Upload, CircleCheck } from '@element-plus/icons-vue'
+import { useTheme } from '@/composables/useTheme'
+
+// 主题相关
+const { currentTheme, setTheme, getAllThemes } = useTheme()
+const allThemes = getAllThemes()
 
 // 菜单配置
 const basicMenuItems = [
   { id: 'basic', label: '基础设置' },
+  { id: 'theme', label: '外观主题' },
   { id: 'branding', label: '品牌化 (OEM)' }
 ]
 
@@ -348,6 +385,52 @@ const scrollToSection = (id) => {
   if (element && scrollContainer.value) {
     element.scrollIntoView({ behavior: 'smooth', block: 'start' })
     activeSection.value = id
+  }
+}
+
+// 主题切换处理
+const handleThemeChange = (themeKey) => {
+  setTheme(themeKey)
+  ElMessage.success(`已切换到${allThemes.find(t => t.key === themeKey).name}`)
+}
+
+// 获取主题预览样式
+const getThemePreviewStyle = (themeKey) => {
+  const themeColors = {
+    dark: {
+      bg: '#0a0b0d',
+      sidebar: '#141519',
+      card: '#1c1d21',
+      primary: '#3b82f6'
+    },
+    light: {
+      bg: '#f5f7fa',
+      sidebar: '#ffffff',
+      card: '#ffffff',
+      primary: '#409eff'
+    },
+    blue: {
+      bg: '#0a1628',
+      sidebar: '#0f1d35',
+      card: '#162544',
+      primary: '#1890ff'
+    },
+    purple: {
+      bg: '#13111a',
+      sidebar: '#1a1625',
+      card: '#251f35',
+      primary: '#8b5cf6'
+    },
+    green: {
+      bg: '#0a1410',
+      sidebar: '#0f1a16',
+      card: '#16241e',
+      primary: '#10b981'
+    }
+  }
+
+  return {
+    backgroundColor: themeColors[themeKey].bg
   }
 }
 
@@ -681,5 +764,86 @@ onUnmounted(() => {
 .settings-menu::-webkit-scrollbar-track,
 .settings-content::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* 主题选择器样式 */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.theme-card {
+  border: 2px solid var(--el-border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: var(--el-bg-color);
+}
+
+.theme-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border-color: var(--el-text-color-secondary);
+}
+
+.theme-card.active {
+  border-color: var(--el-color-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.theme-preview {
+  height: 120px;
+  display: flex;
+  padding: 8px;
+  border-radius: 8px 8px 0 0;
+}
+
+.preview-sidebar {
+  width: 30%;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  margin-right: 6px;
+}
+
+.preview-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preview-header {
+  height: 20px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+
+.preview-body {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+}
+
+.theme-info {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--el-fill-color-blank);
+  border-top: 1px solid var(--el-border-color);
+}
+
+.theme-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+}
+
+.theme-check {
+  display: flex;
+  align-items: center;
 }
 </style>

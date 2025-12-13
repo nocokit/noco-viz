@@ -430,7 +430,7 @@ const handleDrop = (event) => {
 
 /* 选中单元格效果 */
 .sheet-table td.selected {
-  outline: 2px solid var(--cell-select); z-index: 10;
+  outline: 0.5px solid var(--cell-select); z-index: 10;
 }
 .sheet-table td.selected::after {
   content: ''; position: absolute; bottom: -5px; right: -5px; width: 6px; height: 6px;
