@@ -1,10 +1,15 @@
 import { createApp } from 'vue'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import '@/assets/styles/theme-variables.css'
 import '@/assets/styles/main.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
+import { initTheme } from '@/config/themes'
+
+// 初始化主题系统
+initTheme()
 
 const app = createApp(App)
 

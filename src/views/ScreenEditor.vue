@@ -47,6 +47,48 @@
 
       <!-- 中间：对齐工具和状态指示 -->
       <div class="header-center">
+        <!-- 复制粘贴工具 -->
+        <div class="edit-controls">
+          <!-- 复制 -->
+          <button
+            class="icon-btn"
+            :class="{ disabled: selectedComponentIds.length === 0 }"
+            @click="handleCopy"
+            title="复制 (Ctrl+C)"
+            :disabled="selectedComponentIds.length === 0"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+            </svg>
+          </button>
+          <!-- 粘贴 -->
+          <button
+            class="icon-btn"
+            :class="{ disabled: !copiedComponent }"
+            @click="handlePaste"
+            title="粘贴 (Ctrl+V)"
+            :disabled="!copiedComponent"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/>
+            </svg>
+          </button>
+          <!-- 快速复制 -->
+          <button
+            class="icon-btn"
+            :class="{ disabled: selectedComponentIds.length === 0 }"
+            @click="handleDuplicate"
+            title="快速复制 (Ctrl+D)"
+            :disabled="selectedComponentIds.length === 0"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm-1 4l6 6v10c0 1.1-.9 2-2 2H7.99C6.89 23 6 22.1 6 21l.01-14c0-1.1.89-2 1.99-2h7zm-1 7h5.5L14 6.5V12z"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="divider-v" style="margin: 0 12px;"></div>
+
         <!-- 对齐和分布工具 -->
         <div class="align-controls">
           <!-- 左对齐 -->
@@ -155,6 +197,21 @@
 
         <div class="divider-v" style="margin: 0 12px;"></div>
 
+        <!-- 清空画布 -->
+        <button
+          class="icon-btn danger"
+          :class="{ disabled: canvasComponents.length === 0 }"
+          @click="handleClearCanvas"
+          title="清空画布"
+          :disabled="canvasComponents.length === 0"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+          </svg>
+        </button>
+
+        <div class="divider-v" style="margin: 0 12px;"></div>
+
         <!-- 状态指示 -->
         <div class="save-status">
           <div v-if="isSaving" class="saving-spinner"></div>
@@ -167,6 +224,11 @@
 
       <!-- 右侧：协作与发布 -->
       <div class="header-right">
+        <!-- 主题切换器 -->
+        <ThemeSwitcher />
+
+        <div class="divider-v"></div>
+
         <!-- 画布缩放工具 -->
         <div class="canvas-zoom-controls">
           <button class="zoom-btn" @click="zoomOut" title="缩小">
@@ -174,11 +236,21 @@
               <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
           </button>
-          <span class="zoom-text">{{ Math.round(canvasScale * 100) }}%</span>
+          <span
+            class="zoom-text"
+            :title="`缩放: ${Math.round(canvasScale * 100)}%\n偏移: X=${Math.round(canvasPanX)}px, Y=${Math.round(canvasPanY)}px`"
+          >
+            {{ Math.round(canvasScale * 100) }}%
+          </span>
           <button class="zoom-btn" @click="zoomIn" title="放大">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="5" x2="12" y2="19"/>
               <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+          <button class="zoom-btn" @click="fitToScreen" title="适应屏幕">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
             </svg>
           </button>
         </div>
@@ -300,8 +372,8 @@
                     <!-- ECharts 将渲染在这里 -->
                   </div>
                   <div class="comp-label">
-                    <svg class="chart-icon-mini" viewBox="0 0 24 24" :style="{ color: chart.color }">
-                      <path :d="getChartIcon(chart.icon)" fill="none" stroke="currentColor" stroke-width="1.5"></path>
+                    <svg class="chart-icon-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" :style="{ color: chart.color || '#00f2f2' }">
+                      <path :d="getChartIcon(chart.icon)"></path>
                     </svg>
                     <span class="comp-name">{{ chart.name }}</span>
                   </div>
@@ -937,13 +1009,14 @@
 <script setup>
 import { ref, computed, reactive, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { chartCategories, chartIcons, getChartByType } from '@/config/chartComponents'
 import { getChartComponent } from '@/components/charts/index'
 import { getComponentSchema, isChartComponent as checkIsChart } from '@/config/componentSchema'
 import ConfigFormRenderer from '@/components/editor/ConfigFormRenderer.vue'
 import { generateMockDataByTemplate, formatJSONString, validateJSON } from '@/utils/mockDataGenerator'
 import MockDataEditor from '@/components/data/MockDataEditor.vue'
+import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import * as echarts from 'echarts'
 
 const route = useRoute()
@@ -1384,8 +1457,20 @@ const initChartPreviews = () => {
           option = {
             backgroundColor: colors.bg,
             grid: { top: 5, bottom: 5, left: 5, right: 5 },
-            xAxis: { show: false },
-            yAxis: { show: false },
+            xAxis: {
+              type: 'category',
+              data: ['A', 'B', 'C'],
+              show: false,
+              axisLine: { show: false },
+              axisTick: { show: false }
+            },
+            yAxis: {
+              type: 'category',
+              data: ['X', 'Y'],
+              show: false,
+              axisLine: { show: false },
+              axisTick: { show: false }
+            },
             visualMap: { show: false, min: 0, max: 5, inRange: { color: ['#0d213c', colors.primary] } },
             series: [{
               type: 'heatmap',
@@ -2615,6 +2700,8 @@ const handleSave = async () => {
       name: projectName.value,
       components: canvasComponents.value,
       canvasScale: canvasScale.value,
+      canvasPanX: canvasPanX.value,
+      canvasPanY: canvasPanY.value,
       updatedAt: new Date().toISOString()
     }
 
@@ -2642,20 +2729,113 @@ const loadProject = async () => {
     if (projectData) {
       projectName.value = projectData.name || '未命名大屏项目'
       canvasComponents.value = projectData.components || []
+
+      // 恢复画布视图状态
       canvasScale.value = projectData.canvasScale || 0.4
+      canvasPanX.value = projectData.canvasPanX || 0
+      canvasPanY.value = projectData.canvasPanY || 0
+
+      selectedComponentIds.value = []
       ElMessage.success('项目已加载')
+      return true // 返回 true 表示加载了已有项目
     } else {
       // 新项目,使用默认值
       projectName.value = '未命名大屏项目'
       canvasComponents.value = []
+      selectedComponentIds.value = []
+      return false // 返回 false 表示是新项目
     }
   } catch (error) {
     ElMessage.error(`加载项目失败: ${error.message}`)
+    return false
   }
 }
 
 // 键盘快捷键
 const copiedComponent = ref(null)
+
+// 复制组件 - 工具栏按钮和快捷键共用
+const handleCopy = () => {
+  if (selectedComponents.value.length > 0) {
+    copiedComponent.value = JSON.parse(JSON.stringify(selectedComponents.value))
+    ElMessage.success(`已复制 ${selectedComponents.value.length} 个组件`)
+  }
+}
+
+// 粘贴组件 - 工具栏按钮和快捷键共用
+const handlePaste = () => {
+  if (!copiedComponent.value) return
+
+  const newIds = []
+  const components = Array.isArray(copiedComponent.value) ? copiedComponent.value : [copiedComponent.value]
+
+  components.forEach((comp, index) => {
+    const newComp = {
+      ...JSON.parse(JSON.stringify(comp)),
+      id: Date.now() + index,
+      x: comp.x + 20,
+      y: comp.y + 20,
+      name: comp.name + ' (副本)'
+    }
+    canvasComponents.value.push(newComp)
+    newIds.push(newComp.id)
+  })
+
+  // 选中新粘贴的组件
+  selectedComponentIds.value = newIds
+  ElMessage.success(`已粘贴 ${components.length} 个组件`)
+}
+
+// 快速复制组件 - 工具栏按钮和快捷键共用
+const handleDuplicate = () => {
+  if (selectedComponents.value.length === 0) return
+
+  const newIds = []
+  selectedComponents.value.forEach((comp, index) => {
+    const newComp = {
+      ...JSON.parse(JSON.stringify(comp)),
+      id: Date.now() + index,
+      x: comp.x + 20,
+      y: comp.y + 20,
+      name: comp.name + ' (副本)'
+    }
+    canvasComponents.value.push(newComp)
+    newIds.push(newComp.id)
+  })
+
+  // 选中新复制的组件
+  selectedComponentIds.value = newIds
+  ElMessage.success(`已快速复制 ${selectedComponents.value.length} 个组件`)
+}
+
+// 清空画布
+const handleClearCanvas = () => {
+  if (canvasComponents.value.length === 0) return
+
+  // 使用 Element Plus 的确认对话框
+  ElMessageBox.confirm(
+    `确定要清空画布吗？这将删除所有 ${canvasComponents.value.length} 个组件，此操作无法撤销。`,
+    '清空画布',
+    {
+      confirmButtonText: '确定清空',
+      cancelButtonText: '取消',
+      type: 'warning',
+      confirmButtonClass: 'el-button--danger'
+    }
+  ).then(() => {
+    // 保存当前状态到历史记录（用于撤销）
+    saveHistory()
+
+    // 清空组件
+    const count = canvasComponents.value.length
+    canvasComponents.value = []
+    selectedComponentIds.value = []
+
+    ElMessage.success(`已清空画布，删除了 ${count} 个组件`)
+  }).catch(() => {
+    // 用户取消操作
+  })
+}
 
 const handleKeyDown = (e) => {
   // 空格键: 启用画布拖动模式
@@ -2693,8 +2873,7 @@ const handleKeyDown = (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedComponents.value.length > 0) {
     if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
       e.preventDefault()
-      copiedComponent.value = JSON.parse(JSON.stringify(selectedComponents.value))
-      ElMessage.success(`已复制 ${selectedComponents.value.length} 个组件`)
+      handleCopy()
     }
     return
   }
@@ -2703,25 +2882,7 @@ const handleKeyDown = (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'v' && copiedComponent.value) {
     if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
       e.preventDefault()
-
-      const newIds = []
-      const components = Array.isArray(copiedComponent.value) ? copiedComponent.value : [copiedComponent.value]
-
-      components.forEach((comp, index) => {
-        const newComp = {
-          ...JSON.parse(JSON.stringify(comp)),
-          id: Date.now() + index,
-          x: comp.x + 20,
-          y: comp.y + 20,
-          name: comp.name + ' (副本)'
-        }
-        canvasComponents.value.push(newComp)
-        newIds.push(newComp.id)
-      })
-
-      // 选中新粘贴的组件
-      selectedComponentIds.value = newIds
-      ElMessage.success(`已粘贴 ${components.length} 个组件`)
+      handlePaste()
     }
     return
   }
@@ -2729,23 +2890,7 @@ const handleKeyDown = (e) => {
   // Ctrl/Cmd + D: 批量快速复制组件
   if ((e.ctrlKey || e.metaKey) && e.key === 'd' && selectedComponents.value.length > 0) {
     e.preventDefault()
-
-    const newIds = []
-    selectedComponents.value.forEach((comp, index) => {
-      const newComp = {
-        ...JSON.parse(JSON.stringify(comp)),
-        id: Date.now() + index,
-        x: comp.x + 20,
-        y: comp.y + 20,
-        name: comp.name + ' (副本)'
-      }
-      canvasComponents.value.push(newComp)
-      newIds.push(newComp.id)
-    })
-
-    // 选中新复制的组件
-    selectedComponentIds.value = newIds
-    ElMessage.success(`已快速复制 ${selectedComponents.value.length} 个组件`)
+    handleDuplicate()
     return
   }
 
@@ -2797,15 +2942,19 @@ const handleKeyUp = (e) => {
 }
 
 // 组件挂载时加载项目
-onMounted(() => {
-  loadProject()
+onMounted(async () => {
+  const isExistingProject = await loadProject()
+
   document.addEventListener('keydown', handleKeyDown)
   document.addEventListener('keyup', handleKeyUp)
   enableAutoSave()
 
-  // 初始化画布居中和标尺
+  // 初始化画布和标尺
   setTimeout(() => {
-    fitToScreen()
+    // 只有新项目才自动居中,已有项目使用保存的视图状态
+    if (!isExistingProject) {
+      fitToScreen()
+    }
     drawRulers()
 
     // 监听窗口大小变化
@@ -3255,6 +3404,15 @@ const getStrategyText = (strategy) => {
   cursor: not-allowed;
 }
 
+.icon-btn.danger {
+  color: #f56c6c;
+}
+
+.icon-btn.danger:hover:not(.disabled) {
+  color: #fff;
+  background: rgba(245, 108, 108, 0.15);
+}
+
 .project-info {
   display: flex;
   align-items: center;
@@ -3568,9 +3726,16 @@ const getStrategyText = (strategy) => {
 }
 
 .chart-icon-mini {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.chart-icon-mini path {
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .comp-name {
