@@ -1,14 +1,15 @@
 <!--
   ECharts 基础包装器组件
   所有图表组件都继承自此组件
+  使用 useECharts composable 简化代码
 -->
 <template>
   <div ref="chartRef" :style="chartStyle"></div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
-import * as echarts from 'echarts'
+import { computed, toRef } from 'vue'
+import { useECharts } from '@/composables/useECharts'
 
 const props = defineProps({
   option: {
@@ -29,58 +30,23 @@ const props = defineProps({
   }
 })
 
-const chartRef = ref(null)
-let chartInstance = null
-
+// 计算样式
 const chartStyle = computed(() => ({
   width: typeof props.width === 'number' ? `${props.width}px` : props.width,
   height: typeof props.height === 'number' ? `${props.height}px` : props.height
 }))
 
-const initChart = () => {
-  if (!chartRef.value) return
-
-  // 初始化图表实例
-  chartInstance = echarts.init(chartRef.value, props.theme)
-  chartInstance.setOption(props.option)
-
-  // 添加窗口resize监听
-  window.addEventListener('resize', handleResize)
-}
-
-const handleResize = () => {
-  chartInstance?.resize()
-}
-
-// 监听配置变化
-watch(() => props.option, (newOption) => {
-  if (chartInstance) {
-    chartInstance.setOption(newOption, true)
-  }
-}, { deep: true })
-
-// 监听主题变化
-watch(() => props.theme, () => {
-  if (chartInstance) {
-    chartInstance.dispose()
-    initChart()
-  }
-})
-
-onMounted(() => {
-  initChart()
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-  chartInstance?.dispose()
-  chartInstance = null
+// 使用 ECharts composable
+const { chartRef, chartInstance, resize } = useECharts({
+  option: toRef(props, 'option'),
+  theme: toRef(props, 'theme'),
+  autoResize: true
 })
 
 // 暴露实例方法
 defineExpose({
-  getInstance: () => chartInstance,
-  resize: handleResize
+  getInstance: () => chartInstance.value,
+  resize
 })
 </script>
 

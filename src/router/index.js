@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Layout from '@/layout/MainLayout.vue'
 import ComingSoon from '@/components/ComingSoon.vue'
-import ProjectList from '@/views/ProjectList.vue'
-import SystemMonitor from '@/views/SystemMonitor.vue'
-import DatasourceMonitor from '@/views/DatasourceMonitor.vue'
-import TemplateLibrary from '@/views/TemplateLibrary.vue'
-import SystemSettings from '@/views/SystemSettings.vue'
+import ProjectList from '@/views/workspace/ProjectList.vue'
+import SystemMonitor from '@/views/operations/SystemMonitor.vue'
+import DatasourceMonitor from '@/views/operations/DatasourceMonitor.vue'
+import TemplateLibrary from '@/views/workspace/TemplateLibrary.vue'
+import SystemSettings from '@/views/settings/SystemSettings.vue'
 
 /**
  * NocoViz 私有化部署版路由配置
@@ -31,19 +31,19 @@ const routes = [
       {
         path: 'connections',
         name: 'Connections',
-        component: () => import('@/views/ConnectionManagement.vue'),
+        component: () => import('@/views/workspace/ConnectionManagement.vue'),
         meta: { title: '连接配置', hideLayoutHeader: true }
       },
       {
         path: 'datasets',
         name: 'Datasets',
-        component: () => import('@/views/DatasetManagementNew.vue'),
+        component: () => import('@/views/workspace/DatasetManagementNew.vue'),
         meta: { title: '数据集管理', hideLayoutHeader: true }
       },
       {
         path: 'playlist',
         name: 'PlaylistManagement',
-        component: () => import('@/views/PlaylistManagement.vue'),
+        component: () => import('@/views/workspace/PlaylistManagement.vue'),
         meta: { title: '轮播管理' }
       },
       {
@@ -57,13 +57,13 @@ const routes = [
       {
         path: 'media',
         name: 'MediaLibrary',
-        component: () => import('@/views/MediaLibrary.vue'),
+        component: () => import('@/views/assets/MediaLibrary.vue'),
         meta: { title: '媒体资源库', hideLayoutHeader: true }
       },
       {
         path: 'components',
         name: 'CustomComponents',
-        component: () => import('@/views/CustomComponents.vue'),
+        component: () => import('@/views/assets/CustomComponents.vue'),
         meta: { title: '自定义组件', hideLayoutHeader: true }
       },
 
@@ -71,19 +71,25 @@ const routes = [
       {
         path: 'organization',
         name: 'Organization',
-        component: () => import('@/views/OrganizationManagement.vue'),
+        component: () => import('@/views/security/OrganizationManagement.vue'),
         meta: { title: '组织架构', hideLayoutHeader: true }
       },
       {
-        path: 'roles',
+        path: 'role-list',
+        name: 'RoleList',
+        component: () => import('@/views/security/RoleList.vue'),
+        meta: { title: '角色列表', hideLayoutHeader: true }
+      },
+      {
+        path: 'role-permission',
         name: 'RolePermission',
-        component: () => import('@/views/RolePermission.vue'),
+        component: () => import('@/views/security/RolePermission.vue'),
         meta: { title: '角色权限', hideLayoutHeader: true }
       },
       {
         path: 'audit',
         name: 'AuditLog',
-        component: () => import('@/views/AuditLog.vue'),
+        component: () => import('@/views/security/AuditLog.vue'),
         meta: { title: '审计日志', hideLayoutHeader: true }
       },
 
@@ -103,7 +109,7 @@ const routes = [
       {
         path: 'integration',
         name: 'IntegrationPublish',
-        component: () => import('@/views/IntegrationPublish.vue'),
+        component: () => import('@/views/operations/IntegrationPublish.vue'),
         meta: { title: '集成发布' }
       },
 
@@ -117,19 +123,19 @@ const routes = [
       {
         path: 'whitelist',
         name: 'IPWhitelist',
-        component: () => import('@/views/IPWhitelist.vue'),
+        component: () => import('@/views/settings/IPWhitelist.vue'),
         meta: { title: 'IP 白名单', hideLayoutHeader: true }
       },
       {
         path: 'backup',
         name: 'BackupRestore',
-        component: () => import('@/views/BackupRestore.vue'),
+        component: () => import('@/views/settings/BackupRestore.vue'),
         meta: { title: '备份恢复', hideLayoutHeader: true }
       },
       {
         path: 'recycle',
         name: 'Recycle',
-        component: () => import('@/views/RecycleBin.vue'),
+        component: () => import('@/views/settings/RecycleBin.vue'),
         meta: { title: '回收站' }
       }
     ]
@@ -137,31 +143,31 @@ const routes = [
   {
     path: '/editor/report/:id',
     name: 'ReportEditor',
-    component: () => import('@/views/ReportEditor.vue'),
+    component: () => import('@/views/editor/ReportEditor.vue'),
     meta: { title: '报表编辑器' }
   },
   {
     path: '/editor/screen/:id',
     name: 'ScreenEditor',
-    component: () => import('@/views/ScreenEditor.vue'),
+    component: () => import('@/views/editor/ScreenEditor/index.vue'),
     meta: { title: '大屏编辑器' }
   },
   {
     path: '/datasource/excel/:id',
     name: 'ExcelDataDetail',
-    component: () => import('@/views/ExcelDataDetail.vue'),
+    component: () => import('@/views/datasource/ExcelDataDetail.vue'),
     meta: { title: 'Excel数据源详情' }
   },
   {
     path: '/preview/:id',
     name: 'Preview',
-    component: () => import('@/views/PreviewScreen.vue'),
+    component: () => import('@/views/preview/PreviewScreen.vue'),
     meta: { title: '大屏预览' }
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: () => import('@/views/NotFound.vue'),
+    component: () => import('@/views/common/NotFound.vue'),
     meta: { title: '404', hideLayoutHeader: true }
   }
 ]

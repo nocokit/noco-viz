@@ -93,21 +93,4 @@
   transform: translateY(-1px);
 }
 
-/* Dialog/Modal Overrides */
-.el-dialog {
-  background-color: var(--theme-bg-card);
-  border: 1px solid var(--theme-border);
-  box-shadow: var(--theme-shadow-xl);
-}
-
-.el-dialog__title {
-  color: var(--theme-text-main);
-}
-
-.el-dialog__headerbtn .el-dialog__close {
-  color: var(--theme-text-secondary);
-}
-
-.el-dialog__headerbtn:hover .el-dialog__close {
-  color: var(--theme-text-main);
-}
+/* Dialog/Modal Overrides - See /src/styles/dialog.css for Dialog styles */

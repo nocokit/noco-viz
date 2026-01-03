@@ -6,14 +6,14 @@
 :root {
   /* ==================== 主题颜色变量 ==================== */
 
-  /* 主色调 - 默认 DataV 主题 */
-  --theme-primary: #00f2f2;
-  --theme-secondary: #0099cc;
-  --theme-accent: #ffaa00;
-  --theme-success: #00cc99;
-  --theme-warning: #ffaa00;
-  --theme-danger: #ff4466;
-  --theme-info: #66ffff;
+  /* 主色调 - 工业蓝色主题 */
+  --theme-primary: #3b82f6;
+  --theme-secondary: #2563eb;
+  --theme-accent: #60a5fa;
+  --theme-success: #10b981;
+  --theme-warning: #f59e0b;
+  --theme-danger: #ef4444;
+  --theme-info: #3b82f6;
 
   /* 背景色 */
   --theme-bg-body: #050d19;
@@ -24,10 +24,10 @@
   --theme-bg-overlay: rgba(5, 13, 25, 0.95);
 
   /* 边框色 */
-  --theme-border: rgba(0, 242, 242, 0.15);
-  --theme-border-light: rgba(0, 242, 242, 0.08);
-  --theme-border-hover: rgba(0, 242, 242, 0.3);
-  --theme-border-active: #00f2f2;
+  --theme-border: rgba(59, 130, 246, 0.15);
+  --theme-border-light: rgba(59, 130, 246, 0.08);
+  --theme-border-hover: rgba(59, 130, 246, 0.3);
+  --theme-border-active: #3b82f6;
 
   /* 文字色 */
   --theme-text-main: #ffffff;
@@ -36,23 +36,23 @@
   --theme-text-placeholder: #4b5563;
 
   /* 阴影色 */
-  --theme-shadow: rgba(0, 242, 242, 0.2);
+  --theme-shadow: rgba(59, 130, 246, 0.2);
   --theme-shadow-dark: rgba(0, 0, 0, 0.5);
 
   /* ==================== 渐变变量 ==================== */
 
-  --theme-gradient-primary: linear-gradient(135deg, #00f2f2 0%, #0099cc 100%);
-  --theme-gradient-secondary: linear-gradient(135deg, #0099cc 0%, #006699 100%);
-  --theme-gradient-accent: linear-gradient(135deg, #ffaa00 0%, #ff6600 100%);
+  --theme-gradient-primary: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --theme-gradient-secondary: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  --theme-gradient-accent: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
   --theme-gradient-background: linear-gradient(180deg, #050d19 0%, #0a1628 100%);
 
   /* ==================== 阴影变量 ==================== */
 
-  --theme-shadow-sm: 0 2px 8px rgba(0, 242, 242, 0.1);
-  --theme-shadow-md: 0 4px 16px rgba(0, 242, 242, 0.2);
-  --theme-shadow-lg: 0 8px 32px rgba(0, 242, 242, 0.3);
-  --theme-shadow-xl: 0 12px 48px rgba(0, 242, 242, 0.4);
-  --theme-shadow-glow: 0 0 20px rgba(0, 242, 242, 0.6);
+  --theme-shadow-sm: 0 2px 8px rgba(59, 130, 246, 0.1);
+  --theme-shadow-md: 0 4px 16px rgba(59, 130, 246, 0.2);
+  --theme-shadow-lg: 0 8px 32px rgba(59, 130, 246, 0.3);
+  --theme-shadow-xl: 0 12px 48px rgba(59, 130, 246, 0.4);
+  --theme-shadow-glow: 0 0 20px rgba(59, 130, 246, 0.6);
 
   /* ==================== 尺寸变量 ==================== */
 

@@ -15,6 +15,14 @@
             <el-icon><View /></el-icon>
             预览
           </button>
+          <button v-if="!template.isSystem" class="overlay-btn btn-edit" @click.stop="$emit('edit', template)">
+            <el-icon><Edit /></el-icon>
+            编辑
+          </button>
+          <button v-if="!template.isSystem" class="overlay-btn btn-delete" @click.stop="$emit('delete', template)">
+            <el-icon><Delete /></el-icon>
+            删除
+          </button>
         </div>
       </transition>
     </div>
@@ -38,7 +46,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Check, View } from '@element-plus/icons-vue'
+import { Check, View, Edit, Delete } from '@element-plus/icons-vue'
 
 defineProps({
   template: {
@@ -47,7 +55,7 @@ defineProps({
   }
 })
 
-defineEmits(['use', 'preview'])
+defineEmits(['use', 'preview', 'edit', 'delete'])
 
 const isHovered = ref(false)
 
@@ -162,6 +170,26 @@ const formatUsageCount = (count) => {
 
 .btn-preview:hover {
   background: rgba(255, 255, 255, 0.25);
+}
+
+.btn-edit {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.btn-edit:hover {
+  background: rgba(245, 158, 11, 0.3);
+}
+
+.btn-delete {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.btn-delete:hover {
+  background: rgba(239, 68, 68, 0.3);
 }
 
 /* Card Info */

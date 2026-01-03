@@ -88,10 +88,18 @@ export const menuConfig = [
         path: '/organization'
       },
       {
-        id: 'roles',
+        id: 'role-list',
+        title: '角色列表',
+        icon: 'Avatar',
+        path: '/role-list',
+        description: '管理系统角色'
+      },
+      {
+        id: 'role-permission',
         title: '角色权限',
-        icon: 'UserFilled',
-        path: '/roles'
+        icon: 'Key',
+        path: '/role-permission',
+        description: '配置角色权限'
       },
       {
         id: 'audit',
@@ -123,7 +131,7 @@ export const menuConfig = [
       {
         id: 'integration',
         title: '集成发布',
-        icon: 'Upload',
+        icon: 'Share',
         path: '/integration'
       }
     ]

@@ -368,13 +368,11 @@
                   @dragstart="handleDragStart($event, chart)"
                   :title="chart.description"
                 >
-                  <div class="chart-preview" :ref="el => chartPreviewRefs[chart.type] = el" :data-chart-type="chart.type">
-                    <!-- ECharts 将渲染在这里 -->
+                  <div class="chart-preview" >
+                             <svg class="chart-icon-mini" :viewBox="getChartIconViewBox(chart.icon)" v-html="getChartIcon(chart.icon)"></svg>
                   </div>
                   <div class="comp-label">
-                    <svg class="chart-icon-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" :style="{ color: chart.color || '#00f2f2' }">
-                      <path :d="getChartIcon(chart.icon)"></path>
-                    </svg>
+
                     <span class="comp-name">{{ chart.name }}</span>
                   </div>
                 </div>
@@ -1007,7 +1005,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, reactive, onMounted, onUnmounted, nextTick, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { chartCategories, chartIcons, getChartByType } from '@/config/chartComponents'
@@ -1285,6 +1283,19 @@ const getChartIcon = (iconName) => {
   return chartIcons[iconName] || chartIcons.bar
 }
 
+const getChartIconViewBox = (iconName) => {
+  // 饼图、词云图、面积图、折线图、桑基图、数字翻牌器、进度条、数据表格、仪表盘、KPI指标卡、文本标题使用 1024x1024 viewBox
+  if (iconName === 'pie' || iconName === 'word-cloud' || iconName === 'area' || iconName === 'line' || iconName === 'sankey' || iconName === 'number' || iconName === 'progress' || iconName === 'table' || iconName === 'gauge' || iconName === 'kpi' || iconName === 'text') {
+    return '0 0 1024 1024'
+  }
+  // 漏斗图使用 1101x1024 viewBox
+  if (iconName === 'funnel') {
+    return '0 0 1101 1024'
+  }
+  // 其他使用 24x24
+  return '0 0 24 24'
+}
+
 // 初始化图表预览
 const initChartPreviews = () => {
   const colors = {
@@ -1329,13 +1340,22 @@ const initChartPreviews = () => {
             grid: { top: 10, bottom: 10, left: 15, right: 10 },
             xAxis: { show: false, boundaryGap: false },
             yAxis: { show: false },
-            series: [{
-              type: 'line',
-              data: [820, 932, 901, 934, 1290],
-              smooth: true,
-              showSymbol: false,
-              lineStyle: { width: 2, color: colors.primary }
-            }]
+            series: [
+              {
+                type: 'line',
+                data: [320, 450, 380, 520, 600],
+                smooth: true,
+                showSymbol: false,
+                lineStyle: { width: 2, color: '#29B983' }
+              },
+              {
+                type: 'line',
+                data: [220, 350, 280, 420, 500],
+                smooth: true,
+                showSymbol: false,
+                lineStyle: { width: 2, color: '#706EE7' }
+              }
+            ]
           }
           break
 
@@ -1347,8 +1367,8 @@ const initChartPreviews = () => {
               radius: ['40%', '60%'],
               center: ['50%', '50%'],
               data: [
-                { value: 1048, itemStyle: { color: colors.primary } },
-                { value: 735, itemStyle: { color: colors.secondary } }
+                { value: 483, itemStyle: { color: '#706EE7' } },
+                { value: 540, itemStyle: { color: '#29C287' } }
               ],
               label: { show: false }
             }]
@@ -1361,19 +1381,34 @@ const initChartPreviews = () => {
             grid: { top: 10, bottom: 10, left: 15, right: 10 },
             xAxis: { show: false, boundaryGap: false },
             yAxis: { show: false },
-            series: [{
-              type: 'line',
-              data: [820, 932, 901, 934, 1290],
-              smooth: true,
-              showSymbol: false,
-              lineStyle: { width: 2, color: colors.primary },
-              areaStyle: {
-                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                  { offset: 0, color: 'rgba(0, 242, 242, 0.5)' },
-                  { offset: 1, color: 'rgba(0, 242, 242, 0)' }
-                ])
+            series: [
+              {
+                type: 'line',
+                data: [300, 450, 380, 500, 600],
+                smooth: true,
+                showSymbol: false,
+                lineStyle: { width: 0 },
+                areaStyle: {
+                  color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    { offset: 0, color: 'rgba(41, 194, 135, 0.6)' },
+                    { offset: 1, color: 'rgba(41, 194, 135, 0.1)' }
+                  ])
+                }
+              },
+              {
+                type: 'line',
+                data: [200, 280, 250, 320, 400],
+                smooth: true,
+                showSymbol: false,
+                lineStyle: { width: 0 },
+                areaStyle: {
+                  color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    { offset: 0, color: 'rgba(112, 110, 231, 0.6)' },
+                    { offset: 1, color: 'rgba(112, 110, 231, 0.1)' }
+                  ])
+                }
               }
-            }]
+            ]
           }
           break
 
@@ -1441,10 +1476,9 @@ const initChartPreviews = () => {
             series: [{
               type: 'funnel',
               data: [
-                { value: 100, itemStyle: { color: '#001133' } },
-                { value: 80, itemStyle: { color: '#003366' } },
-                { value: 60, itemStyle: { color: '#006699' } },
-                { value: 40, itemStyle: { color: colors.primary } }
+                { value: 100, itemStyle: { color: '#706EE7' } },
+                { value: 80, itemStyle: { color: '#FFC107' } },
+                { value: 60, itemStyle: { color: '#29C287' } }
               ],
               label: { show: false },
               left: '10%',
@@ -1500,9 +1534,9 @@ const initChartPreviews = () => {
             backgroundColor: colors.bg,
             series: [{
               type: 'scatter',
-              data: [[1, 8], [2, 6], [3, 9], [4, 5], [5, 7], [6, 10], [7, 4]],
+              data: [[1, 8, '#706EE7'], [2, 6, '#29C287'], [3, 9, '#706EE7'], [4, 5, '#5AD651'], [5, 7, '#706EE7'], [6, 10, '#29C287'], [7, 4, '#5AD651']],
               symbolSize: val => val[1] * 3,
-              itemStyle: { color: '#9966ff', opacity: 0.8 }
+              itemStyle: { color: params => params.data[2], opacity: 0.8 }
             }],
             xAxis: { show: false },
             yAxis: { show: false },
@@ -1511,6 +1545,39 @@ const initChartPreviews = () => {
           break
 
         case 'sankey':
+          option = {
+            backgroundColor: colors.bg,
+            series: [{
+              type: 'sankey',
+              data: [
+                { name: 'A' },
+                { name: 'B' },
+                { name: 'C' },
+                { name: 'D' }
+              ],
+              links: [
+                { source: 'A', target: 'C', value: 10 },
+                { source: 'A', target: 'D', value: 5 },
+                { source: 'B', target: 'C', value: 8 },
+                { source: 'B', target: 'D', value: 3 }
+              ],
+              itemStyle: {
+                color: '#6E72DF',
+                borderColor: '#6E72DF'
+              },
+              lineStyle: {
+                color: 'source',
+                curveness: 0.5
+              },
+              label: { show: false },
+              left: '5%',
+              right: '5%',
+              top: '10%',
+              bottom: '10%'
+            }]
+          }
+          break
+
         case 'treemap':
         case 'sunburst':
           option = {
@@ -1529,8 +1596,33 @@ const initChartPreviews = () => {
           }
           break
 
-        case 'text':
         case 'number-flip':
+          option = {
+            backgroundColor: colors.bg,
+            graphic: [
+              {
+                type: 'text',
+                left: 'center',
+                top: 'middle',
+                style: {
+                  text: '60%',
+                  fontSize: 28,
+                  fontWeight: 'bold',
+                  fill: '#706EE7'
+                }
+              },
+              {
+                type: 'rect',
+                left: 10,
+                bottom: 10,
+                shape: { width: 60, height: 6 },
+                style: { fill: '#29C287' }
+              }
+            ]
+          }
+          break
+
+        case 'text':
         case 'kpi-card':
         case 'progress-bar':
         case 'table':
@@ -2809,32 +2901,111 @@ const handleDuplicate = () => {
 }
 
 // 清空画布
-const handleClearCanvas = () => {
-  if (canvasComponents.value.length === 0) return
-
-  // 使用 Element Plus 的确认对话框
-  ElMessageBox.confirm(
-    `确定要清空画布吗？这将删除所有 ${canvasComponents.value.length} 个组件，此操作无法撤销。`,
-    '清空画布',
-    {
-      confirmButtonText: '确定清空',
-      cancelButtonText: '取消',
-      type: 'warning',
-      confirmButtonClass: 'el-button--danger'
-    }
-  ).then(() => {
-    // 保存当前状态到历史记录（用于撤销）
-    saveHistory()
-
-    // 清空组件
-    const count = canvasComponents.value.length
-    canvasComponents.value = []
-    selectedComponentIds.value = []
-
-    ElMessage.success(`已清空画布，删除了 ${count} 个组件`)
-  }).catch(() => {
-    // 用户取消操作
+const handleClearCanvas = async () => {
+  console.log('[清空画布] 函数被调用', {
+    组件总数: canvasComponents.value.length,
+    选中数量: selectedComponentIds.value.length
   })
+
+  if (canvasComponents.value.length === 0) {
+    ElMessage.warning('画布中没有组件')
+    return
+  }
+
+  const hasSelection = selectedComponentIds.value.length > 0
+
+  try {
+    // 如果有选中的组件，显示选择菜单
+    if (hasSelection) {
+      console.log('[清空画布] 有选中组件，显示选择对话框')
+      // 使用自定义HTML内容创建三个按钮的对话框
+      const result = await ElMessageBox({
+        title: '清空画布',
+        message: h('div', { style: 'padding: 10px 0;' }, [
+          h('p', { style: 'margin-bottom: 15px; font-size: 14px;' },
+            `当前已选中 ${selectedComponentIds.value.length} 个组件，画布共有 ${canvasComponents.value.length} 个组件。`
+          ),
+          h('p', { style: 'font-size: 13px; color: #666;' }, '请选择操作：')
+        ]),
+        showCancelButton: true,
+        showClose: true,
+        confirmButtonText: `删除选中 (${selectedComponentIds.value.length}个)`,
+        cancelButtonText: `清空全部 (${canvasComponents.value.length}个)`,
+        confirmButtonClass: 'el-button--primary',
+        cancelButtonClass: 'el-button--danger',
+        distinguishCancelAndClose: true,
+        type: 'warning'
+      })
+
+      console.log('[清空画布] 对话框返回结果:', result)
+
+      // 点击了"删除选中"按钮
+      if (result === 'confirm') {
+        console.log('[清空画布] 开始删除选中的组件')
+        const count = selectedComponentIds.value.length
+        const idsToRemove = [...selectedComponentIds.value]
+        console.log('[清空画布] 删除前组件数:', canvasComponents.value.length)
+        canvasComponents.value = canvasComponents.value.filter(
+          c => !idsToRemove.includes(c.id)
+        )
+        console.log('[清空画布] 删除后组件数:', canvasComponents.value.length)
+        selectedComponentIds.value = []
+        ElMessage.success(`已删除选中的 ${count} 个组件`)
+      }
+    } else {
+      console.log('[清空画布] 无选中组件，显示清空所有对话框')
+      // 没有选中组件，直接清空所有
+      await ElMessageBox.confirm(
+        `确定要清空画布吗？这将删除所有 ${canvasComponents.value.length} 个组件。`,
+        '清空画布',
+        {
+          confirmButtonText: '确定清空',
+          cancelButtonText: '取消',
+          type: 'warning',
+          confirmButtonClass: 'el-button--danger'
+        }
+      )
+
+      console.log('[清空画布] 用户确认清空，开始执行')
+      console.log('[清空画布] 清空前组件数:', canvasComponents.value.length)
+      const count = canvasComponents.value.length
+      canvasComponents.value = []
+      console.log('[清空画布] 清空后组件数:', canvasComponents.value.length)
+      selectedComponentIds.value = []
+      ElMessage.success(`已清空画布，删除了 ${count} 个组件`)
+    }
+  } catch (action) {
+    console.log('[清空画布] catch 捕获:', action)
+    // action === 'cancel' 表示点击了"清空全部"按钮
+    if (action === 'cancel' && hasSelection) {
+      console.log('[清空画布] 用户选择清空全部（从选择对话框）')
+      try {
+        // 二次确认清空所有
+        await ElMessageBox.confirm(
+          `确定要清空画布吗？这将删除所有 ${canvasComponents.value.length} 个组件。`,
+          '清空全部组件',
+          {
+            confirmButtonText: '确定清空',
+            cancelButtonText: '取消',
+            type: 'warning',
+            confirmButtonClass: 'el-button--danger'
+          }
+        )
+
+        console.log('[清空画布] 确认清空全部，开始执行')
+        console.log('[清空画布] 清空前组件数:', canvasComponents.value.length)
+        const count = canvasComponents.value.length
+        canvasComponents.value = []
+        console.log('[清空画布] 清空后组件数:', canvasComponents.value.length)
+        selectedComponentIds.value = []
+        ElMessage.success(`已清空画布，删除了 ${count} 个组件`)
+      } catch (err) {
+        console.log('[清空画布] 用户取消了清空所有操作', err)
+      }
+    } else {
+      console.log('[清空画布] 用户关闭对话框或取消')
+    }
+  }
 }
 
 const handleKeyDown = (e) => {
@@ -2960,11 +3131,6 @@ onMounted(async () => {
     // 监听窗口大小变化
     window.addEventListener('resize', drawRulers)
   }, 100)
-
-  // 初始化图表预览
-  nextTick(() => {
-    initChartPreviews()
-  })
 })
 
 onUnmounted(() => {
@@ -3713,6 +3879,15 @@ const getStrategyText = (strategy) => {
   background: rgba(5, 13, 25, 0.6);
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-preview .chart-icon-mini {
+  width: 48px;
+  height: 48px;
+  opacity: 0.8;
 }
 
 /* 图表标签栏 */

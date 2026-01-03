@@ -37,7 +37,10 @@ import {
   Files,
   Document,
   UserFilled,
-  Delete
+  Delete,
+  Share,
+  Monitor,
+  Connection
 } from '@element-plus/icons-vue'
 
 defineProps({
@@ -60,6 +63,9 @@ const iconMap = {
   Files,
   Document,
   UserFilled,
-  Delete
+  Delete,
+  Share,
+  Monitor,
+  Connection
 }
 </script>

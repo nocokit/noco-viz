@@ -6,67 +6,67 @@
 // ==================== 主题定义 ====================
 
 /**
- * DataV 科技蓝主题 - 默认主题
+ * 工业蓝主题 - 默认主题
  */
 export const dataVTheme = {
   id: 'datav',
-  name: 'DataV 科技蓝',
-  description: '经典大屏主题，科技感十足',
+  name: '工业蓝',
+  description: '专业可靠的工业蓝色主题',
 
   // 基础颜色
   colors: {
     // 主色调
-    primary: '#00f2f2',           // DataV 青色
-    secondary: '#0099cc',         // 科技蓝
-    accent: '#ffaa00',            // 橙色强调
-    success: '#00cc99',           // 成功绿
-    warning: '#ffaa00',           // 警告橙
-    danger: '#ff4466',            // 危险红
-    info: '#66ffff',              // 信息亮青
+    primary: '#3b82f6',           // 工业蓝
+    secondary: '#2563eb',         // 深蓝
+    accent: '#60a5fa',            // 浅蓝强调
+    success: '#10b981',           // 成功绿
+    warning: '#f59e0b',           // 警告橙
+    danger: '#ef4444',            // 危险红
+    info: '#3b82f6',              // 信息蓝
 
     // 背景色
-    bgBody: '#050d19',            // 深蓝黑底色
-    bgCanvas: '#0a1628',          // 画布背景
-    bgSidebar: '#0d1a2d',         // 侧边栏背景
-    bgCard: '#0f1f3a',            // 卡片背景
-    bgInput: '#0a1628',           // 输入框背景
-    bgOverlay: 'rgba(5, 13, 25, 0.95)', // 遮罩层
+    bgBody: '#0a0b0d',            // 深色底色
+    bgCanvas: '#141519',          // 画布背景
+    bgSidebar: '#1c1d21',         // 侧边栏背景
+    bgCard: '#26272c',            // 卡片背景
+    bgInput: '#0f1012',           // 输入框背景
+    bgOverlay: 'rgba(10, 11, 13, 0.95)', // 遮罩层
 
     // 边框色
-    border: 'rgba(0, 242, 242, 0.15)',      // 主边框
-    borderLight: 'rgba(0, 242, 242, 0.08)', // 浅边框
-    borderHover: 'rgba(0, 242, 242, 0.3)',  // 悬停边框
-    borderActive: '#00f2f2',                 // 激活边框
+    border: 'rgba(59, 130, 246, 0.15)',      // 主边框
+    borderLight: 'rgba(59, 130, 246, 0.08)', // 浅边框
+    borderHover: 'rgba(59, 130, 246, 0.3)',  // 悬停边框
+    borderActive: '#3b82f6',                 // 激活边框
 
     // 文字色
     textMain: '#ffffff',          // 主文字
-    textSecondary: '#bcd0e3',     // 次要文字
+    textSecondary: '#9ca3af',     // 次要文字
     textDisabled: '#6b7280',      // 禁用文字
     textPlaceholder: '#4b5563',   // 占位文字
 
     // 阴影色
-    shadow: 'rgba(0, 242, 242, 0.2)',       // 主阴影
+    shadow: 'rgba(59, 130, 246, 0.2)',       // 主阴影
     shadowDark: 'rgba(0, 0, 0, 0.5)',       // 深色阴影
 
     // 图表配色
-    chartColors: ['#00f2f2', '#0099cc', '#ffaa00', '#ff6b9d', '#00cc99', '#66ffff', '#9966ff'],
+    chartColors: ['#3b82f6', '#60a5fa', '#2563eb', '#93c5fd', '#10b981', '#1d4ed8', '#8b5cf6'],
   },
 
   // 渐变配置
   gradients: {
-    primary: 'linear-gradient(135deg, #00f2f2 0%, #0099cc 100%)',
-    secondary: 'linear-gradient(135deg, #0099cc 0%, #006699 100%)',
-    accent: 'linear-gradient(135deg, #ffaa00 0%, #ff6600 100%)',
-    background: 'linear-gradient(180deg, #050d19 0%, #0a1628 100%)',
+    primary: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+    secondary: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+    accent: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
+    background: 'linear-gradient(180deg, #0a0b0d 0%, #141519 100%)',
   },
 
   // 阴影配置
   shadows: {
-    sm: '0 2px 8px rgba(0, 242, 242, 0.1)',
-    md: '0 4px 16px rgba(0, 242, 242, 0.2)',
-    lg: '0 8px 32px rgba(0, 242, 242, 0.3)',
-    xl: '0 12px 48px rgba(0, 242, 242, 0.4)',
-    glow: '0 0 20px rgba(0, 242, 242, 0.6)',
+    sm: '0 2px 8px rgba(59, 130, 246, 0.1)',
+    md: '0 4px 16px rgba(59, 130, 246, 0.2)',
+    lg: '0 8px 32px rgba(59, 130, 246, 0.3)',
+    xl: '0 12px 48px rgba(59, 130, 246, 0.4)',
+    glow: '0 0 20px rgba(59, 130, 246, 0.6)',
   },
 
   // 尺寸配置
@@ -264,58 +264,58 @@ export const redAlertTheme = {
 }
 
 /**
- * 金色奢华主题
+ * 工业蓝主题
  */
 export const goldLuxuryTheme = {
   id: 'gold-luxury',
-  name: '金色奢华',
-  description: '高端大气的金色主题',
+  name: '工业蓝',
+  description: '专业可靠的工业蓝色主题',
 
   colors: {
-    primary: '#ffd700',
-    secondary: '#daa520',
-    accent: '#ff8800',
-    success: '#00cc99',
-    warning: '#ffaa00',
-    danger: '#ff4466',
-    info: '#ffdd88',
+    primary: '#3b82f6',
+    secondary: '#2563eb',
+    accent: '#60a5fa',
+    success: '#10b981',
+    warning: '#f59e0b',
+    danger: '#ef4444',
+    info: '#3b82f6',
 
-    bgBody: '#1a1510',
-    bgCanvas: '#261f18',
-    bgSidebar: '#2d2620',
-    bgCard: '#382f28',
-    bgInput: '#261f18',
-    bgOverlay: 'rgba(26, 21, 16, 0.95)',
+    bgBody: '#0a0b0d',
+    bgCanvas: '#141519',
+    bgSidebar: '#1c1d21',
+    bgCard: '#26272c',
+    bgInput: '#0f1012',
+    bgOverlay: 'rgba(10, 11, 13, 0.95)',
 
-    border: 'rgba(255, 215, 0, 0.15)',
-    borderLight: 'rgba(255, 215, 0, 0.08)',
-    borderHover: 'rgba(255, 215, 0, 0.3)',
-    borderActive: '#ffd700',
+    border: 'rgba(59, 130, 246, 0.15)',
+    borderLight: 'rgba(59, 130, 246, 0.08)',
+    borderHover: 'rgba(59, 130, 246, 0.3)',
+    borderActive: '#3b82f6',
 
     textMain: '#ffffff',
-    textSecondary: '#f0e5c5',
+    textSecondary: '#9ca3af',
     textDisabled: '#6b7280',
     textPlaceholder: '#4b5563',
 
-    shadow: 'rgba(255, 215, 0, 0.2)',
+    shadow: 'rgba(59, 130, 246, 0.2)',
     shadowDark: 'rgba(0, 0, 0, 0.5)',
 
-    chartColors: ['#ffd700', '#daa520', '#ff8800', '#ffdd88', '#ffcc66', '#ffbb44', '#ffaa22'],
+    chartColors: ['#3b82f6', '#60a5fa', '#2563eb', '#93c5fd', '#1d4ed8', '#1e40af', '#1e3a8a'],
   },
 
   gradients: {
-    primary: 'linear-gradient(135deg, #ffd700 0%, #daa520 100%)',
-    secondary: 'linear-gradient(135deg, #daa520 0%, #b8860b 100%)',
-    accent: 'linear-gradient(135deg, #ff8800 0%, #cc6600 100%)',
-    background: 'linear-gradient(180deg, #1a1510 0%, #261f18 100%)',
+    primary: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+    secondary: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+    accent: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
+    background: 'linear-gradient(180deg, #0a0b0d 0%, #141519 100%)',
   },
 
   shadows: {
-    sm: '0 2px 8px rgba(255, 215, 0, 0.1)',
-    md: '0 4px 16px rgba(255, 215, 0, 0.2)',
-    lg: '0 8px 32px rgba(255, 215, 0, 0.3)',
-    xl: '0 12px 48px rgba(255, 215, 0, 0.4)',
-    glow: '0 0 20px rgba(255, 215, 0, 0.6)',
+    sm: '0 2px 8px rgba(59, 130, 246, 0.1)',
+    md: '0 4px 16px rgba(59, 130, 246, 0.2)',
+    lg: '0 8px 32px rgba(59, 130, 246, 0.3)',
+    xl: '0 12px 48px rgba(59, 130, 246, 0.4)',
+    glow: '0 0 20px rgba(59, 130, 246, 0.6)',
   },
 
   sizes: dataVTheme.sizes,

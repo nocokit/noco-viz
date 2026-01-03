@@ -93,7 +93,9 @@ import {
   FolderOpened,
   Delete,
   VideoPlay,
-  Search
+  Search,
+  Avatar,
+  Key
 } from '@element-plus/icons-vue'
 import { menuConfig } from '@/config/menu'
 
@@ -116,7 +118,9 @@ const iconMap = {
   Lock,
   FolderOpened,
   Delete,
-  VideoPlay
+  VideoPlay,
+  Avatar,
+  Key
 }
 
 // 当前激活的菜单

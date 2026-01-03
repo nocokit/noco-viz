@@ -121,7 +121,6 @@ html, body, #app {
   box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
 }
 
-.el-dialog,
 .el-drawer,
 .el-popover,
 .el-tooltip__popper,
