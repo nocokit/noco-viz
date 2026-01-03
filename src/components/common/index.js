@@ -20,6 +20,11 @@ import FolderTree from './FolderTree/index.vue'
 import DetailPanel from './DetailPanel/index.vue'
 import ConfirmDialog from './ConfirmDialog/index.vue'
 
+// Phase 1 新增组件
+import ProjectCard from './ProjectCard/index.vue'
+import TabNavigation from './TabNavigation/index.vue'
+import ActionButton from './ActionButton/index.vue'
+
 // 导出所有组件
 export {
   // 核心组件
@@ -38,7 +43,12 @@ export {
   UploadFile,
   FolderTree,
   DetailPanel,
-  ConfirmDialog
+  ConfirmDialog,
+
+  // Phase 1 新增
+  ProjectCard,
+  TabNavigation,
+  ActionButton
 }
 
 // 提供全局注册方法
@@ -61,5 +71,10 @@ export default {
     app.component('FolderTree', FolderTree)
     app.component('DetailPanel', DetailPanel)
     app.component('ConfirmDialog', ConfirmDialog)
+
+    // Phase 1 新增
+    app.component('ProjectCard', ProjectCard)
+    app.component('TabNavigation', TabNavigation)
+    app.component('ActionButton', ActionButton)
   }
 }
