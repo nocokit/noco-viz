@@ -149,7 +149,7 @@ const routes = [
   {
     path: '/editor/screen/:id',
     name: 'ScreenEditor',
-    component: () => import('@/views/editor/ScreenEditor'),
+    component: () => import('@/views/ScreenEditor'),
     meta: { title: '大屏编辑器' }
   },
   {
