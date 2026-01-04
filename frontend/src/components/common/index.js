@@ -49,6 +49,9 @@ import IconBox from './IconBox/index.vue'
 import DynamicForm from './DynamicForm/index.vue'
 import DynamicTable from './DynamicTable/index.vue'
 
+// Phase 6 性能监控
+import PerformanceMonitor from './PerformanceMonitor/index.vue'
+
 // 导出所有组件
 export {
   // 核心组件

@@ -16,3 +16,11 @@ export { useVModel, useVModels } from './useVModel'
 export { useEventListener } from './useEventListener'
 export { useToggle } from './useToggle'
 export { useLocalStorage } from './useLocalStorage'
+
+// 高级 composables
+export { useInfiniteScroll } from './useInfiniteScroll'
+export { useVirtualList } from './useVirtualList'
+export { useThrottle, useThrottleFn } from './useThrottle'
+export { useInterval } from './useInterval'
+export { useClipboard } from './useClipboard'
+export { useNetwork } from './useNetwork'
