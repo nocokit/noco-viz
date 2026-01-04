@@ -37,6 +37,14 @@ import LoadingState from './LoadingState/index.vue'
 import Breadcrumb from './Breadcrumb/index.vue'
 import InfoCard from './InfoCard/index.vue'
 
+// Phase 4 新增复用组件
+import ViewSwitcher from './ViewSwitcher/index.vue'
+import SearchToolbar from './SearchToolbar/index.vue'
+import TableToolbar from './TableToolbar/index.vue'
+import FolderTreePanel from './FolderTreePanel/index.vue'
+import MetaInfoList from './MetaInfoList/index.vue'
+import IconBox from './IconBox/index.vue'
+
 // 导出所有组件
 export {
   // 核心组件
@@ -72,7 +80,15 @@ export {
   // Phase 3 新增实用工具组件
   LoadingState,
   Breadcrumb,
-  InfoCard
+  InfoCard,
+
+  // Phase 4 新增复用组件
+  ViewSwitcher,
+  SearchToolbar,
+  TableToolbar,
+  FolderTreePanel,
+  MetaInfoList,
+  IconBox
 }
 
 // 提供全局注册方法
@@ -112,5 +128,13 @@ export default {
     app.component('LoadingState', LoadingState)
     app.component('Breadcrumb', Breadcrumb)
     app.component('InfoCard', InfoCard)
+
+    // Phase 4 新增复用组件
+    app.component('ViewSwitcher', ViewSwitcher)
+    app.component('SearchToolbar', SearchToolbar)
+    app.component('TableToolbar', TableToolbar)
+    app.component('FolderTreePanel', FolderTreePanel)
+    app.component('MetaInfoList', MetaInfoList)
+    app.component('IconBox', IconBox)
   }
 }
