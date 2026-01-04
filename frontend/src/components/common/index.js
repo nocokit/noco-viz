@@ -25,6 +25,18 @@ import ProjectCard from './ProjectCard/index.vue'
 import TabNavigation from './TabNavigation/index.vue'
 import ActionButton from './ActionButton/index.vue'
 
+// Phase 2 新增高级组件
+import StepModal from './StepModal/index.vue'
+import FilterBar from './FilterBar/index.vue'
+import ActionDropdown from './ActionDropdown/index.vue'
+import PageLayout from './PageLayout/index.vue'
+import ResourceUploader from './ResourceUploader/index.vue'
+
+// Phase 3 新增实用工具组件
+import LoadingState from './LoadingState/index.vue'
+import Breadcrumb from './Breadcrumb/index.vue'
+import InfoCard from './InfoCard/index.vue'
+
 // 导出所有组件
 export {
   // 核心组件
@@ -48,7 +60,19 @@ export {
   // Phase 1 新增
   ProjectCard,
   TabNavigation,
-  ActionButton
+  ActionButton,
+
+  // Phase 2 新增高级组件
+  StepModal,
+  FilterBar,
+  ActionDropdown,
+  PageLayout,
+  ResourceUploader,
+
+  // Phase 3 新增实用工具组件
+  LoadingState,
+  Breadcrumb,
+  InfoCard
 }
 
 // 提供全局注册方法
@@ -76,5 +100,17 @@ export default {
     app.component('ProjectCard', ProjectCard)
     app.component('TabNavigation', TabNavigation)
     app.component('ActionButton', ActionButton)
+
+    // Phase 2 新增高级组件
+    app.component('StepModal', StepModal)
+    app.component('FilterBar', FilterBar)
+    app.component('ActionDropdown', ActionDropdown)
+    app.component('PageLayout', PageLayout)
+    app.component('ResourceUploader', ResourceUploader)
+
+    // Phase 3 新增实用工具组件
+    app.component('LoadingState', LoadingState)
+    app.component('Breadcrumb', Breadcrumb)
+    app.component('InfoCard', InfoCard)
   }
 }

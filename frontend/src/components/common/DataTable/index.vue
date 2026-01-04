@@ -1,12 +1,16 @@
 <template>
   <div class="data-table">
     <el-table
+      ref="tableRef"
       :data="data"
       :loading="loading"
       :stripe="stripe"
       :border="border"
       :height="height"
       :max-height="maxHeight"
+      :row-class-name="rowClassName"
+      :row-style="rowStyle"
+      :default-sort="defaultSort"
       v-bind="$attrs"
       @selection-change="handleSelectionChange"
       @row-click="handleRowClick"
@@ -97,6 +101,7 @@
 </template>
 
 <script setup>
+import { ref, computed } from 'vue'
 import EmptyState from '../EmptyState/index.vue'
 
 const props = defineProps({
@@ -113,10 +118,25 @@ const props = defineProps({
   pagination: { type: Object, default: null },
   actions: { type: Array, default: () => [] },
   actionsWidth: { type: [String, Number], default: 150 },
-  actionsFixed: { type: String, default: 'right' }
+  actionsFixed: { type: String, default: 'right' },
+  // 新增：行class名称函数
+  rowClassName: { type: Function, default: null },
+  // 新增：行样式函数
+  rowStyle: { type: Function, default: null },
+  // 新增：默认排序
+  defaultSort: { type: Object, default: null }
 })
 
-const emit = defineEmits(['selection-change', 'row-click', 'sort-change', 'page-change', 'size-change'])
+const emit = defineEmits([
+  'selection-change',
+  'row-click',
+  'sort-change',
+  'page-change',
+  'size-change',
+  'refresh'
+])
+
+const tableRef = ref(null)
 
 const indexMethod = (index) => {
   if (props.pagination) {
@@ -153,6 +173,25 @@ const handlePageChange = (page) => {
 const handleSizeChange = (size) => {
   emit('size-change', size)
 }
+
+// 暴露方法给父组件
+defineExpose({
+  tableRef,
+  // 清空选择
+  clearSelection: () => tableRef.value?.clearSelection(),
+  // 切换所有行选中状态
+  toggleAllSelection: () => tableRef.value?.toggleAllSelection(),
+  // 切换某一行的选中状态
+  toggleRowSelection: (row, selected) => tableRef.value?.toggleRowSelection(row, selected),
+  // 设置某一行的展开状态
+  toggleRowExpansion: (row, expanded) => tableRef.value?.toggleRowExpansion(row, expanded),
+  // 清空排序
+  clearSort: () => tableRef.value?.clearSort(),
+  // 清空筛选
+  clearFilter: (columnKeys) => tableRef.value?.clearFilter(columnKeys),
+  // 刷新表格布局
+  doLayout: () => tableRef.value?.doLayout()
+})
 </script>
 
 <style scoped>
