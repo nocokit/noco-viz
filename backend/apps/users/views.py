@@ -6,7 +6,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import ValidationError, AuthenticationFailed
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from apps.users.models import User
 from apps.users.serializers import (
     RegisterSerializer,
     LoginSerializer,
@@ -40,11 +39,7 @@ class AuthViewSet(viewsets.ViewSet):
         refresh = RefreshToken.for_user(user)
 
         return Response({
-            'user': {
-                'id': user.id,
-                'username': user.username,
-                'phone': user.phone,
-            },
+            'user': UserSerializer(user).data,
             'tokens': {
                 'access': str(refresh.access_token),
                 'refresh': str(refresh),
@@ -57,7 +52,7 @@ class AuthViewSet(viewsets.ViewSet):
         用户登录
 
         POST /api/auth/login/
-        支持用户名或手机号登录
+        支持用户名、手机号或邮箱登录
         """
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -65,32 +60,17 @@ class AuthViewSet(viewsets.ViewSet):
         username = serializer.validated_data['username']
         password = serializer.validated_data['password']
 
-        # 尝试用户名登录
-        user = authenticate(username=username, password=password)
-
-        # 如果用户名登录失败,尝试手机号登录
-        if not user:
-            try:
-                user_obj = User.objects.get(phone=username)
-                user = authenticate(username=user_obj.username, password=password)
-            except User.DoesNotExist:
-                pass
+        # 使用自定义认证后端进行认证（支持 username/phone/email）
+        user = authenticate(request=request, username=username, password=password)
 
         if not user:
-            raise AuthenticationFailed('用户名或密码错误')
-
-        if not user.is_active:
-            raise AuthenticationFailed('用户已被禁用')
+            raise AuthenticationFailed('用户名/手机号/邮箱或密码错误')
 
         # 生成JWT token
         refresh = RefreshToken.for_user(user)
 
         return Response({
-            'user': {
-                'id': user.id,
-                'username': user.username,
-                'phone': user.phone,
-            },
+            'user': UserSerializer(user).data,
             'tokens': {
                 'access': str(refresh.access_token),
                 'refresh': str(refresh),

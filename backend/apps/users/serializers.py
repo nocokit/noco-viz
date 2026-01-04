@@ -1,9 +1,44 @@
-"""认证相关序列化器"""
+"""用户相关序列化器"""
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from apps.users.models import User
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """用户基础序列化器"""
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'username',
+            'email',
+            'phone',
+            'avatar',
+            'is_active',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'created_at']
+
+
+class UserDetailSerializer(serializers.ModelSerializer):
+    """用户详情序列化器"""
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'username',
+            'email',
+            'phone',
+            'avatar',
+            'is_active',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -76,7 +111,7 @@ class LoginSerializer(serializers.Serializer):
     """用户登录序列化器"""
     username = serializers.CharField(
         required=True,
-        help_text='用户名或手机号'
+        help_text='用户名/手机号/邮箱'
     )
     password = serializers.CharField(
         required=True,
