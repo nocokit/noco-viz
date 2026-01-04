@@ -7,6 +7,7 @@ import '@/styles/dialog.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
+import pinia from './store'
 import { initTheme } from '@/config/themes'
 
 // 初始化主题系统
@@ -20,5 +21,6 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 }
 
 app.use(ElementPlus)
+app.use(pinia)
 app.use(router)
 app.mount('#app')

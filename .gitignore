@@ -7,10 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
 .DS_Store
-dist
-dist-ssr
 coverage
 *.local
 
@@ -25,7 +22,6 @@ coverage
 *.sw?
 
 *.tsbuildinfo
-
 .eslintcache
 
 # Cypress
@@ -34,3 +30,19 @@ coverage
 
 # Vitest
 __screenshots__/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.env.local
+
+# Backend
+backend/.env
+backend/db.sqlite3
+backend/__pycache__/
+backend/*.pyc
+backend/.venv/
+backend/staticfiles/
+backend/media/
+backend/logs/
