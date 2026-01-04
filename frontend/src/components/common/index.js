@@ -45,6 +45,10 @@ import FolderTreePanel from './FolderTreePanel/index.vue'
 import MetaInfoList from './MetaInfoList/index.vue'
 import IconBox from './IconBox/index.vue'
 
+// Phase 5 动态组件（v-for 优化）
+import DynamicForm from './DynamicForm/index.vue'
+import DynamicTable from './DynamicTable/index.vue'
+
 // 导出所有组件
 export {
   // 核心组件
@@ -88,7 +92,11 @@ export {
   TableToolbar,
   FolderTreePanel,
   MetaInfoList,
-  IconBox
+  IconBox,
+
+  // Phase 5 动态组件
+  DynamicForm,
+  DynamicTable
 }
 
 // 提供全局注册方法
@@ -136,5 +144,9 @@ export default {
     app.component('FolderTreePanel', FolderTreePanel)
     app.component('MetaInfoList', MetaInfoList)
     app.component('IconBox', IconBox)
+
+    // Phase 5 动态组件
+    app.component('DynamicForm', DynamicForm)
+    app.component('DynamicTable', DynamicTable)
   }
 }
