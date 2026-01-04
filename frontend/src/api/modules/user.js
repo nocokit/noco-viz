@@ -1,7 +1,7 @@
 /**
  * 用户相关 API
  */
-import http from '../http'
+import request from '../http'
 
 export const userApi = {
   /**
@@ -9,7 +9,7 @@ export const userApi = {
    * @param {Object} data - { username, phone, password, password_confirm }
    */
   register(data) {
-    return http.post('/api/users/auth/register/', data)
+    return request.post('/users/auth/register/', data)
   },
 
   /**
@@ -17,7 +17,7 @@ export const userApi = {
    * @param {Object} data - { username, password }
    */
   login(data) {
-    return http.post('/api/users/auth/login/', data)
+    return request.post('/users/auth/login/', data)
   },
 
   /**
@@ -25,14 +25,14 @@ export const userApi = {
    * @param {string} refreshToken
    */
   refreshToken(refreshToken) {
-    return http.post('/api/users/auth/refresh/', { refresh: refreshToken })
+    return request.post('/users/auth/refresh/', { refresh: refreshToken })
   },
 
   /**
    * 获取当前用户信息
    */
   getProfile() {
-    return http.get('/api/users/auth/me/')
+    return request.get('/users/auth/me/')
   },
 
   /**
@@ -40,7 +40,7 @@ export const userApi = {
    * @param {Object} data - { email, phone, avatar, ... }
    */
   updateProfile(data) {
-    return http.put('/api/users/auth/me/', data)
+    return request.put('/users/auth/me/', data)
   },
 
   /**
@@ -48,13 +48,13 @@ export const userApi = {
    * @param {Object} data - { old_password, new_password, new_password_confirm }
    */
   changePassword(data) {
-    return http.post('/api/users/auth/change_password/', data)
+    return request.post('/users/auth/change_password/', data)
   },
 
   /**
    * 退出登录
    */
   logout() {
-    return http.post('/api/users/auth/logout/')
+    return request.post('/users/auth/logout/')
   },
 }

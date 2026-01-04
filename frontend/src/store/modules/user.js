@@ -19,7 +19,7 @@ export const useUserStore = defineStore('user', () => {
    */
   async function login(loginData) {
     const res = await userApi.login(loginData)
-
+    console.log('登录成功:', res)
     // 保存 Token
     accessToken.value = res.tokens.access
     refreshToken.value = res.tokens.refresh
@@ -97,22 +97,19 @@ export const useUserStore = defineStore('user', () => {
   /**
    * 退出登录
    */
-  async function logout() {
-    try {
-      await userApi.logout()
-    } catch (error) {
-      console.error('Logout API error:', error)
-    } finally {
-      // 清除状态
-      accessToken.value = ''
-      refreshToken.value = ''
-      userInfo.value = null
-      isLoggedIn.value = false
+  function logout() {
+    // JWT 是无状态的，只需清除客户端状态即可
+    // 不需要调用后端 API
 
-      // 清除 localStorage
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-    }
+    // 清除状态
+    accessToken.value = ''
+    refreshToken.value = ''
+    userInfo.value = null
+    isLoggedIn.value = false
+
+    // 清除 localStorage
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
   }
 
   return {

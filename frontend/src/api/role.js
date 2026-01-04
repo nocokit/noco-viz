@@ -1,4 +1,4 @@
-import request from './request'
+import request from './http'
 
 /**
  * 获取角色列表

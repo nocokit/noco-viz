@@ -7,8 +7,8 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/store/modules/user'
 
 // 创建 axios 实例
-const http = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+const request = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -22,7 +22,7 @@ let requestQueue = []
 /**
  * 请求拦截器
  */
-http.interceptors.request.use(
+request.interceptors.request.use(
   (config) => {
     const userStore = useUserStore()
 
@@ -41,19 +41,11 @@ http.interceptors.request.use(
 /**
  * 响应拦截器
  */
-http.interceptors.response.use(
+request.interceptors.response.use(
   (response) => {
-    const { data } = response
-
-    // 统一响应格式处理
-    // 后端返回格式: { code: 0, message: '成功', data: {...} }
-    if (data.code === 0) {
-      return data.data
-    } else {
-      // 业务错误
-      ElMessage.error(data.message || '请求失败')
-      return Promise.reject(new Error(data.message || '请求失败'))
-    }
+    // HTTP 状态码 2xx 表示成功，直接返回响应数据
+    // DRF 默认直接返回数据，不包装 code 字段
+    return response.data?.data || response.data
   },
   async (error) => {
     const { config, response } = error
@@ -62,11 +54,21 @@ http.interceptors.response.use(
     if (response?.status === 401) {
       const userStore = useUserStore()
 
+      // 登录、注册、刷新Token等接口不需要自动刷新Token
+      const noRetryUrls = ['/users/auth/login/', '/users/auth/register/', '/users/auth/refresh/', '/users/auth/logout/']
+      const isNoRetryUrl = noRetryUrls.some(url => config.url?.includes(url))
+
+      // 如果是登录等接口，或者没有refreshToken，直接返回错误
+      if (isNoRetryUrl || !userStore.refreshToken) {
+        // 不显示错误提示，由业务代码处理
+        return Promise.reject(response?.data || error)
+      }
+
       // 如果正在刷新 Token，将请求加入队列
       if (isRefreshing) {
         return new Promise((resolve) => {
           requestQueue.push(() => {
-            resolve(http(config))
+            resolve(request(config))
           })
         })
       }
@@ -82,11 +84,23 @@ http.interceptors.response.use(
         requestQueue = []
 
         // 重试当前请求
-        return http(config)
+        return request(config)
       } catch (refreshError) {
-        // Token 刷新失败，清除用户信息并跳转登录
-        userStore.logout()
+        // Token 刷新失败，清除本地状态（不发送请求）
+        userStore.accessToken = ''
+        userStore.refreshToken = ''
+        userStore.userInfo = null
+        userStore.isLoggedIn = false
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('refresh_token')
+
         ElMessage.error('登录已过期，请重新登录')
+
+        // 跳转到登录页
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
+
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false
@@ -94,11 +108,37 @@ http.interceptors.response.use(
     }
 
     // 处理其他错误
-    const message = response?.data?.message || error.message || '请求失败'
+    let message = '请求失败'
+
+    if (response?.data) {
+      // 尝试从响应中提取错误信息
+      const errorData = response.data
+
+      if (errorData.detail) {
+        // DRF 标准错误格式
+        message = errorData.detail
+      } else if (errorData.message) {
+        // 自定义错误格式
+        message = errorData.message
+      } else if (typeof errorData === 'string') {
+        message = errorData
+      } else if (typeof errorData === 'object') {
+        // 字段验证错误
+        const firstError = Object.values(errorData)[0]
+        if (Array.isArray(firstError)) {
+          message = firstError[0]
+        } else if (typeof firstError === 'string') {
+          message = firstError
+        }
+      }
+    } else {
+      message = error.message || '请求失败'
+    }
+
     ElMessage.error(message)
 
-    return Promise.reject(error)
+    return Promise.reject(response?.data || error)
   }
 )
 
-export default http
+export default request

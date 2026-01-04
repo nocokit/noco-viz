@@ -1,4 +1,4 @@
-import request from './request'
+import request from './http'
 
 /**
  * 模板管理API

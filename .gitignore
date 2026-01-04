@@ -46,3 +46,4 @@ backend/.venv/
 backend/staticfiles/
 backend/media/
 backend/logs/
+*.pyc
