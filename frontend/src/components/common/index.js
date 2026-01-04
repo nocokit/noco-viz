@@ -99,7 +99,10 @@ export {
 
   // Phase 5 动态组件
   DynamicForm,
-  DynamicTable
+  DynamicTable,
+
+  // Phase 6 性能监控
+  PerformanceMonitor
 }
 
 // 提供全局注册方法
@@ -151,5 +154,8 @@ export default {
     // Phase 5 动态组件
     app.component('DynamicForm', DynamicForm)
     app.component('DynamicTable', DynamicTable)
+
+    // Phase 6 性能监控
+    app.component('PerformanceMonitor', PerformanceMonitor)
   }
 }
