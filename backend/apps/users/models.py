@@ -23,6 +23,16 @@ class User(AbstractUser):
         blank=True
     )
 
+    # 角色关联
+    role = models.ForeignKey(
+        'roles.Role',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='users',
+        verbose_name='角色'
+    )
+
     # 状态
     is_active = models.BooleanField('是否激活', default=True)
 

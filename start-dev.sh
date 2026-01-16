@@ -32,7 +32,7 @@ case $choice in
     1)
         echo -e "${GREEN}🚀 启动后端服务...${NC}"
         cd backend
-        python manage.py runserver
+        python3 manage.py runserver
         ;;
     2)
         echo -e "${GREEN}🚀 启动前端服务...${NC}"
@@ -46,7 +46,7 @@ case $choice in
         # 启动后端
         echo -e "${YELLOW}启动后端服务 (Django)...${NC}"
         cd backend
-        python manage.py runserver &
+        python3 manage.py runserver &
         BACKEND_PID=$!
         cd ..
 
@@ -82,10 +82,10 @@ case $choice in
         pip install -r requirements.txt
 
         echo -e "${YELLOW}[2/4] 运行数据库迁移...${NC}"
-        python manage.py migrate
+        python3 manage.py migrate
 
         echo -e "${YELLOW}[3/4] 创建超级用户 (可跳过)...${NC}"
-        python manage.py createsuperuser || echo "跳过创建超级用户"
+        python3 manage.py createsuperuser || echo "跳过创建超级用户"
         cd ..
 
         # 前端初始化

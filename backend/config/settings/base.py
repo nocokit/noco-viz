@@ -28,6 +28,9 @@ INSTALLED_APPS = [
 
     # Local apps
     'apps.users',
+    'apps.projects',
+    'apps.roles',
+    'apps.datasets',
 ]
 
 MIDDLEWARE = [
@@ -171,5 +174,9 @@ SPECTACULAR_SETTINGS = {
     },
     'TAGS': [
         {'name': 'users', 'description': '用户管理'},
+        {'name': 'projects', 'description': '项目管理'},
+        {'name': 'roles', 'description': '角色管理'},
+        {'name': 'datasets', 'description': '数据集管理'},
+        {'name': 'connections', 'description': '数据库连接'},
     ],
 }

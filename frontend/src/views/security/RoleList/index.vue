@@ -1,123 +1,97 @@
 <template>
   <div class="role-list-page">
     <!-- Header -->
-    <header class="page-header">
-      <div class="header-left">
-        <h2>角色管理</h2>
-        <span class="page-subtitle">管理系统角色及权限分配</span>
-      </div>
-    </header>
+    <PageHeader
+      title="角色管理"
+      subtitle="管理系统角色及权限分配"
+    >
+      <template #actions>
+        <div class="toolbar-stats">
+          <span class="stat-item">
+            <span class="stat-label">总角色数：</span>
+            <span class="stat-value">{{ roles.length }}</span>
+          </span>
+          <span class="stat-item">
+            <span class="stat-label">自定义角色：</span>
+            <span class="stat-value">{{ customRolesCount }}</span>
+          </span>
+        </div>
+      </template>
+    </PageHeader>
 
-    <!-- Toolbar & Search -->
-    <div class="toolbar">
-      <div class="search-wrapper">
-        <el-input
-          v-model="searchKeyword"
-          placeholder="搜索角色名称或描述..."
-          prefix-icon="Search"
-          clearable
-          style="width: 300px"
-        />
-      </div>
-      <div class="toolbar-stats">
-        <span class="stat-item">
-          <span class="stat-label">总角色数：</span>
-          <span class="stat-value">{{ roles.length }}</span>
-        </span>
-        <span class="stat-item">
-          <span class="stat-label">自定义角色：</span>
-          <span class="stat-value">{{ customRolesCount }}</span>
-        </span>
-      </div>
-    </div>
-
-    <!-- Table -->
+    <!-- CRUD Table -->
     <div class="table-container">
-      <el-table
+      <CrudTable
         :data="filteredRoles"
-        style="width: 100%"
-        :header-cell-style="{
-          background: 'rgba(0,0,0,0.2)',
-          color: '#9ca3af',
-          borderBottom: '1px solid #2d2e33'
-        }"
-        :cell-style="{
-          background: 'transparent',
-          color: '#fff',
-          borderBottom: '1px solid #2d2e33'
-        }"
-        row-class-name="table-row"
+        :columns="columns"
+        :loading="loading"
+        search-placeholder="搜索角色名称或描述..."
+        :creatable="false"
+        :editable="false"
+        :deletable="false"
+        :view-switchable="false"
+        @search="handleSearch"
       >
-        <el-table-column label="角色名称" min-width="200">
-          <template #default="scope">
-            <div class="role-name-cell">
-              <div class="role-name">
-                {{ scope.row.name }}
-                <el-tag v-if="scope.row.isSystem" size="small" type="info" class="system-tag">
-                  系统内置
-                </el-tag>
-              </div>
-              <div class="role-desc">{{ scope.row.description }}</div>
+        <!-- 自定义列 -->
+        <template #column-name="{ row }">
+          <div class="role-name-cell">
+            <div class="role-name">
+              {{ row.name }}
+              <el-tag v-if="row.isSystem" size="small" type="info">
+                系统内置
+              </el-tag>
             </div>
-          </template>
-        </el-table-column>
+            <div class="role-desc">{{ row.description }}</div>
+          </div>
+        </template>
 
-        <el-table-column label="数据权限范围" width="150">
-          <template #default="scope">
-            <el-tag :type="getScopeTagType(scope.row.scope)" size="small">
-              {{ getScopeText(scope.row.scope) }}
-            </el-tag>
-          </template>
-        </el-table-column>
+        <template #column-scope="{ row }">
+          <el-tag :type="getScopeTagType(row.scope)" size="small">
+            {{ getScopeText(row.scope) }}
+          </el-tag>
+        </template>
 
-        <el-table-column label="关联用户数" width="120" align="center">
-          <template #default="scope">
-            <span class="user-count">{{ scope.row.userCount || 0 }}</span>
-          </template>
-        </el-table-column>
+        <template #column-userCount="{ row }">
+          <span class="user-count">{{ row.userCount || 0 }}</span>
+        </template>
 
-        <el-table-column label="创建时间" width="180">
-          <template #default="scope">
-            <span class="time-text">{{ scope.row.createdAt }}</span>
-          </template>
-        </el-table-column>
+        <template #column-createdAt="{ row }">
+          <span class="time-text">{{ row.createdAt }}</span>
+        </template>
 
-        <el-table-column label="最后修改" width="180">
-          <template #default="scope">
-            <span class="time-text">{{ scope.row.updatedAt }}</span>
-          </template>
-        </el-table-column>
+        <template #column-updatedAt="{ row }">
+          <span class="time-text">{{ row.updatedAt }}</span>
+        </template>
 
-        <el-table-column label="操作" width="200" fixed="right">
-          <template #default="scope">
-            <el-button
-              link
-              type="primary"
-              size="small"
-              @click="handleViewPermissions(scope.row)"
-            >
-              查看权限
-            </el-button>
-            <el-button
-              link
-              type="primary"
-              size="small"
-              @click="handleEdit(scope.row)"
-              :disabled="scope.row.isSystem"
-            >
-              编辑
-            </el-button>
-            <el-button
-              link
-              type="primary"
-              size="small"
-              @click="handleDuplicate(scope.row)"
-            >
-              复制
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+        <!-- 自定义操作列 -->
+        <template #row-actions="{ row }">
+          <el-button
+            link
+            type="primary"
+            size="small"
+            @click="handleViewPermissions(row)"
+          >
+            查看权限
+          </el-button>
+          <el-button
+            link
+            type="primary"
+            size="small"
+            @click="handleEdit(row)"
+            :disabled="row.isSystem"
+          >
+            编辑
+          </el-button>
+          <el-button
+            link
+            type="primary"
+            size="small"
+            @click="handleDuplicate(row)"
+          >
+            复制
+          </el-button>
+        </template>
+      </CrudTable>
     </div>
   </div>
 </template>
@@ -127,10 +101,48 @@ import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 
+// 组件导入
+import CrudTable from '@/components/business/CrudTable.vue'
+import PageHeader from '@/components/common/PageHeader/index.vue'
+
+// Composables
+import { useFilter } from '@/composables/useFilter'
+
 const router = useRouter()
 
-// 搜索关键词
+// 状态
+const loading = ref(false)
 const searchKeyword = ref('')
+
+// 表格列配置
+const columns = [
+  {
+    prop: 'name',
+    label: '角色名称',
+    minWidth: 200
+  },
+  {
+    prop: 'scope',
+    label: '数据权限范围',
+    width: 150
+  },
+  {
+    prop: 'userCount',
+    label: '关联用户数',
+    width: 120,
+    align: 'center'
+  },
+  {
+    prop: 'createdAt',
+    label: '创建时间',
+    width: 180
+  },
+  {
+    prop: 'updatedAt',
+    label: '最后修改',
+    width: 180
+  }
+]
 
 // 角色数据
 const roles = ref([
@@ -186,21 +198,22 @@ const roles = ref([
   }
 ])
 
-// 计算属性
-const filteredRoles = computed(() => {
-  if (!searchKeyword.value) return roles.value
-  const keyword = searchKeyword.value.toLowerCase()
-  return roles.value.filter(role =>
-    role.name.toLowerCase().includes(keyword) ||
-    role.description.toLowerCase().includes(keyword)
-  )
+// 使用 useFilter composable
+const { filteredData: filteredRoles } = useFilter(roles, {
+  searchFields: ['name', 'description'],
+  searchQuery: searchKeyword
 })
 
+// 计算属性
 const customRolesCount = computed(() => {
   return roles.value.filter(role => !role.isSystem).length
 })
 
-// 获取权限范围文本
+// 方法
+const handleSearch = (query) => {
+  searchKeyword.value = query
+}
+
 const getScopeText = (scope) => {
   const map = {
     all: '全部数据',
@@ -211,7 +224,6 @@ const getScopeText = (scope) => {
   return map[scope] || scope
 }
 
-// 获取权限范围标签类型
 const getScopeTagType = (scope) => {
   const map = {
     all: 'danger',
@@ -222,7 +234,6 @@ const getScopeTagType = (scope) => {
   return map[scope] || ''
 }
 
-// 编辑角色 - 跳转到角色权限配置页面
 const handleEdit = (role) => {
   if (role.isSystem) {
     ElMessage.warning('系统内置角色不可编辑')
@@ -234,7 +245,6 @@ const handleEdit = (role) => {
   })
 }
 
-// 复制角色
 const handleDuplicate = (role) => {
   const now = new Date().toLocaleString('zh-CN', {
     year: 'numeric',
@@ -260,9 +270,7 @@ const handleDuplicate = (role) => {
   ElMessage.success(`已复制角色 "${role.name}"`)
 }
 
-// 查看权限配置
 const handleViewPermissions = (role) => {
-  // 跳转到角色权限配置页面
   router.push({
     path: '/role-permission',
     query: { roleId: role.id }
@@ -280,61 +288,10 @@ const handleViewPermissions = (role) => {
   overflow: hidden;
 }
 
-/* =========================================
-   Header
-   ========================================= */
-.page-header {
-  height: 64px;
-  padding: 0 32px;
-  border-bottom: 1px solid #2d2e33;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(20, 21, 25, 0.9);
-  flex-shrink: 0;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.header-left h2 {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0;
-}
-
-.page-subtitle {
-  font-size: 13px;
-  color: #9ca3af;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-/* =========================================
-   Toolbar
-   ========================================= */
-.toolbar {
-  padding: 20px 32px;
-  border-bottom: 1px solid #2d2e33;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.search-wrapper :deep(.el-input__wrapper) {
-  background-color: #000;
-  box-shadow: 0 0 0 1px #2d2e33 inset;
-}
-
-.search-wrapper :deep(.el-input__inner) {
-  color: #fff;
+.table-container {
+  flex: 1;
+  overflow: hidden;
+  padding: 24px 32px;
 }
 
 .toolbar-stats {
@@ -357,26 +314,6 @@ const handleViewPermissions = (role) => {
   margin-left: 4px;
 }
 
-/* =========================================
-   Table
-   ========================================= */
-.table-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px 32px;
-}
-
-.table-container :deep(.el-table) {
-  background-color: transparent;
-  --el-table-border-color: #2d2e33;
-  --el-table-bg-color: transparent;
-  --el-table-tr-bg-color: transparent;
-  --el-table-header-bg-color: rgba(0, 0, 0, 0.2);
-  --el-table-row-hover-bg-color: #26272c;
-  --el-table-text-color: #fff;
-  --el-table-header-text-color: #9ca3af;
-}
-
 .role-name-cell {
   display: flex;
   flex-direction: column;
@@ -396,10 +333,6 @@ const handleViewPermissions = (role) => {
   font-size: 12px;
   color: #9ca3af;
   line-height: 1.4;
-}
-
-.system-tag {
-  font-size: 10px !important;
 }
 
 .user-count {

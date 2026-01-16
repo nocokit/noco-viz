@@ -8,6 +8,7 @@ export { useConfirm } from './useConfirm'
 export { useLoading } from './useLoading'
 export { useForm } from './useForm'
 export { usePagination } from './usePagination'
+export { useFormModal } from './useFormModal'
 
 // Vue3 最佳实践 composables
 export { useAsync } from './useAsync'
@@ -24,3 +25,9 @@ export { useThrottle, useThrottleFn } from './useThrottle'
 export { useInterval } from './useInterval'
 export { useClipboard } from './useClipboard'
 export { useNetwork } from './useNetwork'
+
+// 新增核心业务 composables
+export { useCrudOperations } from './useCrudOperations'
+export { useFilter } from './useFilter'
+export { useConfirmDialog } from './useConfirmDialog'
+export { useDataManagement } from './useDataManagement'

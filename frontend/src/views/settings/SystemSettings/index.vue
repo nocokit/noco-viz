@@ -126,20 +126,32 @@
           <el-form :model="configForm" label-position="top">
             <div class="grid-row">
               <el-form-item label="系统 Logo (Dark)">
-                <el-upload
-                  class="logo-uploader"
-                  :show-file-list="false"
-                  :on-success="handleLogoSuccess"
-                  :before-upload="beforeLogoUpload"
-                  action="#"
-                  :auto-upload="false"
-                >
-                  <img v-if="configForm.branding.logoUrl" :src="configForm.branding.logoUrl" class="logo-preview" />
-                  <div v-else class="upload-placeholder">
-                    <el-icon class="upload-icon"><Picture /></el-icon>
-                    <div class="upload-text">点击上传</div>
-                  </div>
-                </el-upload>
+                <div class="logo-upload-wrapper">
+                  <el-upload
+                    class="logo-uploader"
+                    :show-file-list="false"
+                    :on-success="handleLogoSuccess"
+                    :before-upload="beforeLogoUpload"
+                    action="#"
+                    :auto-upload="false"
+                  >
+                    <img v-if="configForm.branding.logoUrl" :src="configForm.branding.logoUrl" class="logo-preview" />
+                    <div v-else class="upload-placeholder">
+                      <el-icon class="upload-icon"><Picture /></el-icon>
+                      <div class="upload-text">点击上传</div>
+                    </div>
+                  </el-upload>
+                  <el-button
+                    v-if="configForm.branding.logoUrl"
+                    link
+                    type="primary"
+                    size="small"
+                    @click="showLogoPreview = true"
+                    class="preview-btn"
+                  >
+                    预览
+                  </el-button>
+                </div>
                 <div class="input-hint">建议尺寸 200x60 PNG</div>
               </el-form-item>
 
@@ -312,6 +324,34 @@
         <div style="height: 100px;"></div>
       </div>
     </div>
+
+    <!-- Logo 预览对话框 -->
+    <el-dialog
+      v-model="showLogoPreview"
+      title="Logo 预览"
+      width="600px"
+      :append-to-body="true"
+    >
+      <div class="logo-preview-dialog">
+        <div class="preview-image-container">
+          <img :src="configForm.branding.logoUrl" alt="Logo Preview" class="preview-large-image" />
+        </div>
+        <div class="preview-info-section">
+          <div class="info-row">
+            <span class="info-label">文件名称：</span>
+            <span class="info-value">{{ logoFileName }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">建议尺寸：</span>
+            <span class="info-value">200 x 60 像素</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">支持格式：</span>
+            <span class="info-value">PNG, JPG, SVG</span>
+          </div>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -378,6 +418,8 @@ const activeSection = ref('basic')
 const saving = ref(false)
 const sendingEmail = ref(false)
 const scrollContainer = ref(null)
+const showLogoPreview = ref(false)
+const logoFileName = ref('logo.png')
 
 // 滚动到指定区域
 const scrollToSection = (id) => {
@@ -471,6 +513,8 @@ const beforeLogoUpload = (file) => {
     return false
   }
 
+  // 保存文件名
+  logoFileName.value = file.name
   // 直接预览
   configForm.branding.logoUrl = URL.createObjectURL(file)
   return false // 阻止自动上传
@@ -871,5 +915,68 @@ onUnmounted(() => {
 
 :deep(.el-select .el-input__wrapper) {
   background-color: #0f1012 !important;
+}
+
+/* Logo 上传包装器 */
+.logo-upload-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preview-btn {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+/* Logo 预览对话框 */
+.logo-preview-dialog {
+  padding: 20px;
+}
+
+.preview-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  background: var(--el-fill-color-lighter);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  min-height: 200px;
+}
+
+.preview-large-image {
+  max-width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.preview-info-section {
+  background: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.info-row {
+  display: flex;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.info-row:not(:last-child) {
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+.info-label {
+  color: var(--el-text-color-secondary);
+  min-width: 100px;
+  font-weight: 500;
+}
+
+.info-value {
+  color: var(--el-text-color-primary);
+  flex: 1;
 }
 </style>
