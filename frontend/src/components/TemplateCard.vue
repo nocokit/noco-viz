@@ -19,6 +19,10 @@
             <el-icon><Edit /></el-icon>
             编辑
           </button>
+          <button v-if="showReview && template.status === 'pending'" class="overlay-btn btn-review" @click.stop="$emit('review', template)">
+            <el-icon><Check /></el-icon>
+            审核
+          </button>
           <button v-if="!template.isSystem" class="overlay-btn btn-delete" @click.stop="$emit('delete', template)">
             <el-icon><Delete /></el-icon>
             删除
@@ -30,15 +34,15 @@
     <!-- 卡片信息 -->
     <div class="tpl-info">
       <div class="tpl-header">
-        <span class="tpl-name">{{ template.name }}</span>
-        <span :class="['tpl-tag', template.type === 'official' ? 'tag-official' : 'tag-internal']">
-          {{ template.type === 'official' ? '官方' : template.department }}
+        <span class="tpl-name">{{ template.title || template.name }}</span>
+        <span :class="['tpl-tag', template.category === 'official' ? 'tag-official' : 'tag-internal']">
+          {{ template.category === 'official' ? '官方' : (template.metadata?.department || '共享') }}
         </span>
       </div>
       <div class="tpl-desc">{{ template.description }}</div>
       <div class="tpl-meta">
-        <span class="meta-res">{{ template.resolution }}</span>
-        <span>{{ formatUsageCount(template.usageCount) }} 使用</span>
+        <span class="meta-res">{{ template.metadata?.resolution || '1920 x 1080' }}</span>
+        <span>{{ formatUsageCount(template.usageCount || 0) }} 使用</span>
       </div>
     </div>
   </div>
@@ -52,10 +56,14 @@ defineProps({
   template: {
     type: Object,
     required: true
+  },
+  showReview: {
+    type: Boolean,
+    default: false
   }
 })
 
-defineEmits(['use', 'preview', 'edit', 'delete'])
+defineEmits(['use', 'preview', 'edit', 'delete', 'review'])
 
 const isHovered = ref(false)
 
@@ -190,6 +198,16 @@ const formatUsageCount = (count) => {
 
 .btn-delete:hover {
   background: rgba(239, 68, 68, 0.3);
+}
+
+.btn-review {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.btn-review:hover {
+  background: rgba(16, 185, 129, 0.3);
 }
 
 /* Card Info */

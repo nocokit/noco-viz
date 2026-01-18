@@ -68,7 +68,7 @@ export const menuConfig = [
       },
       {
         id: 'components',
-        title: '自定义组件',
+        title: '组件库',
         icon: 'Box',
         path: '/components'
       }
@@ -131,7 +131,7 @@ export const menuConfig = [
       {
         id: 'integration',
         title: '集成发布',
-        icon: 'Share',
+        icon: 'Upload',
         path: '/integration'
       }
     ]

@@ -31,6 +31,12 @@ request.interceptors.request.use(
       config.headers.Authorization = `Bearer ${userStore.accessToken}`
     }
 
+    // 禁用 GET 请求缓存
+    if (config.method === 'get') {
+      config.headers['Cache-Control'] = 'no-cache'
+      config.headers['Pragma'] = 'no-cache'
+    }
+
     return config
   },
   (error) => {
@@ -44,8 +50,8 @@ request.interceptors.request.use(
 request.interceptors.response.use(
   (response) => {
     // HTTP 状态码 2xx 表示成功，直接返回响应数据
-    // DRF 默认直接返回数据，不包装 code 字段
-    return response.data?.data || response.data
+    // NestJS 默认直接返回数据，不需要额外解包
+    return response.data
   },
   async (error) => {
     const { config, response } = error

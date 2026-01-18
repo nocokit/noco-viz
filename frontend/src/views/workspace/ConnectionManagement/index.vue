@@ -174,9 +174,17 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import CommonModal from '@/components/CommonModal.vue'
+import {
+  getConnections,
+  createConnection,
+  updateConnection,
+  deleteConnection as deleteConnectionApi,
+  testConnection as testConnectionApi,
+  testConnectionConfig
+} from '@/api/dataset'
 
 const modalVisible = ref(false)
 const isEditMode = ref(false)
@@ -184,6 +192,7 @@ const submitting = ref(false)
 const testing = ref(false)
 const formRef = ref(null)
 const editingConnectionId = ref(null)
+const loading = ref(false)
 
 // 表单数据
 const formData = reactive({
@@ -249,36 +258,32 @@ watch(() => formData.type, (newType) => {
   }
 })
 
-// 模拟连接数据
-const connections = ref([
-  {
-    id: 1,
-    name: '交易订单主库',
-    type: 'mysql',
-    dbType: 'MySQL 8.0',
-    host: '192.168.1.100:3306',
-    status: 'active',
-    usedByDatasets: 5
-  },
-  {
-    id: 2,
-    name: '财务数仓_只读',
-    type: 'oracle',
-    dbType: 'Oracle 11g',
-    host: '192.168.1.102:1521',
-    status: 'error',
-    usedByDatasets: 2
-  },
-  {
-    id: 3,
-    name: '用户行为分析库',
-    type: 'postgresql',
-    dbType: 'PostgreSQL 14',
-    host: '192.168.1.103:5432',
-    status: 'active',
-    usedByDatasets: 3
+// 连接数据
+const connections = ref([])
+
+// 加载连接列表
+const loadConnections = async () => {
+  try {
+    loading.value = true
+    const data = await getConnections()
+    connections.value = data.map(conn => ({
+      ...conn,
+      dbType: dbTypeNames[conn.type] || conn.type,
+      host: `${conn.host}:${conn.port}`,
+      usedByDatasets: 0 // TODO: 从后端获取
+    }))
+  } catch (error) {
+    console.error('加载连接列表失败:', error)
+    ElMessage.error('加载连接列表失败')
+  } finally {
+    loading.value = false
   }
-])
+}
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadConnections()
+})
 
 const getDbIcon = (type) => {
   const icons = {
@@ -315,10 +320,10 @@ const editConnection = (conn) => {
   formData.name = conn.name
   formData.type = conn.type
   formData.host = conn.host.split(':')[0]
-  formData.port = conn.host.split(':')[1] || defaultPorts[conn.type]
+  formData.port = String(conn.port || conn.host.split(':')[1] || defaultPorts[conn.type])
   formData.database = conn.database || ''
   formData.username = conn.username || ''
-  formData.password = conn.password || ''
+  formData.password = '' // 不回显密码
   modalVisible.value = true
 }
 
@@ -343,10 +348,10 @@ const resetForm = () => {
 }
 
 // 测试连接
-const handleTestConnection = () => {
+const handleTestConnection = async () => {
   if (!formRef.value) return
 
-  formRef.value.validate((valid) => {
+  formRef.value.validate(async (valid) => {
     if (!valid) {
       ElMessage.warning('请填写完整的连接信息')
       return
@@ -354,102 +359,122 @@ const handleTestConnection = () => {
 
     testing.value = true
 
-    // 模拟测试连接
-    setTimeout(() => {
-      testing.value = false
-      const success = Math.random() > 0.3 // 70% 成功率
-      if (success) {
+    try {
+      const config = {
+        name: formData.name,
+        type: formData.type,
+        host: formData.host,
+        port: parseInt(formData.port),
+        database: formData.database,
+        username: formData.username,
+        password: formData.password
+      }
+
+      const result = await testConnectionConfig(config)
+      if (result.success) {
         ElMessage.success('连接测试成功！')
       } else {
-        ElMessage.error('连接测试失败，请检查配置')
+        ElMessage.error(result.message || '连接测试失败，请检查配置')
       }
-    }, 1500)
+    } catch (error) {
+      console.error('测试连接失败:', error)
+      ElMessage.error('连接测试失败，请检查配置')
+    } finally {
+      testing.value = false
+    }
   })
 }
 
 // 提交表单
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (!formRef.value) return
 
-  formRef.value.validate((valid) => {
+  formRef.value.validate(async (valid) => {
     if (!valid) return
 
     submitting.value = true
 
-    // 模拟异步提交
-    setTimeout(() => {
+    try {
+      const data = {
+        name: formData.name,
+        type: formData.type,
+        host: formData.host,
+        port: parseInt(formData.port),
+        database: formData.database,
+        username: formData.username,
+        password: formData.password
+      }
+
       if (isEditMode.value) {
         // 编辑模式
-        const conn = connections.value.find(c => c.id === editingConnectionId.value)
-        if (conn) {
-          conn.name = formData.name
-          conn.type = formData.type
-          conn.dbType = dbTypeNames[formData.type]
-          conn.host = `${formData.host}:${formData.port}`
-          conn.database = formData.database
-          conn.username = formData.username
-          conn.password = formData.password
-          ElMessage.success(`连接 "${formData.name}" 已更新`)
-        }
+        await updateConnection(editingConnectionId.value, data)
+        ElMessage.success(`连接 "${formData.name}" 已更新`)
       } else {
         // 新建模式
-        const newConnection = {
-          id: Date.now(),
-          name: formData.name,
-          type: formData.type,
-          dbType: dbTypeNames[formData.type],
-          host: `${formData.host}:${formData.port}`,
-          status: 'active',
-          usedByDatasets: 0,
-          database: formData.database,
-          username: formData.username,
-          password: formData.password
-        }
-        connections.value.unshift(newConnection)
+        await createConnection(data)
         ElMessage.success(`连接 "${formData.name}" 创建成功`)
       }
 
-      submitting.value = false
+      // 重新加载连接列表
+      await loadConnections()
       closeModal()
-    }, 800)
+    } catch (error) {
+      console.error('保存连接失败:', error)
+      ElMessage.error('保存连接失败')
+    } finally {
+      submitting.value = false
+    }
   })
 }
 
 // 测试连接（卡片按钮）
-const testConnection = (conn) => {
-  ElMessage.loading('正在测试连接...')
+const testConnection = async (conn) => {
+  const loadingMsg = ElMessage.loading('正在测试连接...')
 
-  setTimeout(() => {
-    const success = Math.random() > 0.5
-    if (success) {
-      conn.status = 'active'
+  try {
+    const result = await testConnectionApi(conn.id)
+    loadingMsg.close()
+
+    if (result.success) {
+      conn.status = 'connected'
       ElMessage.success(`连接 "${conn.name}" 测试成功`)
+      // 重新加载以更新状态
+      await loadConnections()
     } else {
       conn.status = 'error'
-      ElMessage.error(`连接 "${conn.name}" 测试失败`)
+      ElMessage.error(result.message || `连接 "${conn.name}" 测试失败`)
     }
-  }, 1500)
+  } catch (error) {
+    loadingMsg.close()
+    console.error('测试连接失败:', error)
+    conn.status = 'error'
+    ElMessage.error(`连接 "${conn.name}" 测试失败`)
+  }
 }
 
 // 删除连接
-const deleteConnection = (conn) => {
-  ElMessageBox.confirm(
-    `确定要删除连接 "${conn.name}" 吗？此操作不可恢复。`,
-    '删除确认',
-    {
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  )
-    .then(() => {
-      const index = connections.value.findIndex(c => c.id === conn.id)
-      if (index !== -1) {
-        connections.value.splice(index, 1)
-        ElMessage.success('连接已删除')
+const deleteConnection = async (conn) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除连接 "${conn.name}" 吗？此操作不可恢复。`,
+      '删除确认',
+      {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning',
       }
-    })
-    .catch(() => {})
+    )
+
+    await deleteConnectionApi(conn.id)
+    ElMessage.success('连接已删除')
+    // 重新加载连接列表
+    await loadConnections()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除连接失败:', error)
+      ElMessage.error('删除连接失败')
+    }
+  }
 }
 </script>
 

@@ -6,9 +6,9 @@
         <h2>数据资源管理</h2>
       </div>
       <div class="header-right">
-        <el-button class="header-btn">
+        <el-button class="header-btn" @click="showExcelImportDialog">
           <el-icon><Download /></el-icon>
-          导入数据
+          导入Excel
         </el-button>
         <el-button type="primary" class="header-btn">
           <el-icon><Plus /></el-icon>
@@ -122,8 +122,11 @@
                 <span class="time-text">{{ scope.row.updatedAt }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="150">
+            <el-table-column label="操作" width="200">
               <template #default="scope">
+                <el-button link type="primary" size="small" @click="handlePreview(scope.row)">
+                  预览
+                </el-button>
                 <el-button link type="primary" size="small" @click="editDataset(scope.row)">
                   编辑
                 </el-button>
@@ -148,17 +151,177 @@
         </div>
       </aside>
     </div>
+
+    <!-- Excel导入对话框 -->
+    <el-dialog
+      v-model="excelImportDialogVisible"
+      title="导入Excel数据"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <el-upload
+        ref="excelUploadRef"
+        class="upload-demo"
+        drag
+        :auto-upload="false"
+        :on-change="handleExcelChange"
+        :file-list="excelFileList"
+        accept=".xlsx,.xls"
+        :limit="1"
+      >
+        <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
+        <div class="el-upload__text">
+          拖拽Excel文件到此处或 <em>点击上传</em>
+        </div>
+        <template #tip>
+          <div class="el-upload__tip">
+            支持 .xlsx 和 .xls 格式，文件大小不超过 10MB
+          </div>
+        </template>
+      </el-upload>
+
+      <div v-if="uploadProgress > 0 && uploadProgress < 100" class="upload-progress">
+        <el-progress :percentage="uploadProgress" />
+      </div>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="closeExcelImportDialog">取消</el-button>
+          <el-button
+            type="primary"
+            @click="handleExcelImportSubmit"
+            :loading="excelImporting"
+            :disabled="!excelFileList.length"
+          >
+            {{ excelImporting ? '导入中...' : '开始导入' }}
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 数据预览对话框 -->
+    <el-dialog
+      v-model="previewDialogVisible"
+      :title="`数据预览 - ${previewDatasetName}`"
+      width="80%"
+      :close-on-click-modal="false"
+    >
+      <div v-loading="previewLoading" class="preview-container">
+        <div v-if="previewData.length > 0" class="preview-table-wrapper">
+          <el-table
+            :data="previewData"
+            style="width: 100%"
+            max-height="500"
+            :header-cell-style="{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }"
+          >
+            <el-table-column
+              v-for="(col, index) in previewColumns"
+              :key="index"
+              :prop="col"
+              :label="col"
+              min-width="120"
+            />
+          </el-table>
+          <div class="preview-footer">
+            <span>共 {{ previewTotal }} 条数据，当前显示前 {{ previewData.length }} 条</span>
+          </div>
+        </div>
+        <div v-else class="preview-empty">
+          <el-empty description="暂无数据" />
+        </div>
+      </div>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="previewDialogVisible = false">关闭</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref, computed, watch, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Search, Plus, Download,
   OfficeBuilding, Folder, FolderOpened,
-  Monitor, TrendCharts, DataAnalysis
+  Monitor, TrendCharts, DataAnalysis, UploadFilled
 } from '@element-plus/icons-vue'
+import { getDatasets, deleteDataset as deleteDatasetApi, getConnections, previewDataset, uploadExcel, validateSQL, testApiDataSource } from '@/api/dataset'
+
+// ==================== 数据加载 ====================
+const loading = ref(false)
+const allDatasets = ref([])
+const connections = ref([])
+
+// 加载数据集列表
+const loadDatasets = async () => {
+  try {
+    loading.value = true
+    const data = await getDatasets()
+    allDatasets.value = data || []
+  } catch (error) {
+    console.error('加载数据集失败:', error)
+    ElMessage.error('加载数据集列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 加载连接列表
+const loadConnections = async () => {
+  try {
+    const data = await getConnections()
+    connections.value = data || []
+  } catch (error) {
+    console.error('加载连接列表失败:', error)
+  }
+}
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadDatasets()
+  loadConnections()
+})
+
+// Excel导入相关状态
+const excelImportDialogVisible = ref(false)
+const excelFileList = ref([])
+const excelUploadRef = ref(null)
+const excelImporting = ref(false)
+const uploadProgress = ref(0)
+
+// 数据预览相关状态
+const previewDialogVisible = ref(false)
+const previewLoading = ref(false)
+const previewData = ref([])
+const previewColumns = ref([])
+const previewTotal = ref(0)
+const previewDatasetName = ref('')
+
+// 获取连接名称
+const getConnectionName = (connectionId) => {
+  const conn = connections.value.find(c => c.id === connectionId)
+  return conn ? conn.name : `连接 #${connectionId}`
+}
+
+// 格式化时间
+const formatTime = (dateStr) => {
+  if (!dateStr) return '-'
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diff = now - date
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+
+  if (minutes < 1) return '刚刚'
+  if (minutes < 60) return `${minutes}分钟前`
+  if (hours < 24) return `${hours}小时前`
+  if (days < 7) return `${days}天前`
+  return date.toLocaleDateString()
+}
 
 // ==================== 树形结构 ====================
 const filterText = ref('')
@@ -172,183 +335,17 @@ const defaultProps = {
 
 const treeData = ref([
   {
-    id: 'org-1',
-    label: '比亚迪集团',
+    id: 'all',
+    label: '全部数据集',
     icon: 'office',
     datasetCount: 0,
-    children: [
-      {
-        id: 'dept-1-1',
-        label: '集团总部',
-        icon: 'folder',
-        datasetCount: 0,
-        children: [
-          {
-            id: 'team-1-1-1',
-            label: '总经办',
-            icon: 'folder',
-            datasetCount: 0,
-            children: [
-              {
-                id: 'project-1-1-1-1',
-                label: '董事长驾驶舱',
-                icon: 'chart',
-                datasetCount: 3,
-                datasets: [
-                  {
-                    id: 'ds-1001',
-                    name: '全年_营收总额_KPI',
-                    key: 'gmv_total_year',
-                    type: 'sql',
-                    source: 'MySQL_BYD_Main',
-                    status: 'active',
-                    statusText: '正常',
-                    updatedAt: '2小时前'
-                  },
-                  {
-                    id: 'ds-1002',
-                    name: '实时_车辆下线计数',
-                    key: 'car_production_realtime',
-                    type: 'api',
-                    source: 'MES_Interface',
-                    status: 'active',
-                    statusText: '2s刷新',
-                    updatedAt: '实时'
-                  },
-                  {
-                    id: 'ds-1003',
-                    name: '大屏_底部滚动公告',
-                    key: 'marquee_text',
-                    type: 'sql',
-                    source: 'MySQL_BYD_Main',
-                    status: 'active',
-                    statusText: '正常',
-                    updatedAt: '1天前'
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            id: 'team-1-1-2',
-            label: '财务部',
-            icon: 'folder',
-            datasetCount: 2,
-            children: [
-              {
-                id: 'project-1-1-2-1',
-                label: '月度财务报表',
-                icon: 'chart',
-                datasetCount: 2,
-                datasets: [
-                  {
-                    id: 'ds-1004',
-                    name: '收入支出汇总',
-                    key: 'finance_summary_month',
-                    type: 'sql',
-                    source: 'Oracle_Finance',
-                    status: 'active',
-                    statusText: '正常',
-                    updatedAt: '3小时前'
-                  },
-                  {
-                    id: 'ds-1005',
-                    name: '成本分析明细',
-                    key: 'cost_analysis_detail',
-                    type: 'excel',
-                    source: 'finance_2024_q4.xlsx',
-                    status: 'active',
-                    statusText: '正常',
-                    updatedAt: '1天前'
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        id: 'dept-1-2',
-        label: '深圳工厂',
-        icon: 'folder',
-        datasetCount: 1,
-        children: [
-          {
-            id: 'team-1-2-1',
-            label: '生产线监控',
-            icon: 'chart',
-            datasetCount: 1,
-            datasets: [
-              {
-                id: 'ds-2001',
-                name: '产线实时状态',
-                key: 'production_line_status',
-                type: 'api',
-                source: 'IoT_Gateway',
-                status: 'active',
-                statusText: '1s刷新',
-                updatedAt: '实时'
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'org-2',
-    label: '腾讯科技',
-    icon: 'office',
-    datasetCount: 0,
-    children: [
-      {
-        id: 'dept-2-1',
-        label: '数据中心',
-        icon: 'folder',
-        datasetCount: 0,
-        children: [
-          {
-            id: 'team-2-1-1',
-            label: '服务器监控',
-            icon: 'chart',
-            datasetCount: 0,
-            datasets: []
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'org-3',
-    label: '演示Demo',
-    icon: 'office',
-    datasetCount: 0,
-    children: [
-      {
-        id: 'project-3-1',
-        label: '电商大屏',
-        icon: 'chart',
-        datasetCount: 0,
-        datasets: []
-      }
-    ]
   }
 ])
 
-// 计算节点数据集总数
-const calculateDatasetCount = (node) => {
-  let count = node.datasets?.length || 0
-  if (node.children) {
-    node.children.forEach(child => {
-      count += calculateDatasetCount(child)
-    })
-  }
-  node.datasetCount = count
-  return count
-}
-
-// 初始化时计算所有节点的数据集数量
-treeData.value.forEach(node => calculateDatasetCount(node))
+// 计算数据集总数
+watch(allDatasets, (datasets) => {
+  treeData.value[0].datasetCount = datasets.length
+}, { immediate: true })
 
 // 获取节点图标
 const getNodeIcon = (data) => {
@@ -358,7 +355,7 @@ const getNodeIcon = (data) => {
 }
 
 watch(filterText, (val) => {
-  treeRef.value.filter(val)
+  treeRef.value?.filter(val)
 })
 
 const filterNode = (value, data) => {
@@ -370,51 +367,29 @@ const handleNodeClick = (data) => {
   currentNode.value = data
 }
 
-// 初始选中第一个有数据集的节点
-const findFirstNodeWithDatasets = (nodes) => {
-  for (const node of nodes) {
-    if (node.datasets && node.datasets.length > 0) {
-      return node
-    }
-    if (node.children) {
-      const found = findFirstNodeWithDatasets(node.children)
-      if (found) return found
-    }
-  }
-  return null
-}
-
-const initialNode = findFirstNodeWithDatasets(treeData.value)
-if (initialNode) {
-  currentNode.value = initialNode
-}
+// 初始选中第一个节点
+currentNode.value = treeData.value[0]
 
 // ==================== 面包屑导航 ====================
 const breadcrumbs = computed(() => {
   if (!currentNode.value) return []
-
-  const findPath = (nodes, targetId, currentPath = []) => {
-    for (const node of nodes) {
-      const newPath = [...currentPath, { id: node.id, label: node.label }]
-      if (node.id === targetId) {
-        return newPath
-      }
-      if (node.children) {
-        const found = findPath(node.children, targetId, newPath)
-        if (found) return found
-      }
-    }
-    return null
-  }
-
-  return findPath(treeData.value, currentNode.value.id) || []
+  return [{ id: currentNode.value.id, label: currentNode.value.label }]
 })
 
 // ==================== 数据集列表 ====================
 const searchDataset = ref('')
 
 const currentDatasets = computed(() => {
-  return currentNode.value?.datasets || []
+  return allDatasets.value.map(dataset => ({
+    id: dataset.id,
+    name: dataset.name,
+    key: `dataset_${dataset.id}`,
+    type: dataset.type,
+    source: dataset.config?.connectionId ? getConnectionName(dataset.config.connectionId) : '-',
+    status: dataset.status,
+    statusText: dataset.status === 'active' ? '正常' : '未激活',
+    updatedAt: formatTime(dataset.updatedAt)
+  }))
 })
 
 const filteredDatasets = computed(() => {
@@ -441,11 +416,7 @@ const getTypeLabel = (type) => {
 }
 
 const handleCreateDataset = () => {
-  if (!currentNode.value) {
-    ElMessage.warning('请先选择组织节点')
-    return
-  }
-  ElMessage.info(`为"${currentNode.value.label}"新建数据集`)
+  ElMessage.info('新建数据集功能开发中...')
 }
 
 const editDataset = (dataset) => {
@@ -454,6 +425,120 @@ const editDataset = (dataset) => {
 
 const viewDataset = (dataset) => {
   ElMessage.info(`查看数据集: ${dataset.name}`)
+}
+
+// 删除数据集
+const deleteDataset = async (dataset) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除数据集 "${dataset.name}" 吗？此操作不可恢复。`,
+      '删除确认',
+      {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+
+    await deleteDatasetApi(dataset.id)
+    ElMessage.success('数据集已删除')
+    // 重新加载数据集列表
+    await loadDatasets()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除数据集失败:', error)
+      ElMessage.error('删除数据集失败')
+    }
+  }
+}
+
+// ==================== Excel导入功能 ====================
+const showExcelImportDialog = () => {
+  excelImportDialogVisible.value = true
+}
+
+const closeExcelImportDialog = () => {
+  excelImportDialogVisible.value = false
+  excelFileList.value = []
+  uploadProgress.value = 0
+  if (excelUploadRef.value) {
+    excelUploadRef.value.clearFiles()
+  }
+}
+
+const handleExcelChange = (file, fileList) => {
+  excelFileList.value = fileList
+
+  if (file.raw) {
+    const isExcel = file.raw.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+                    file.raw.type === 'application/vnd.ms-excel' ||
+                    file.name.endsWith('.xlsx') || file.name.endsWith('.xls')
+    const isLt10M = file.raw.size / 1024 / 1024 < 10
+
+    if (!isExcel) {
+      ElMessage.error('只能上传 Excel 文件!')
+      excelFileList.value = []
+      return
+    }
+    if (!isLt10M) {
+      ElMessage.error('文件大小不能超过 10MB!')
+      excelFileList.value = []
+      return
+    }
+  }
+}
+
+const handleExcelImportSubmit = async () => {
+  if (!excelFileList.value.length) {
+    ElMessage.warning('请先选择文件')
+    return
+  }
+
+  excelImporting.value = true
+  uploadProgress.value = 0
+
+  try {
+    const file = excelFileList.value[0].raw
+    const result = await uploadExcel(file, (progress) => {
+      uploadProgress.value = progress
+    })
+
+    ElMessage.success(`成功导入数据集: ${result.name}`)
+    closeExcelImportDialog()
+    await loadDatasets()
+  } catch (error) {
+    console.error('导入Excel失败:', error)
+    ElMessage.error('导入Excel失败')
+  } finally {
+    excelImporting.value = false
+  }
+}
+
+// ==================== 数据预览功能 ====================
+const handlePreview = async (dataset) => {
+  previewDatasetName.value = dataset.name
+  previewDialogVisible.value = true
+  previewLoading.value = true
+
+  try {
+    const result = await previewDataset(dataset.id, { page: 1, pageSize: 100 })
+
+    if (result.data && result.data.length > 0) {
+      previewData.value = result.data
+      previewColumns.value = Object.keys(result.data[0])
+      previewTotal.value = result.total || result.data.length
+    } else {
+      previewData.value = []
+      previewColumns.value = []
+      previewTotal.value = 0
+    }
+  } catch (error) {
+    console.error('加载预览数据失败:', error)
+    ElMessage.error('加载预览数据失败')
+    previewData.value = []
+  } finally {
+    previewLoading.value = false
+  }
 }
 </script>
 
@@ -772,5 +857,37 @@ const viewDataset = (dataset) => {
 .empty-text {
   font-size: 14px;
   color: #666;
+}
+
+/* Upload Progress */
+.upload-progress {
+  margin-top: 20px;
+}
+
+/* Preview Container */
+.preview-container {
+  min-height: 300px;
+}
+
+.preview-table-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.preview-footer {
+  padding: 12px 16px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+  text-align: right;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.preview-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
 }
 </style>

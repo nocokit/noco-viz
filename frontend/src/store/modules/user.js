@@ -20,11 +20,12 @@ export const useUserStore = defineStore('user', () => {
   async function login(loginData) {
     const res = await userApi.login(loginData)
     console.log('登录成功:', res)
-    // 保存 Token
-    accessToken.value = res.tokens.access
-    refreshToken.value = res.tokens.refresh
-    localStorage.setItem('access_token', res.tokens.access)
-    localStorage.setItem('refresh_token', res.tokens.refresh)
+    // 保存 Token (适配后端返回格式)
+    accessToken.value = res.access_token
+    // 后端暂时没有返回 refresh token，使用 access_token 作为临时方案
+    refreshToken.value = res.access_token
+    localStorage.setItem('access_token', res.access_token)
+    localStorage.setItem('refresh_token', res.access_token)
 
     // 保存用户信息
     userInfo.value = res.user
@@ -39,11 +40,11 @@ export const useUserStore = defineStore('user', () => {
   async function register(registerData) {
     const res = await userApi.register(registerData)
 
-    // 保存 Token
-    accessToken.value = res.tokens.access
-    refreshToken.value = res.tokens.refresh
-    localStorage.setItem('access_token', res.tokens.access)
-    localStorage.setItem('refresh_token', res.tokens.refresh)
+    // 保存 Token (适配后端返回格式)
+    accessToken.value = res.access_token
+    refreshToken.value = res.access_token
+    localStorage.setItem('access_token', res.access_token)
+    localStorage.setItem('refresh_token', res.access_token)
 
     // 保存用户信息
     userInfo.value = res.user
@@ -62,9 +63,9 @@ export const useUserStore = defineStore('user', () => {
 
     const res = await userApi.refreshToken(refreshToken.value)
 
-    // 更新 Access Token
-    accessToken.value = res.access
-    localStorage.setItem('access_token', res.access)
+    // 更新 Access Token (适配后端返回格式)
+    accessToken.value = res.access_token
+    localStorage.setItem('access_token', res.access_token)
 
     return res
   }

@@ -249,51 +249,53 @@
 </template>
 
 <script setup>
-import { ref, watch, reactive } from 'vue'
+import { ref, watch, reactive, onMounted } from 'vue'
 import { Search, Refresh, RefreshRight, Sort, Plus, OfficeBuilding, Folder, Edit, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  getDepartmentTree,
+  createDepartment,
+  updateDepartment,
+  deleteDepartment
+} from '@/api/department'
 
 // --- Tree Logic ---
 const filterText = ref('')
 const treeRef = ref(null)
 const currentDept = ref({ label: '集团总部', count: 1204 })
+const loading = ref(false)
 
 const defaultProps = {
   children: 'children',
   label: 'label',
 }
 
-const treeData = [
-  {
-    id: 1,
-    label: '集团总部',
-    count: 1204,
-    children: [
-      {
-        id: 2,
-        label: '研发中心',
-        count: 450,
-        children: [
-          { id: 21, label: '前端架构组', count: 32 },
-          { id: 22, label: '后端服务组', count: 85 },
-        ],
-      },
-      {
-        id: 3,
-        label: '市场营销部',
-        count: 210,
-      },
-      {
-        id: 4,
-        label: '财务部',
-        count: 45,
-      },
-    ],
-  },
-]
+const treeData = ref([])
+
+// 加载部门树
+const loadDepartmentTree = async () => {
+  try {
+    loading.value = true
+    const res = await getDepartmentTree()
+    treeData.value = res.data || []
+    if (treeData.value.length > 0) {
+      currentDept.value = treeData.value[0]
+    }
+  } catch (error) {
+    console.error('加载部门树失败:', error)
+    ElMessage.error('加载部门树失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 页面加载时获取数据
+onMounted(() => {
+  loadDepartmentTree()
+})
 
 watch(filterText, (val) => {
-  treeRef.value.filter(val)
+  treeRef.value?.filter(val)
 })
 
 const filterNode = (value, data) => {
@@ -352,7 +354,7 @@ const handleEditNode = (data) => {
 }
 
 // 删除部门
-const handleDeleteNode = (data, node) => {
+const handleDeleteNode = async (data, node) => {
   ElMessageBox.confirm(
     `确定要删除部门 "${data.label}" 吗？${data.children && data.children.length > 0 ? '删除后，其子部门也将被删除。' : ''}此操作不可恢复。`,
     '删除确认',
@@ -362,14 +364,15 @@ const handleDeleteNode = (data, node) => {
       type: 'warning',
     }
   )
-    .then(() => {
-      // 找到父节点并删除该节点
-      const parent = node.parent
-      const children = parent.data.children || parent.data
-      const index = children.findIndex(d => d.id === data.id)
-      if (index !== -1) {
-        children.splice(index, 1)
+    .then(async () => {
+      try {
+        await deleteDepartment(data.id)
         ElMessage.success(`部门 "${data.label}" 已删除`)
+        // 重新加载部门树
+        await loadDepartmentTree()
+      } catch (error) {
+        console.error('删除部门失败:', error)
+        ElMessage.error('删除部门失败')
       }
     })
     .catch(() => {})
@@ -390,44 +393,40 @@ const resetDeptForm = () => {
 }
 
 // 提交部门表单
-const handleDeptSubmit = () => {
+const handleDeptSubmit = async () => {
   if (!deptFormRef.value) return
 
-  deptFormRef.value.validate((valid) => {
+  deptFormRef.value.validate(async (valid) => {
     if (!valid) return
 
     deptSubmitting.value = true
 
-    // 模拟异步提交
-    setTimeout(() => {
+    try {
       if (isDeptEditMode.value) {
         // 编辑模式
-        if (currentEditingNode) {
-          currentEditingNode.label = deptFormData.label
-          ElMessage.success(`部门 "${deptFormData.label}" 已更新`)
-        }
+        await updateDepartment(currentEditingNode.id, {
+          label: deptFormData.label
+        })
+        ElMessage.success(`部门 "${deptFormData.label}" 已更新`)
       } else {
         // 新增模式
-        const newDept = {
-          id: generateDeptId(),
+        const payload = {
           label: deptFormData.label,
-          count: 0,  // 人员数量动态计算
-          children: []
+          parentId: parentNodeData?.id
         }
-
-        if (parentNodeData) {
-          // 添加为子节点
-          if (!parentNodeData.children) {
-            parentNodeData.children = []
-          }
-          parentNodeData.children.push(newDept)
-          ElMessage.success(`子部门 "${deptFormData.label}" 创建成功`)
-        }
+        await createDepartment(payload)
+        ElMessage.success(`部门 "${deptFormData.label}" 创建成功`)
       }
 
-      deptSubmitting.value = false
+      // 重新加载部门树
+      await loadDepartmentTree()
       closeDeptModal()
-    }, 800)
+    } catch (error) {
+      console.error('提交部门失败:', error)
+      ElMessage.error(isDeptEditMode.value ? '更新部门失败' : '创建部门失败')
+    } finally {
+      deptSubmitting.value = false
+    }
   })
 }
 

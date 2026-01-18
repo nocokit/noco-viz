@@ -125,16 +125,6 @@
         />
       </el-form-item>
 
-      <el-form-item label="可见范围" prop="visibility">
-        <el-radio-group v-model="form.visibility">
-          <el-radio label="department">仅本部门</el-radio>
-          <el-radio label="company">全公司</el-radio>
-          <el-radio label="public">公开（需审核）</el-radio>
-        </el-radio-group>
-        <div class="form-tip">
-          公开模板将提交给管理员审核，通过后展示在官方推荐区
-        </div>
-      </el-form-item>
     </el-form>
 
     <template #footer>
@@ -183,7 +173,6 @@ const form = ref({
   resolution: '1920 x 1080',
   tags: [],
   thumbnail: '',
-  visibility: 'department',
   config: null
 })
 
@@ -268,22 +257,11 @@ const handleCustomUpload = async (file) => {
       uploadProgress.value = progress
     })
 
-    if (response.code === 200) {
-      form.value.thumbnail = response.data.url
-      ElMessage.success('缩略图上传成功')
-    } else {
-      ElMessage.error(response.message || '上传失败')
-    }
+    form.value.thumbnail = response.url
+    ElMessage.success('缩略图上传成功')
   } catch (error) {
     console.error('上传失败:', error)
-    // Mock数据（用于演示）
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      form.value.thumbnail = e.target.result
-      uploadProgress.value = 100
-      ElMessage.success('缩略图上传成功（Mock）')
-    }
-    reader.readAsDataURL(file)
+    ElMessage.error('上传缩略图失败')
   }
 }
 
@@ -314,36 +292,28 @@ const handleSubmit = async () => {
 
     // 准备提交数据
     const submitData = {
-      ...form.value,
-      type: 'shared',
-      isSystem: false,
-      author: '当前用户', // 从用户信息获取
-      config: props.screenData || {},
-      usageCount: 0
+      title: form.value.name,
+      description: form.value.description,
+      category: form.value.category,
+      thumbnail: form.value.thumbnail,
+      config: {
+        ...props.screenData,
+        tags: form.value.tags,
+        metadata: {
+          department: form.value.department,
+          resolution: form.value.resolution
+        }
+      }
     }
 
     try {
       const response = await publishTemplate(submitData)
-
-      if (response.code === 200) {
-        ElMessage.success('模板发布成功！')
-        emit('success', response.data)
-        handleClose()
-      } else {
-        ElMessage.error(response.message || '发布失败')
-      }
+      ElMessage.success('模板发布成功！')
+      emit('success', response)
+      handleClose()
     } catch (error) {
       console.error('发布失败:', error)
-      // Mock成功（用于演示）
-      ElMessage.success('模板发布成功！（Mock）')
-      const mockTemplate = {
-        ...submitData,
-        id: `tpl-shared-${Date.now()}`,
-        createdAt: new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString().split('T')[0]
-      }
-      emit('success', mockTemplate)
-      handleClose()
+      ElMessage.error('发布模板失败')
     }
   } catch (error) {
     console.error('表单验证失败:', error)
@@ -364,7 +334,6 @@ const handleClose = () => {
     resolution: '1920 x 1080',
     tags: [],
     thumbnail: '',
-    visibility: 'department',
     config: null
   }
   uploadProgress.value = 0

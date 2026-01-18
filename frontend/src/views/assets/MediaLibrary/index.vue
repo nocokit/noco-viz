@@ -30,10 +30,10 @@
       <div class="storage-box">
         <div class="storage-info">
           <span>存储空间</span>
-          <span>7.5 GB / 10 GB</span>
+          <span>{{ storageStats.usedFormatted }} / {{ storageStats.totalFormatted }}</span>
         </div>
         <div class="progress-bar">
-          <div class="progress-fill"></div>
+          <div class="progress-fill" :style="{ width: storageStats.percentage + '%' }"></div>
         </div>
       </div>
     </aside>
@@ -54,6 +54,16 @@
               clearable
             />
           </div>
+
+          <!-- 批量删除按钮 -->
+          <el-button
+            v-if="selectedAssets.length > 0"
+            type="danger"
+            @click="handleBatchDelete"
+          >
+            <el-icon><Delete /></el-icon>
+            删除选中 ({{ selectedAssets.length }})
+          </el-button>
 
           <!-- 视图切换 -->
           <el-radio-group v-model="viewMode" size="small">
@@ -78,8 +88,10 @@
           <div
             v-for="item in filteredMedia"
             :key="item.id"
-            :class="['asset-card', { selected: selectedAsset?.id === item.id }]"
-            @click="selectAsset(item)"
+            :class="['asset-card', {
+              selected: selectedAssets.some(a => a.id === item.id)
+            }]"
+            @click="toggleAssetSelection(item, $event)"
           >
             <!-- Thumb Wrapper -->
             <div :class="['thumb-wrapper', { transparent: item.type === 'image' && item.name.endsWith('.png') }]">
@@ -342,14 +354,24 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, UploadFilled, Grid, List, Edit, Delete, Document } from '@element-plus/icons-vue'
+import {
+  getMediaList,
+  uploadMedia,
+  updateMedia,
+  deleteMedia,
+  getMediaCategories,
+  getMediaStats,
+  batchDeleteMedia
+} from '@/api/media'
 
 // State
 const activeFolder = ref(0) // 0 = All
 const searchQuery = ref('')
 const selectedAsset = ref(null)
+const selectedAssets = ref([]) // 批量选择
 const viewMode = ref('grid') // 'grid' or 'list'
 
 // Upload Dialog
@@ -367,16 +389,17 @@ const editForm = ref({
   folderId: null
 })
 
+// Storage Stats
+const storageStats = ref({
+  used: 0,
+  total: 10737418240, // 10GB
+  usedFormatted: '0 GB',
+  totalFormatted: '10 GB',
+  percentage: 0
+})
+
 // Folders Data
-const folders = ref([
-  { id: 0, name: '全部资源', count: 136, isDefault: true },
-  { id: 5, name: '图片资源', count: 8, isDefault: true },
-  { id: 6, name: '背景图', count: 15, isDefault: true },
-  { id: 1, name: '3D 模型库', count: 12, isDefault: true },
-  { id: 2, name: '视频素材', count: 5, isDefault: true },
-  { id: 3, name: '装饰素材', count: 86, isDefault: true },
-  { id: 4, name: '公司 Logo', count: 25, isDefault: true }
-])
+const folders = ref([])
 
 // Folder Dialog
 const folderDialogVisible = ref(false)
@@ -469,64 +492,87 @@ const currentFolderName = computed(() => {
 })
 
 // Assets Data
-const mockMediaList = ref([
-  {
-    id: 501,
-    name: '项目封面_v1.jpg',
-    type: 'image',
-    folderId: 5,
-    url: '/images/project-cover.svg',
-    size: 1800000,
-    meta1: '1200x675',
-    uploadTime: 1698487605000,
-    tags: ['封面', '项目', '展示']
-  },
-  {
-    id: 1,
-    name: '科技感背景.jpg',
-    type: 'image',
-    folderId: 3,
-    url: '/images/project-cover.svg',
-    size: 2400000,
-    meta1: '1920x1080',
-    uploadTime: 1698387605000,
-    tags: ['背景', '科技风', '蓝色']
-  },
-  {
-    id: 2,
-    name: '工厂设备_V2.glb',
-    type: '3d',
-    folderId: 1,
-    url: '/images/project-cover.svg', // Placeholder
-    size: 15728640,
-    meta1: '3D Model',
-    uploadTime: 1698287605000,
-    tags: ['设备', '工业', '数字孪生']
-  },
-  {
-    id: 3,
-    name: '城市车流.mp4',
-    type: 'video',
-    folderId: 2,
-    url: '/images/project-cover.svg', // Placeholder
-    size: 47185920,
-    meta1: 'Video',
-    duration: '0:15',
-    uploadTime: 1698187605000,
-    tags: ['城市', '交通', '动态']
-  },
-  {
-    id: 4,
-    name: '装饰光效_Blue.png',
-    type: 'image',
-    folderId: 3,
-    url: '/images/project-cover.svg',
-    size: 122880,
-    meta1: '500x500',
-    uploadTime: 1698087605000,
-    tags: ['光效', '装饰', '透明']
+const mockMediaList = ref([])
+const loading = ref(false)
+
+// 加载媒体列表
+const loadMediaList = async () => {
+  try {
+    loading.value = true
+    const response = await getMediaList()
+    const mediaData = response.data || response || []
+    mockMediaList.value = mediaData.map(item => ({
+      ...item,
+      // 使用类型映射获取 folderId
+      folderId: (window._mediaTypeMap && window._mediaTypeMap[item.type]) || 0,
+      meta1: item.metadata?.resolution || item.metadata?.dimensions || 'N/A',
+      uploadTime: new Date(item.createdAt).getTime(),
+      tags: item.tags || []
+    }))
+  } catch (error) {
+    console.error('加载媒体列表失败:', error)
+    ElMessage.error('加载媒体列表失败')
+  } finally {
+    loading.value = false
   }
-])
+}
+
+// 加载存储统计
+const loadStorageStats = async () => {
+  try {
+    const stats = await getMediaStats()
+    const usedGB = (stats.totalSize / 1024 / 1024 / 1024).toFixed(2)
+    const totalGB = (storageStats.value.total / 1024 / 1024 / 1024).toFixed(0)
+    storageStats.value = {
+      used: stats.totalSize,
+      total: storageStats.value.total,
+      usedFormatted: `${usedGB} GB`,
+      totalFormatted: `${totalGB} GB`,
+      percentage: Math.round((stats.totalSize / storageStats.value.total) * 100)
+    }
+  } catch (error) {
+    console.error('加载存储统计失败:', error)
+  }
+}
+
+// 加载分类列表
+const loadCategories = async () => {
+  try {
+    const categories = await getMediaCategories()
+    // 存储类型映射，便于后续使用
+    window._mediaTypeMap = {}
+    categories.forEach(cat => {
+      window._mediaTypeMap[cat.type] = cat.id
+    })
+
+    folders.value = [
+      { id: 0, name: '全部资源', count: categories.reduce((sum, c) => sum + c.count, 0), isDefault: true },
+      ...categories.map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        type: cat.type,
+        count: cat.count,
+        isDefault: true
+      }))
+    ]
+  } catch (error) {
+    console.error('加载分类失败:', error)
+    // 使用默认分类
+    folders.value = [
+      { id: 0, name: '全部资源', count: 0, isDefault: true }
+    ]
+  }
+}
+
+// 组件挂载时加载数据
+onMounted(async () => {
+  // 先加载分类，然后加载媒体列表（因为需要类型映射）
+  await loadCategories()
+  await Promise.all([
+    loadMediaList(),
+    loadStorageStats()
+  ])
+})
 
 // Filtering Logic
 const filteredMedia = computed(() => {
@@ -552,22 +598,89 @@ const selectAsset = (item) => {
   selectedAsset.value = item
 }
 
-const handleDelete = (item) => {
-  ElMessageBox.confirm(
-    `确定要删除资源 "${item.name}" 吗？`,
-    '删除确认',
-    {
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      type: 'warning',
+// 切换资源选择（支持多选）
+const toggleAssetSelection = (item, event) => {
+  const index = selectedAssets.value.findIndex(a => a.id === item.id)
+
+  if (event.ctrlKey || event.metaKey) {
+    // Ctrl/Cmd 多选
+    if (index > -1) {
+      selectedAssets.value.splice(index, 1)
+    } else {
+      selectedAssets.value.push(item)
     }
-  )
-    .then(() => {
-      mockMediaList.value = mockMediaList.value.filter(i => i.id !== item.id)
-      selectedAsset.value = null
-      ElMessage.success('删除成功')
-    })
-    .catch(() => {})
+  } else {
+    // 单选
+    if (index > -1) {
+      selectedAssets.value = []
+    } else {
+      selectedAssets.value = [item]
+    }
+  }
+
+  // 更新单选状态
+  selectedAsset.value = selectedAssets.value[0] || null
+}
+
+// 批量删除
+const handleBatchDelete = async () => {
+  if (selectedAssets.value.length === 0) return
+
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${selectedAssets.value.length} 个文件吗？此操作不可恢复。`,
+      '批量删除确认',
+      {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+
+    const ids = selectedAssets.value.map(item => item.id)
+    await batchDeleteMedia(ids)
+
+    ElMessage.success(`成功删除 ${ids.length} 个文件`)
+
+    // 清除选中状态
+    selectedAssets.value = []
+    selectedAsset.value = null
+
+    // 重新加载列表和统计
+    await Promise.all([
+      loadMediaList(),
+      loadStorageStats()
+    ])
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('批量删除失败:', error)
+      ElMessage.error('批量删除失败')
+    }
+  }
+}
+
+const handleDelete = async (item) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除资源 "${item.name}" 吗？`,
+      '删除确认',
+      {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+
+    await deleteMedia(item.id)
+    mockMediaList.value = mockMediaList.value.filter(i => i.id !== item.id)
+    selectedAsset.value = null
+    ElMessage.success('删除成功')
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除失败:', error)
+      ElMessage.error('删除失败')
+    }
+  }
 }
 
 // Utility: Format Size
@@ -625,28 +738,40 @@ const handleUpload = async () => {
 
   uploading.value = true
 
-  // 模拟上传
-  setTimeout(() => {
-    uploadFileList.value.forEach(file => {
-      const newMedia = {
-        id: Date.now() + Math.random(),
-        name: file.customName,
-        type: getFileType(file.name),
-        folderId: activeFolder.value === 0 ? 5 : activeFolder.value,
-        url: '/images/project-cover.svg',
-        size: file.size,
-        meta1: '1920x1080',
-        uploadTime: Date.now(),
-        tags: []
+  try {
+    // 上传所有文件
+    const uploadPromises = uploadFileList.value.map(async (file) => {
+      try {
+        const result = await uploadMedia(file.raw, (progress) => {
+          console.log(`上传进度: ${progress}%`)
+        })
+
+        // 如果自定义了文件名，更新文件名
+        if (file.customName !== file.name) {
+          await updateMedia(result.id, { name: file.customName })
+        }
+
+        return result
+      } catch (error) {
+        console.error(`上传文件 ${file.name} 失败:`, error)
+        throw error
       }
-      mockMediaList.value.push(newMedia)
     })
 
-    uploading.value = false
-    uploadDialogVisible.value = false
+    await Promise.all(uploadPromises)
+
     ElMessage.success(`成功上传 ${uploadFileList.value.length} 个文件`)
+    uploadDialogVisible.value = false
     uploadFileList.value = []
-  }, 1500)
+
+    // 重新加载媒体列表
+    await loadMediaList()
+  } catch (error) {
+    console.error('上传失败:', error)
+    ElMessage.error('部分文件上传失败')
+  } finally {
+    uploading.value = false
+  }
 }
 
 const getFileType = (filename) => {
@@ -668,22 +793,34 @@ const showEditDialog = (item) => {
   editDialogVisible.value = true
 }
 
-const handleEdit = () => {
-  const index = mockMediaList.value.findIndex(m => m.id === editForm.value.id)
-  if (index !== -1) {
-    mockMediaList.value[index] = {
-      ...mockMediaList.value[index],
+const handleEdit = async () => {
+  try {
+    await updateMedia(editForm.value.id, {
       name: editForm.value.name,
-      tags: editForm.value.tags,
-      folderId: editForm.value.folderId
+      category: editForm.value.folderId,
+      tags: editForm.value.tags
+    })
+
+    const index = mockMediaList.value.findIndex(m => m.id === editForm.value.id)
+    if (index !== -1) {
+      mockMediaList.value[index] = {
+        ...mockMediaList.value[index],
+        name: editForm.value.name,
+        tags: editForm.value.tags,
+        folderId: editForm.value.folderId
+      }
+
+      // Update selected asset if it's the one being edited
+      if (selectedAsset.value?.id === editForm.value.id) {
+        selectedAsset.value = mockMediaList.value[index]
+      }
     }
+
     ElMessage.success('保存成功')
     editDialogVisible.value = false
-
-    // Update selected asset if it's the one being edited
-    if (selectedAsset.value?.id === editForm.value.id) {
-      selectedAsset.value = mockMediaList.value[index]
-    }
+  } catch (error) {
+    console.error('保存失败:', error)
+    ElMessage.error('保存失败')
   }
 }
 </script>

@@ -17,12 +17,11 @@
       <!-- 左侧：轮播组列表 -->
       <div class="playlist-list">
         <div class="list-header">
-          所有轮播组 ({{ playlists.length }})
           <input
             v-model="searchKeyword"
             type="text"
             class="search-mini"
-            placeholder="搜索..."
+            placeholder="搜索轮播组..."
           >
         </div>
 
@@ -39,8 +38,11 @@
               <span
                 :style="{
                   color: playlist.status === 'playing' ? '#10b981' : '#9ca3af',
-                  fontSize: '12px'
+                  fontSize: '12px',
+                  cursor: 'pointer'
                 }"
+                @click.stop="togglePlaylistStatus(playlist)"
+                :title="playlist.status === 'playing' ? '点击设为闲置' : '点击设为播放中'"
               >
                 ● {{ playlist.status === 'playing' ? '播放中' : '闲置' }}
               </span>
@@ -129,14 +131,14 @@
         </div>
 
         <!-- 底部预览条 -->
-        <div class="preview-footer">
+        <div v-if="selectedPlaylist" class="preview-footer">
           <div class="device-mock">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path
                 d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"
               />
             </svg>
-            分辨率设置: {{ selectedPlaylist?.resolution }} (16:9)
+            分辨率设置: {{ selectedPlaylist.resolution }} (16:9)
           </div>
           <div style="font-size: 12px; color: #9ca3af">
             过渡效果:
@@ -212,10 +214,19 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import CommonModal from '@/components/CommonModal.vue'
+import {
+  getPlaylists,
+  createPlaylist,
+  updatePlaylist,
+  deletePlaylist,
+  updateSlides,
+  removeSlide as removeSlideApi,
+  updatePlaylistStatus
+} from '@/api/playlist'
 
 const searchKeyword = ref('')
 const selectedPlaylist = ref(null)
@@ -224,6 +235,7 @@ const isEditMode = ref(false)
 const submitting = ref(false)
 const formRef = ref(null)
 const editingPlaylistId = ref(null)
+const loading = ref(false)
 
 // 表单数据
 const formData = reactive({
@@ -247,118 +259,34 @@ const formRules = {
 }
 
 // 播放列表数据
-const playlists = ref([
-  {
-    id: 1,
-    name: '公司大堂主屏',
-    status: 'playing',
-    resolution: '1920x1080',
-    url: 'http://view.nocoviz.com/p/hall-main',
-    transition: 'fade',
-    slides: [
-      {
-        id: 101,
-        name: '集团介绍大屏',
-        version: 'v2.1',
-        duration: 60,
-        thumbnail: 'https://picsum.photos/160/90?random=1'
-      },
-      {
-        id: 102,
-        name: '全球业务分布图',
-        version: 'v1.0',
-        duration: 30,
-        thumbnail: 'https://picsum.photos/160/90?random=2'
-      },
-      {
-        id: 103,
-        name: 'Q4 业绩战报',
-        version: 'v3.5',
-        duration: 60,
-        thumbnail: 'https://picsum.photos/160/90?random=3'
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: '监控室 2 号屏',
-    status: 'idle',
-    resolution: '3840x2160 (4K)',
-    url: 'http://view.nocoviz.com/p/monitor-2',
-    transition: 'none',
-    slides: [
-      {
-        id: 201,
-        name: '实时监控看板',
-        version: 'v1.2',
-        duration: 120,
-        thumbnail: 'https://picsum.photos/160/90?random=4'
-      },
-      {
-        id: 202,
-        name: '告警统计仪表盘',
-        version: 'v2.0',
-        duration: 60,
-        thumbnail: 'https://picsum.photos/160/90?random=5'
-      }
-    ]
-  },
-  {
-    id: 3,
-    name: '销售部电视墙',
-    status: 'idle',
-    resolution: '1920x1080',
-    url: 'http://view.nocoviz.com/p/sales-tv',
-    transition: 'slide',
-    slides: [
-      {
-        id: 301,
-        name: '销售额趋势',
-        version: 'v1.0',
-        duration: 45,
-        thumbnail: 'https://picsum.photos/160/90?random=6'
-      },
-      {
-        id: 302,
-        name: '区域排行榜',
-        version: 'v1.5',
-        duration: 30,
-        thumbnail: 'https://picsum.photos/160/90?random=7'
-      },
-      {
-        id: 303,
-        name: '客户分析',
-        version: 'v2.0',
-        duration: 40,
-        thumbnail: 'https://picsum.photos/160/90?random=8'
-      },
-      {
-        id: 304,
-        name: '产品销量Top10',
-        version: 'v1.3',
-        duration: 35,
-        thumbnail: 'https://picsum.photos/160/90?random=9'
-      },
-      {
-        id: 305,
-        name: '月度目标达成',
-        version: 'v2.1',
-        duration: 40,
-        thumbnail: 'https://picsum.photos/160/90?random=10'
-      },
-      {
-        id: 306,
-        name: '团队业绩PK',
-        version: 'v1.8',
-        duration: 30,
-        thumbnail: 'https://picsum.photos/160/90?random=11'
-      }
-    ]
-  }
-])
+const playlists = ref([])
 
-// 初始选中第一个
-selectedPlaylist.value = playlists.value[0]
+// 加载播放列表
+const loadPlaylists = async () => {
+  try {
+    loading.value = true
+    const data = await getPlaylists()
+    playlists.value = data.map(playlist => ({
+      ...playlist,
+      slides: playlist.slides || []
+    }))
+
+    // 初始选中第一个
+    if (playlists.value.length > 0 && !selectedPlaylist.value) {
+      selectedPlaylist.value = playlists.value[0]
+    }
+  } catch (error) {
+    console.error('加载轮播列表失败:', error)
+    ElMessage.error('加载轮播列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadPlaylists()
+})
 
 // 过滤后的播放列表
 const filteredPlaylists = computed(() => {
@@ -385,13 +313,23 @@ const selectPlaylist = (playlist) => {
 }
 
 // 移除轮播项
-const removeSlide = (index) => {
+const removeSlide = async (index) => {
   if (selectedPlaylist.value.slides.length === 1) {
     ElMessage.warning('至少保留一个轮播项')
     return
   }
-  selectedPlaylist.value.slides.splice(index, 1)
-  ElMessage.success('已移除')
+
+  try {
+    const slide = selectedPlaylist.value.slides[index]
+    if (slide.id) {
+      await removeSlideApi(selectedPlaylist.value.id, slide.id)
+    }
+    selectedPlaylist.value.slides.splice(index, 1)
+    ElMessage.success('已移除')
+  } catch (error) {
+    console.error('移除轮播项失败:', error)
+    ElMessage.error('移除轮播项失败')
+  }
 }
 
 // 添加轮播项
@@ -413,8 +351,16 @@ const copyUrl = () => {
 }
 
 // 保存配置
-const saveConfig = () => {
-  ElMessage.success('配置已保存')
+const saveConfig = async () => {
+  if (!selectedPlaylist.value) return
+
+  try {
+    await updateSlides(selectedPlaylist.value.id, selectedPlaylist.value.slides)
+    ElMessage.success('配置已保存')
+  } catch (error) {
+    console.error('保存配置失败:', error)
+    ElMessage.error('保存配置失败')
+  }
 }
 
 // 打开新建模态框
@@ -452,78 +398,93 @@ const resetForm = () => {
 }
 
 // 提交表单
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (!formRef.value) return
 
-  formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (!valid) return
 
     submitting.value = true
 
-    // 模拟异步提交
-    setTimeout(() => {
+    try {
+      const playlistData = {
+        name: formData.name,
+        resolution: formData.resolution,
+        transition: formData.transition,
+        status: 'idle',
+        slides: []
+      }
+
       if (isEditMode.value) {
         // 编辑模式
-        const playlist = playlists.value.find(p => p.id === editingPlaylistId.value)
-        if (playlist) {
-          playlist.name = formData.name
-          playlist.resolution = formData.resolution
-          playlist.transition = formData.transition
-          ElMessage.success(`轮播组 "${formData.name}" 已更新`)
-        }
+        await updatePlaylist(editingPlaylistId.value, playlistData)
+        ElMessage.success(`轮播组 "${formData.name}" 已更新`)
       } else {
         // 新建模式
-        const newPlaylist = {
-          id: Date.now(),
-          name: formData.name,
-          status: 'idle',
-          resolution: formData.resolution,
-          url: `http://view.nocoviz.com/p/${Date.now()}`,
-          transition: formData.transition,
-          slides: [
-            {
-              id: Date.now() + 1,
-              name: '新增大屏页面',
-              version: 'v1.0',
-              duration: 30,
-              thumbnail: `https://picsum.photos/160/90?random=${Date.now()}`
-            }
-          ]
-        }
-        playlists.value.unshift(newPlaylist)
-        selectedPlaylist.value = newPlaylist
+        await createPlaylist(playlistData)
         ElMessage.success(`轮播组 "${formData.name}" 创建成功`)
       }
 
-      submitting.value = false
+      // 重新加载列表
+      await loadPlaylists()
       closeModal()
-    }, 800)
+    } catch (error) {
+      console.error('保存轮播组失败:', error)
+      ElMessage.error('保存轮播组失败')
+    } finally {
+      submitting.value = false
+    }
   })
 }
 
 // 删除轮播组
-const handleDelete = (playlist) => {
-  ElMessageBox.confirm(
-    `确定要删除轮播组 "${playlist.name}" 吗？此操作不可恢复。`,
-    '删除确认',
-    {
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }
-  )
-    .then(() => {
-      const index = playlists.value.findIndex(p => p.id === playlist.id)
-      if (index !== -1) {
-        playlists.value.splice(index, 1)
-        // 如果删除的是当前选中的，则选中第一个
-        if (selectedPlaylist.value?.id === playlist.id) {
-          selectedPlaylist.value = playlists.value[0] || null
-        }
-        ElMessage.success('轮播组已删除')
+const handleDelete = async (playlist) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除轮播组 "${playlist.name}" 吗？此操作不可恢复。`,
+      '删除确认',
+      {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning',
       }
-    })
-    .catch(() => {})
+    )
+
+    await deletePlaylist(playlist.id)
+    ElMessage.success('轮播组已删除')
+
+    // 清除选中
+    if (selectedPlaylist.value?.id === playlist.id) {
+      selectedPlaylist.value = null
+    }
+
+    // 重新加载列表
+    await loadPlaylists()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除轮播组失败:', error)
+      ElMessage.error('删除轮播组失败')
+    }
+  }
+}
+
+// 切换轮播状态
+const togglePlaylistStatus = async (playlist) => {
+  try {
+    const newStatus = playlist.status === 'playing' ? 'idle' : 'playing'
+    await updatePlaylistStatus(playlist.id, newStatus)
+
+    // 更新本地数据
+    playlist.status = newStatus
+    if (selectedPlaylist.value?.id === playlist.id) {
+      selectedPlaylist.value.status = newStatus
+    }
+
+    ElMessage.success(`已设为${newStatus === 'playing' ? '播放中' : '闲置'}`)
+  } catch (error) {
+    console.error('更新状态失败:', error)
+    ElMessage.error('更新播放状态失败')
+  }
 }
 </script>
 

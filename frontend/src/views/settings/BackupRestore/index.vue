@@ -81,8 +81,8 @@
             <td>{{ item.createTime }}</td>
             <td>
               <span class="action-link" style="color:var(--success)" @click="openRestoreModal(item.fileName)">恢复</span>
-              <span class="action-link">下载</span>
-              <span class="action-link danger">删除</span>
+              <span class="action-link" @click="handleDownload(item)">下载</span>
+              <span class="action-link danger" @click="handleDelete(item)">删除</span>
             </td>
           </tr>
         </tbody>
@@ -167,8 +167,18 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import CommonModal from '@/components/CommonModal.vue'
+import {
+  getBackupList,
+  getBackupConfig,
+  updateBackupConfig,
+  createBackup,
+  downloadBackup,
+  restoreBackup,
+  deleteBackup
+} from '@/api/backup'
 
 // 配置数据
 const autoBackupEnabled = ref(true)
@@ -176,29 +186,52 @@ const autoBackupTime = ref('02:00:00')
 const retentionCount = ref(30)
 
 // 备份列表数据
-const backupList = reactive([
-  {
-    fileName: 'backup_20231027_0200.zip',
-    version: 'System v2.4.0',
-    type: 'auto',
-    size: '45.2 MB',
-    createTime: '2023-10-27 02:00:00'
-  },
-  {
-    fileName: 'backup_manual_upgrade.zip',
-    version: 'System v2.3.9',
-    type: 'manual',
-    size: '44.8 MB',
-    createTime: '2023-10-26 15:30:12'
-  },
-  {
-    fileName: 'backup_20231026_0200.zip',
-    version: 'System v2.3.9',
-    type: 'auto',
-    size: '44.5 MB',
-    createTime: '2023-10-26 02:00:00'
+const backupList = reactive([])
+
+// 加载备份配置
+const loadBackupConfig = async () => {
+  try {
+    const config = await getBackupConfig()
+    autoBackupEnabled.value = config.autoBackupEnabled
+    autoBackupTime.value = config.autoBackupTime
+    retentionCount.value = config.retentionCount
+  } catch (error) {
+    console.error('加载备份配置失败:', error)
   }
-])
+}
+
+// 加载备份列表
+const loadBackupList = async () => {
+  try {
+    const list = await getBackupList()
+    backupList.length = 0
+    backupList.push(...list)
+  } catch (error) {
+    console.error('加载备份列表失败:', error)
+    ElMessage.error('加载备份列表失败')
+  }
+}
+
+// 保存配置
+const saveConfig = async () => {
+  try {
+    await updateBackupConfig({
+      autoBackupEnabled: autoBackupEnabled.value,
+      autoBackupTime: autoBackupTime.value,
+      retentionCount: retentionCount.value
+    })
+    ElMessage.success('配置已保存')
+  } catch (error) {
+    console.error('保存配置失败:', error)
+    ElMessage.error('保存配置失败')
+  }
+}
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadBackupConfig()
+  loadBackupList()
+})
 
 // 备份 Modal 状态
 const showBackupModal = ref(false)
@@ -218,30 +251,36 @@ function closeBackupModal() {
   showBackupModal.value = false
 }
 
-function startBackup() {
+async function startBackup() {
   isBackingUp.value = true
   backupProgress.value = 0
-  
-  // 模拟进度
-  const interval = setInterval(() => {
-    if (backupProgress.value >= 100) {
-      clearInterval(interval)
-      setTimeout(() => {
-        isBackingUp.value = false
-        showBackupModal.value = false
-        // 添加一条新记录
-        backupList.unshift({
-          fileName: `backup_${new Date().toISOString().slice(0,10).replace(/-/g,'')}_manual.zip`,
-          version: 'System v2.4.0',
-          type: 'manual',
-          size: '45.5 MB',
-          createTime: new Date().toLocaleString()
-        })
-      }, 500)
-    } else {
-      backupProgress.value += 5
-    }
-  }, 100)
+
+  try {
+    // 模拟进度
+    const interval = setInterval(() => {
+      if (backupProgress.value < 90) {
+        backupProgress.value += 5
+      }
+    }, 100)
+
+    // 调用 API 创建备份
+    const result = await createBackup({ note: backupNote.value })
+
+    clearInterval(interval)
+    backupProgress.value = 100
+
+    setTimeout(() => {
+      isBackingUp.value = false
+      showBackupModal.value = false
+      ElMessage.success('备份创建成功')
+      // 重新加载列表
+      loadBackupList()
+    }, 500)
+  } catch (error) {
+    console.error('创建备份失败:', error)
+    ElMessage.error('创建备份失败')
+    isBackingUp.value = false
+  }
 }
 
 // 恢复 Modal 状态
@@ -259,10 +298,65 @@ function closeRestoreModal() {
   showRestoreModal.value = false
 }
 
-function confirmRestore() {
-  // 模拟恢复操作
-  alert('恢复指令已发送，系统即将重启...')
-  closeRestoreModal()
+async function confirmRestore() {
+  try {
+    // 找到对应的备份 ID
+    const backup = backupList.find(b => b.fileName === restoreTargetFile.value)
+    if (!backup) {
+      ElMessage.error('备份文件不存在')
+      return
+    }
+
+    await restoreBackup(backup.id)
+    ElMessage.success('恢复指令已发送，系统即将重启...')
+    closeRestoreModal()
+  } catch (error) {
+    console.error('恢复备份失败:', error)
+    ElMessage.error('恢复备份失败')
+  }
+}
+
+// 下载备份
+async function handleDownload(backup) {
+  try {
+    const blob = await downloadBackup(backup.id)
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = backup.fileName
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+    ElMessage.success('下载成功')
+  } catch (error) {
+    console.error('下载失败:', error)
+    ElMessage.error('下载失败')
+  }
+}
+
+// 删除备份
+async function handleDelete(backup) {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除备份 "${backup.fileName}" 吗？`,
+      '删除确认',
+      {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+
+    await deleteBackup(backup.id)
+    ElMessage.success('备份已删除')
+    loadBackupList()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除备份失败:', error)
+      ElMessage.error('删除备份失败')
+    }
+  }
 }
 </script>
 

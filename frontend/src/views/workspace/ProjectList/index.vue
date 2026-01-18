@@ -67,6 +67,12 @@
                     <el-dropdown-menu>
                       <el-dropdown-item command="edit">编辑</el-dropdown-item>
                       <el-dropdown-item command="duplicate">复制</el-dropdown-item>
+                      <el-dropdown-item
+                        v-if="project.status === 'published'"
+                        command="unpublish"
+                      >
+                        取消发布
+                      </el-dropdown-item>
                       <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
                     </el-dropdown-menu>
                   </template>
@@ -138,7 +144,7 @@
               <svg v-if="newProject.type === 'screen'" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/>
               </svg>
-              <svg v-else viewBox="0 0 24 24" fill="currentColor">
+              <svg v-else-if="newProject.type === 'report'" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 19V5h12v14H6zm2-4h8v2H8v-2zm0-4h8v2H8v-2zm0-4h8v2H8V7z"/>
               </svg>
             </div>
@@ -184,10 +190,18 @@
 </template>
 
 <script setup>
-import { ref, h, reactive } from 'vue'
+import { ref, h, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Plus } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
+import {
+  getProjectList,
+  createProject,
+  updateProject,
+  deleteProject,
+  cloneProject,
+  unpublishProject
+} from '@/api/project'
 
 const router = useRouter()
 const searchQuery = ref('')
@@ -195,6 +209,7 @@ const modalVisible = ref(false)
 const modalStep = ref(1) // 1: 选择类型, 2: 填写信息
 const creating = ref(false)
 const projectFormRef = ref(null)
+const loading = ref(false)
 
 // Icons components for direct usage in v-for
 const ScreenIcon = {
@@ -231,36 +246,47 @@ const projectRules = {
   ]
 }
 
-// Mock Data
-const projects = ref([
-  {
-    id: 1,
-    title: '智慧城市交通大脑',
-    type: 'screen',
-    description: '展示全市交通流量、拥堵指数及实时摄像头画面，集成 3D 城市模型。',
-    coverImage: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80',
-    status: 'published',
-    updatedAt: '2h ago'
-  },
-  {
-    id: 2,
-    title: 'Q4 财务与销售季报',
-    type: 'report',
-    description: '包含复杂表头、多级汇总及填报功能的财务报表，支持 A4 打印导出。',
-    coverImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
-    status: 'draft',
-    updatedAt: '1 day ago'
-  },
-  {
-    id: 3,
-    title: '数字化工厂监控',
-    type: 'screen',
-    description: '连接 IoT 设备，实时展示产线良率、设备运行状态及故障告警。',
-    coverImage: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80',
-    status: 'draft',
-    updatedAt: '3 days ago'
+// 项目列表数据
+const projects = ref([])
+
+// 加载项目列表
+const loadProjects = async () => {
+  try {
+    loading.value = true
+    const data = await getProjectList()
+    projects.value = data.map(project => ({
+      ...project,
+      updatedAt: formatTime(project.updatedAt)
+    }))
+  } catch (error) {
+    console.error('加载项目列表失败:', error)
+    ElMessage.error('加载项目列表失败')
+  } finally {
+    loading.value = false
   }
-])
+}
+
+// 格式化时间
+const formatTime = (dateStr) => {
+  if (!dateStr) return '-'
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diff = now - date
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+
+  if (minutes < 1) return 'Just now'
+  if (minutes < 60) return `${minutes}m ago`
+  if (hours < 24) return `${hours}h ago`
+  if (days < 7) return `${days}d ago`
+  return date.toLocaleDateString()
+}
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadProjects()
+})
 
 // 选择项目类型
 const selectType = (type) => {
@@ -284,42 +310,41 @@ const closeModal = () => {
 const handleCreateProject = async () => {
   if (!projectFormRef.value) return
 
-  await projectFormRef.value.validate((valid) => {
+  await projectFormRef.value.validate(async (valid) => {
     if (!valid) return
 
     creating.value = true
 
-    // 模拟创建项目
-    setTimeout(() => {
-      const newId = Date.now()
-      const newProjectData = {
-        id: newId,
+    try {
+      const projectData = {
         title: newProject.title,
         type: newProject.type,
         description: newProject.description,
-        coverImage: newProject.type === 'screen'
-          ? 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80'
-          : 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80',
-        status: 'draft',
-        updatedAt: 'Just now'
+        status: 'draft'
       }
 
-      // 添加到项目列表
-      projects.value.unshift(newProjectData)
+      const result = await createProject(projectData)
 
       ElMessage.success(`项目 "${newProject.title}" 创建成功`)
       creating.value = false
       closeModal()
 
+      // 重新加载项目列表
+      await loadProjects()
+
       // 跳转到编辑器
       setTimeout(() => {
         if (newProject.type === 'report') {
-          router.push(`/editor/report/${newId}`)
+          router.push(`/editor/report/${result.id}`)
         } else {
-          router.push(`/editor/screen/${newId}`)
+          router.push(`/editor/screen/${result.id}`)
         }
       }, 500)
-    }, 1000)
+    } catch (error) {
+      console.error('创建项目失败:', error)
+      ElMessage.error('创建项目失败')
+      creating.value = false
+    }
   })
 }
 
@@ -340,6 +365,9 @@ const handleCommand = (command, project) => {
     case 'duplicate':
       handleDuplicate(project)
       break
+    case 'unpublish':
+      handleUnpublish(project)
+      break
     case 'delete':
       handleDeleteProject(project)
       break
@@ -347,37 +375,67 @@ const handleCommand = (command, project) => {
 }
 
 // 复制项目
-const handleDuplicate = (project) => {
-  const newProject = {
-    ...project,
-    id: Date.now(),
-    title: `${project.title} (副本)`,
-    status: 'draft',
-    updatedAt: 'Just now'
+const handleDuplicate = async (project) => {
+  try {
+    const newTitle = `${project.title} (副本)`
+    await cloneProject(project.id, newTitle)
+    ElMessage.success(`项目 "${project.title}" 已复制`)
+    // 重新加载项目列表
+    await loadProjects()
+  } catch (error) {
+    console.error('复制项目失败:', error)
+    ElMessage.error('复制项目失败')
   }
-  projects.value.unshift(newProject)
-  ElMessage.success(`项目 "${project.title}" 已复制`)
+}
+
+// 取消发布项目
+const handleUnpublish = async (project) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要取消发布项目 "${project.title}" 吗？`,
+      '取消发布确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+
+    await unpublishProject(project.id)
+    ElMessage.success('项目已取消发布')
+    // 重新加载项目列表
+    await loadProjects()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('取消发布失败:', error)
+      ElMessage.error('取消发布失败')
+    }
+  }
 }
 
 // 删除项目
-const handleDeleteProject = (project) => {
-  ElMessageBox.confirm(
-    `确定要删除项目 "${project.title}" 吗？此操作不可恢复。`,
-    '删除确认',
-    {
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  )
-    .then(() => {
-      const index = projects.value.findIndex(p => p.id === project.id)
-      if (index !== -1) {
-        projects.value.splice(index, 1)
-        ElMessage.success('项目已删除')
+const handleDeleteProject = async (project) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除项目 "${project.title}" 吗？此操作不可恢复。`,
+      '删除确认',
+      {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning',
       }
-    })
-    .catch(() => {})
+    )
+
+    await deleteProject(project.id)
+    ElMessage.success('项目已删除')
+    // 重新加载项目列表
+    await loadProjects()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除项目失败:', error)
+      ElMessage.error('删除项目失败')
+    }
+  }
 }
 </script>
 

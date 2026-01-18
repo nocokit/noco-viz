@@ -66,7 +66,7 @@
             <th width="10%">操作</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody v-if="filteredItems.length > 0">
           <tr v-for="item in filteredItems" :key="item.id">
             <td>
               <label class="checkbox-wrapper">
@@ -110,6 +110,19 @@
             </td>
           </tr>
         </tbody>
+        <tbody v-else>
+          <tr>
+            <td colspan="6" class="empty-state">
+              <div class="empty-content">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" style="color: #6b7280; margin-bottom: 16px;">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+                <div class="empty-title">回收站为空</div>
+                <div class="empty-desc">暂无已删除的项目</div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
       </table>
     </div>
 
@@ -142,9 +155,18 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { Delete, RefreshRight } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  getRecycleList,
+  getRecycleStats,
+  restoreItem as restoreItemApi,
+  batchRestore as batchRestoreApi,
+  deleteItem as deleteItemApi,
+  batchDelete as batchDeleteApi,
+  emptyRecycleBin
+} from '@/api/recycle'
 
 // --- Tabs Data ---
 const tabs = [
@@ -156,53 +178,47 @@ const tabs = [
 const currentTab = ref('project')
 
 // --- Mock Data ---
-const items = ref([
-  {
-    id: 1,
-    name: '旧版-Q3 销售报表',
-    location: '/ 销售部 / 季度归档',
-    type: 'project',
-    deletedBy: 'David Miller',
-    deletedById: 'admin',
-    deletedAt: '2023-10-25 14:30',
-    daysLeft: 29,
-    iconStyle: 'background: linear-gradient(135deg, #3b82f6, #06b6d4); color:#fff'
-  },
-  {
-    id: 2,
-    name: '测试大屏_v2_副本',
-    location: '/ 个人草稿箱',
-    type: 'project', // Using 'project' to map to tab but visually different icon logic could be applied
-    deletedBy: 'Sarah Jen',
-    deletedById: 'user_1024',
-    deletedAt: '2023-09-28 09:12',
-    daysLeft: 1,
-    iconStyle: 'background:#333'
-  },
-  {
-    id: 3,
-    name: '财务数据_临时',
-    location: '/ 财务部',
-    type: 'datasource',
-    deletedBy: 'Mike Ross',
-    deletedById: 'user_8821',
-    deletedAt: '2023-10-20 11:00',
-    daysLeft: 24,
-    iconStyle: 'background:#333'
-  },
-   // Mocking more data to fill tabs
-  {
-    id: 4,
-    name: 'Logo_v1.png',
-    location: '/ 资源库 / 图片',
-    type: 'media',
-    deletedBy: 'Alice',
-    deletedById: 'user_001',
-    deletedAt: '2023-10-22 09:00',
-    daysLeft: 26,
-    iconStyle: 'background:#333'
+const items = ref([])
+const stats = ref({
+  project: 0,
+  datasource: 0,
+  media: 0,
+  component: 0,
+  total: 0
+})
+
+// 加载回收站列表
+const loadRecycleList = async () => {
+  try {
+    const list = await getRecycleList(currentTab.value)
+    items.value = list
+  } catch (error) {
+    console.error('加载回收站列表失败:', error)
+    ElMessage.error('加载回收站列表失败')
   }
-])
+}
+
+// 加载统计信息
+const loadStats = async () => {
+  try {
+    const data = await getRecycleStats()
+    stats.value = data
+  } catch (error) {
+    console.error('加载统计信息失败:', error)
+  }
+}
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadRecycleList()
+  loadStats()
+})
+
+// 监听 tab 切换
+watch(currentTab, () => {
+  loadRecycleList()
+  selectedIds.value = []
+})
 
 // --- State ---
 const selectedIds = ref([])
@@ -220,7 +236,7 @@ const isAllSelected = computed(() => {
 
 // --- Methods ---
 function getTabCount(type) {
-  return items.value.filter(i => i.type === type).length
+  return stats.value[type] || 0
 }
 
 function toggleSelectAll() {
@@ -245,28 +261,50 @@ function closeDeleteModal() {
   showDeleteModal.value = false
 }
 
-function confirmDelete() {
-  if (isEmptying.value) {
-    // Empty everything
-    items.value = []
+async function confirmDelete() {
+  try {
+    if (isEmptying.value) {
+      // Empty everything
+      await emptyRecycleBin(currentTab.value)
+      ElMessage.success('回收站已清空')
+    } else {
+      // Delete selected
+      await batchDeleteApi(selectedIds.value)
+      ElMessage.success(`已彻底删除 ${selectedIds.value.length} 个项目`)
+    }
     selectedIds.value = []
-  } else {
-    // Delete selected
-    items.value = items.value.filter(item => !selectedIds.value.includes(item.id))
-    selectedIds.value = []
+    loadRecycleList()
+    loadStats()
+    closeDeleteModal()
+  } catch (error) {
+    console.error('删除失败:', error)
+    ElMessage.error('删除失败')
   }
-  closeDeleteModal()
 }
 
-function restoreItem(item) {
-  items.value = items.value.filter(i => i.id !== item.id)
-  // In real app, would call API to restore
+async function restoreItem(item) {
+  try {
+    await restoreItemApi(item.id)
+    ElMessage.success('项目已成功还原')
+    loadRecycleList()
+    loadStats()
+  } catch (error) {
+    console.error('还原失败:', error)
+    ElMessage.error('还原失败')
+  }
 }
 
-function batchRestore() {
-  items.value = items.value.filter(item => !selectedIds.value.includes(item.id))
-  selectedIds.value = []
-  ElMessage.success('已成功还原选中项目')
+async function batchRestore() {
+  try {
+    await batchRestoreApi(selectedIds.value)
+    ElMessage.success(`已成功还原 ${selectedIds.value.length} 个项目`)
+    selectedIds.value = []
+    loadRecycleList()
+    loadStats()
+  } catch (error) {
+    console.error('批量还原失败:', error)
+    ElMessage.error('批量还原失败')
+  }
 }
 
 function handleDeleteSingle(item) {
@@ -474,6 +512,32 @@ function handleDeleteSingle(item) {
   color: var(--danger);
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px !important;
+  background: var(--bg-card) !important;
+}
+
+.empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.empty-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .btn-text {

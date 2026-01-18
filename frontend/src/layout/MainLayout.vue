@@ -70,12 +70,46 @@
         </router-view>
       </div>
     </main>
+
+    <!-- 用户菜单 -->
+    <div class="user-menu" v-if="userStore.isLoggedIn">
+      <el-dropdown @command="handleUserCommand">
+        <div class="user-trigger">
+          <el-avatar :size="32">
+            {{ userStore.userInfo?.username?.charAt(0)?.toUpperCase() || 'U' }}
+          </el-avatar>
+        </div>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item disabled>
+              <div class="user-info-item">
+                <div class="username">{{ userStore.userInfo?.username || '用户' }}</div>
+                <div class="user-email">{{ userStore.userInfo?.email || '' }}</div>
+              </div>
+            </el-dropdown-item>
+            <el-dropdown-item divided command="profile">
+              <el-icon><User /></el-icon>
+              个人资料
+            </el-dropdown-item>
+            <el-dropdown-item command="settings">
+              <el-icon><Setting /></el-icon>
+              账户设置
+            </el-dropdown-item>
+            <el-dropdown-item divided command="logout">
+              <el-icon><SwitchButton /></el-icon>
+              退出登录
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Grid,
   Coin,
@@ -95,11 +129,16 @@ import {
   VideoPlay,
   Search,
   Avatar,
-  Key
+  Key,
+  User,
+  SwitchButton
 } from '@element-plus/icons-vue'
 import { menuConfig } from '@/config/menu'
+import { useUserStore } from '@/store'
 
 const route = useRoute()
+const router = useRouter()
+const userStore = useUserStore()
 
 // 图标映射
 const iconMap = {
@@ -120,13 +159,41 @@ const iconMap = {
   Delete,
   VideoPlay,
   Avatar,
-  Key
+  Key,
+  User,
+  SwitchButton
 }
 
 // 当前激活的菜单
 const activeMenu = computed(() => {
   return route.path
 })
+
+// 处理用户菜单命令
+const handleUserCommand = async (command) => {
+  switch (command) {
+    case 'profile':
+      ElMessage.info('个人资料功能开发中')
+      break
+    case 'settings':
+      router.push('/settings')
+      break
+    case 'logout':
+      try {
+        await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        userStore.logout()
+        ElMessage.success('已退出登录')
+        router.push('/login')
+      } catch {
+        // 用户取消
+      }
+      break
+  }
+}
 </script>
 
 <style scoped>
@@ -362,5 +429,48 @@ const activeMenu = computed(() => {
 .fade-transform-leave-to {
   opacity: 0;
   transform: translateX(-20px);
+}
+
+/* 用户菜单 */
+.user-menu {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 100;
+}
+
+.user-trigger {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-trigger:hover {
+  transform: scale(1.05);
+}
+
+.user-info-item {
+  padding: 4px 0;
+}
+
+.user-info-item .username {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  margin-bottom: 4px;
+}
+
+.user-info-item .user-email {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+:deep(.el-dropdown-menu__item) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+:deep(.el-dropdown-menu__item .el-icon) {
+  font-size: 16px;
 }
 </style>

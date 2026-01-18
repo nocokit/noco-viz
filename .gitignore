@@ -37,7 +37,7 @@ frontend/dist/
 frontend/dist-ssr/
 frontend/.env.local
 
-# Backend
+# Backend (Python - deprecated)
 backend/.env
 backend/db.sqlite3
 backend/__pycache__/
@@ -47,3 +47,13 @@ backend/staticfiles/
 backend/media/
 backend/logs/
 *.pyc
+
+# Backend (Node.js)
+backend-node/node_modules/
+backend-node/dist/
+backend-node/.env
+backend-node/logs/
+backend-node/uploads/
+
+# Claude
+.claude/

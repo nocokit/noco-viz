@@ -69,299 +69,368 @@
 
       <!-- 权限矩阵 -->
       <div class="perm-content">
-        <!-- Section 1: Workspace -->
+        <!-- Section 1: 用户与角色管理 -->
         <div class="perm-section">
           <div class="section-title">
-            <span>工作台权限 (Workspace)</span>
-            <label
-              class="checkbox-wrapper"
-              :class="{ disabled: activeRole.isSystem }"
-            >
-              <input
-                type="checkbox"
-                v-model="isWorkspaceAllChecked"
-                :disabled="activeRole.isSystem"
-                @change="toggleSection('workspace', $event.target.checked)"
-              />
-              <span class="checkbox-box"></span> 全选
-            </label>
+            <span>用户与角色管理</span>
           </div>
 
-          <!-- Module: Project -->
-          <div class="perm-card">
+          <!-- Module: Users -->
+          <div class="perm-card" v-if="formData.permissions.users">
             <div class="card-header">
-              <span class="module-name">项目管理</span>
+              <span class="module-name">用户管理</span>
               <label
                 class="checkbox-wrapper"
                 :class="{ disabled: activeRole.isSystem }"
               >
                 <input
                   type="checkbox"
-                  v-model="formData.permissions.project.all"
+                  v-model="formData.permissions.users.all"
                   :disabled="activeRole.isSystem"
-                  @change="toggleModule('project', $event.target.checked)"
+                  @change="toggleModule('users', $event.target.checked)"
                 />
                 <span class="checkbox-box"></span>
               </label>
             </div>
             <div class="card-body">
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
-                <input
-                  type="checkbox"
-                  v-model="formData.permissions.project.view"
-                  :disabled="activeRole.isSystem"
-                />
-                <span class="checkbox-box"></span> 查看列表
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.users.view" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 查看用户
               </label>
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
-                <input
-                  type="checkbox"
-                  v-model="formData.permissions.project.create"
-                  :disabled="activeRole.isSystem"
-                />
-                <span class="checkbox-box"></span> 新建项目
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.users.create" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 创建用户
               </label>
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
-                <input
-                  type="checkbox"
-                  v-model="formData.permissions.project.edit"
-                  :disabled="activeRole.isSystem"
-                />
-                <span class="checkbox-box"></span> 编辑项目
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.users.edit" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 编辑用户
               </label>
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
-                <input
-                  type="checkbox"
-                  v-model="formData.permissions.project.delete"
-                  :disabled="activeRole.isSystem"
-                />
-                <span class="checkbox-box"></span> 删除项目
-              </label>
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
-                <input
-                  type="checkbox"
-                  v-model="formData.permissions.project.export"
-                  :disabled="activeRole.isSystem"
-                />
-                <span class="checkbox-box"></span> 导出/复制
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.users.delete" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 删除用户
               </label>
             </div>
           </div>
 
-          <!-- Module: Data Source -->
-          <div class="perm-card">
+          <!-- Module: Roles -->
+          <div class="perm-card" v-if="formData.permissions.roles">
             <div class="card-header">
-              <span class="module-name">数据源管理</span>
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
+              <span class="module-name">角色管理</span>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
                 <input
                   type="checkbox"
-                  v-model="formData.permissions.datasource.all"
+                  v-model="formData.permissions.roles.all"
                   :disabled="activeRole.isSystem"
-                  @change="toggleModule('datasource', $event.target.checked)"
+                  @change="toggleModule('roles', $event.target.checked)"
                 />
                 <span class="checkbox-box"></span>
               </label>
             </div>
             <div class="card-body">
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
-                <input
-                  type="checkbox"
-                  v-model="formData.permissions.datasource.view"
-                  :disabled="activeRole.isSystem"
-                />
-                <span class="checkbox-box"></span> 查看列表
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.roles.view" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 查看角色
               </label>
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
-                <input
-                  type="checkbox"
-                  v-model="formData.permissions.datasource.edit"
-                  :disabled="activeRole.isSystem"
-                />
-                <span class="checkbox-box"></span> 新建/编辑连接
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.roles.create" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 创建角色
               </label>
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
-                <input
-                  type="checkbox"
-                  v-model="formData.permissions.datasource.test"
-                  :disabled="activeRole.isSystem"
-                />
-                <span class="checkbox-box"></span> 测试连接
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.roles.edit" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 编辑角色
               </label>
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
-                <input
-                  type="checkbox"
-                  v-model="formData.permissions.datasource.delete"
-                  :disabled="activeRole.isSystem"
-                />
-                <span class="checkbox-box"></span> 删除数据源
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.roles.delete" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 删除角色
               </label>
             </div>
           </div>
         </div>
 
-        <!-- Section 2: Ops & System -->
+        <!-- Section 2: 工作台权限 -->
         <div class="perm-section">
           <div class="section-title">
-            <span>运维与系统 (System)</span>
-            <label
-              class="checkbox-wrapper"
-              :class="{ disabled: activeRole.isSystem }"
-            >
-              <input
-                type="checkbox"
-                v-model="isSystemAllChecked"
-                :disabled="activeRole.isSystem"
-                @change="toggleSection('system', $event.target.checked)"
-              />
-              <span class="checkbox-box"></span> 全选
-            </label>
+            <span>工作台权限</span>
           </div>
 
-          <!-- Module: Ops -->
-          <div class="perm-card">
+          <!-- Module: Projects -->
+          <div class="perm-card" v-if="formData.permissions.projects">
             <div class="card-header">
-              <span class="module-name">运维中心</span>
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
+              <span class="module-name">项目管理</span>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
                 <input
                   type="checkbox"
-                  v-model="formData.permissions.ops.all"
+                  v-model="formData.permissions.projects.all"
                   :disabled="activeRole.isSystem"
-                  @change="toggleModule('ops', $event.target.checked)"
+                  @change="toggleModule('projects', $event.target.checked)"
                 />
                 <span class="checkbox-box"></span>
               </label>
             </div>
             <div class="card-body">
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
-                <input
-                  type="checkbox"
-                  v-model="formData.permissions.ops.monitor"
-                  :disabled="activeRole.isSystem"
-                />
-                <span class="checkbox-box"></span> 系统监控
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.projects.view" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 查看项目
               </label>
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
-                <input
-                  type="checkbox"
-                  v-model="formData.permissions.ops.dbMonitor"
-                  :disabled="activeRole.isSystem"
-                />
-                <span class="checkbox-box"></span> 数据源连接池监控
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.projects.create" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 创建项目
               </label>
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
-                <input
-                  type="checkbox"
-                  v-model="formData.permissions.ops.publish"
-                  :disabled="activeRole.isSystem"
-                />
-                <span class="checkbox-box"></span> 发布链接管理
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.projects.edit" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 编辑项目
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.projects.delete" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 删除项目
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.projects.publish" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 发布项目
               </label>
             </div>
           </div>
 
-          <!-- Module: Settings -->
-          <div class="perm-card">
+          <!-- Module: Templates -->
+          <div class="perm-card" v-if="formData.permissions.templates">
+            <div class="card-header">
+              <span class="module-name">模板管理</span>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input
+                  type="checkbox"
+                  v-model="formData.permissions.templates.all"
+                  :disabled="activeRole.isSystem"
+                  @change="toggleModule('templates', $event.target.checked)"
+                />
+                <span class="checkbox-box"></span>
+              </label>
+            </div>
+            <div class="card-body">
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.templates.view" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 查看模板
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.templates.create" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 创建模板
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.templates.edit" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 编辑模板
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.templates.delete" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 删除模板
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.templates.publish" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 发布模板
+              </label>
+            </div>
+          </div>
+
+          <!-- Module: Datasets -->
+          <div class="perm-card" v-if="formData.permissions.datasets">
+            <div class="card-header">
+              <span class="module-name">数据集管理</span>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input
+                  type="checkbox"
+                  v-model="formData.permissions.datasets.all"
+                  :disabled="activeRole.isSystem"
+                  @change="toggleModule('datasets', $event.target.checked)"
+                />
+                <span class="checkbox-box"></span>
+              </label>
+            </div>
+            <div class="card-body">
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.datasets.view" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 查看数据集
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.datasets.create" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 创建数据集
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.datasets.edit" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 编辑数据集
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.datasets.delete" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 删除数据集
+              </label>
+            </div>
+          </div>
+
+          <!-- Module: Connections -->
+          <div class="perm-card" v-if="formData.permissions.connections">
+            <div class="card-header">
+              <span class="module-name">数据连接管理</span>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input
+                  type="checkbox"
+                  v-model="formData.permissions.connections.all"
+                  :disabled="activeRole.isSystem"
+                  @change="toggleModule('connections', $event.target.checked)"
+                />
+                <span class="checkbox-box"></span>
+              </label>
+            </div>
+            <div class="card-body">
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.connections.view" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 查看连接
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.connections.create" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 创建连接
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.connections.edit" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 编辑连接
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.connections.delete" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 删除连接
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: 资源管理 -->
+        <div class="perm-section">
+          <div class="section-title">
+            <span>资源管理</span>
+          </div>
+
+          <!-- Module: Media -->
+          <div class="perm-card" v-if="formData.permissions.media">
+            <div class="card-header">
+              <span class="module-name">媒体库管理</span>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input
+                  type="checkbox"
+                  v-model="formData.permissions.media.all"
+                  :disabled="activeRole.isSystem"
+                  @change="toggleModule('media', $event.target.checked)"
+                />
+                <span class="checkbox-box"></span>
+              </label>
+            </div>
+            <div class="card-body">
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.media.view" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 查看媒体
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.media.upload" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 上传媒体
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.media.delete" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 删除媒体
+              </label>
+            </div>
+          </div>
+
+          <!-- Module: Playlists -->
+          <div class="perm-card" v-if="formData.permissions.playlists">
+            <div class="card-header">
+              <span class="module-name">播放列表管理</span>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input
+                  type="checkbox"
+                  v-model="formData.permissions.playlists.all"
+                  :disabled="activeRole.isSystem"
+                  @change="toggleModule('playlists', $event.target.checked)"
+                />
+                <span class="checkbox-box"></span>
+              </label>
+            </div>
+            <div class="card-body">
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.playlists.view" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 查看播放列表
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.playlists.create" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 创建播放列表
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.playlists.edit" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 编辑播放列表
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.playlists.delete" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 删除播放列表
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: 系统管理 -->
+        <div class="perm-section">
+          <div class="section-title">
+            <span>系统管理</span>
+          </div>
+
+          <!-- Module: System -->
+          <div class="perm-card" v-if="formData.permissions.system">
             <div class="card-header">
               <span class="module-name">系统设置</span>
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
                 <input
                   type="checkbox"
-                  v-model="formData.permissions.settings.all"
+                  v-model="formData.permissions.system.all"
                   :disabled="activeRole.isSystem"
-                  @change="toggleModule('settings', $event.target.checked)"
+                  @change="toggleModule('system', $event.target.checked)"
                 />
                 <span class="checkbox-box"></span>
               </label>
             </div>
             <div class="card-body">
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
-                <input
-                  type="checkbox"
-                  v-model="formData.permissions.settings.org"
-                  :disabled="activeRole.isSystem"
-                />
-                <span class="checkbox-box"></span> 组织架构管理
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.system.view" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 查看系统设置
               </label>
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
-                <input
-                  type="checkbox"
-                  v-model="formData.permissions.settings.role"
-                  :disabled="activeRole.isSystem"
-                />
-                <span class="checkbox-box"></span> 角色权限分配
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.system.config" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 修改系统配置
               </label>
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
-                <input
-                  type="checkbox"
-                  v-model="formData.permissions.settings.audit"
-                  :disabled="activeRole.isSystem"
-                />
-                <span class="checkbox-box"></span> 审计日志查看
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.system.backup" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 备份数据
               </label>
-              <label
-                class="checkbox-wrapper"
-                :class="{ disabled: activeRole.isSystem }"
-              >
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.system.restore" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 恢复数据
+              </label>
+            </div>
+          </div>
+
+          <!-- Module: Security -->
+          <div class="perm-card" v-if="formData.permissions.security">
+            <div class="card-header">
+              <span class="module-name">安全管理</span>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
                 <input
                   type="checkbox"
-                  v-model="formData.permissions.settings.global"
+                  v-model="formData.permissions.security.all"
                   :disabled="activeRole.isSystem"
+                  @change="toggleModule('security', $event.target.checked)"
                 />
-                <span class="checkbox-box"></span> 全局配置 (Logo/安全)
+                <span class="checkbox-box"></span>
+              </label>
+            </div>
+            <div class="card-body">
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.security.view" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 查看安全设置
+              </label>
+              <label class="checkbox-wrapper" :class="{ disabled: activeRole.isSystem }">
+                <input type="checkbox" v-model="formData.permissions.security.config" :disabled="activeRole.isSystem" />
+                <span class="checkbox-box"></span> 修改安全配置
               </label>
             </div>
           </div>
@@ -526,69 +595,134 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, computed } from 'vue'
+import { ref, reactive, watch, computed, onMounted } from 'vue'
 import { Edit, Lock, Upload, UploadFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
-import { getRoles, updateRole, importRoles } from '@/api/role'
+import { getRoles, updateRole, importRoles, getPermissionTree } from '@/api/role'
 
 const route = useRoute()
 
-// --- Mock Data ---
-const roles = ref([
-  {
-    id: 1,
-    name: '超级管理员',
-    description: '拥有系统所有权限',
-    isSystem: true,
-    scope: 'all',
-    permissions: {
-      project: { all: true, view: true, create: true, edit: true, delete: true, export: true },
-      datasource: { all: true, view: true, edit: true, test: true, delete: true },
-      ops: { all: true, monitor: true, dbMonitor: true, publish: true },
-      settings: { all: true, org: true, role: true, audit: true, global: true },
-    },
-  },
-  {
-    id: 2,
-    name: '项目管理员',
-    description: '管理所有项目及资源',
-    isSystem: false,
-    scope: 'dept',
-    permissions: {
-      project: { all: true, view: true, create: true, edit: true, delete: true, export: true },
-      datasource: { all: true, view: true, edit: true, test: true, delete: true },
-      ops: { all: false, monitor: false, dbMonitor: false, publish: false },
-      settings: { all: false, org: false, role: false, audit: false, global: false },
-    },
-  },
-  {
-    id: 3,
-    name: '开发工程师',
-    description: '仅限编辑和开发大屏',
-    isSystem: false,
-    scope: 'dept',
-    permissions: {
-      project: { all: false, view: true, create: true, edit: true, delete: false, export: true },
-      datasource: { all: false, view: true, edit: false, test: true, delete: false },
-      ops: { all: false, monitor: true, dbMonitor: false, publish: false },
-      settings: { all: false, org: false, role: false, audit: false, global: false },
-    },
-  },
-  {
-    id: 4,
-    name: '普通访客',
-    description: '仅具备查看权限',
-    isSystem: false,
-    scope: 'self',
-    permissions: {
-      project: { all: false, view: true, create: false, edit: false, delete: false, export: false },
-      datasource: { all: false, view: false, edit: false, test: false, delete: false },
-      ops: { all: false, monitor: false, dbMonitor: false, publish: false },
-      settings: { all: false, org: false, role: false, audit: false, global: false },
-    },
-  },
-])
+// --- State ---
+const roles = ref([])
+const loading = ref(false)
+const permissionTree = ref(null) // 权限树数据
+
+// 加载权限树
+const loadPermissionTree = async () => {
+  try {
+    const tree = await getPermissionTree()
+    permissionTree.value = tree
+    return tree
+  } catch (error) {
+    console.error('加载权限树失败:', error)
+    // 失败时使用默认权限结构
+    return getDefaultPermissions()
+  }
+}
+
+// 加载角色列表
+const loadRoles = async () => {
+  try {
+    loading.value = true
+
+    // 先加载权限树（如果还没加载）
+    if (!permissionTree.value) {
+      await loadPermissionTree()
+    }
+
+    const data = await getRoles()
+    roles.value = data.map(role => ({
+      ...role,
+      isSystem: role.isSystem || false,
+      permissions: role.permissions || getDefaultPermissions()
+    }))
+
+    // 如果URL中有roleId参数，自动选中该角色
+    if (route.query.roleId && roles.value.length > 0) {
+      const targetRole = roles.value.find(r => r.id === parseInt(route.query.roleId))
+      if (targetRole) {
+        handleSelectRole(targetRole)
+      } else if (roles.value.length > 0) {
+        handleSelectRole(roles.value[0])
+      }
+    } else if (roles.value.length > 0) {
+      handleSelectRole(roles.value[0])
+    }
+  } catch (error) {
+    console.error('加载角色列表失败:', error)
+    ElMessage.error('加载角色列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 获取默认权限结构（从权限树动态生成或使用fallback）
+const getDefaultPermissions = () => {
+  // Fallback: 使用硬编码的默认结构，匹配后端返回的权限格式
+  return {
+    users: [],
+    roles: [],
+    projects: [],
+    templates: [],
+    datasets: [],
+    connections: [],
+    media: [],
+    playlists: [],
+    system: [],
+    security: []
+  }
+}
+
+// 将后端数组格式的权限转换为前端对象格式
+const convertPermissionsToForm = (permissions) => {
+  const formPerms = {}
+
+  // 定义所有可能的权限操作
+  const allActions = ['view', 'create', 'edit', 'delete', 'upload', 'publish', 'config', 'backup', 'restore']
+
+  // 定义所有模块
+  const allModules = ['users', 'roles', 'projects', 'templates', 'datasets', 'connections', 'media', 'playlists', 'system', 'security']
+
+  allModules.forEach(module => {
+    formPerms[module] = {}
+    const modulePerms = permissions[module] || []
+
+    // 为每个操作设置布尔值
+    allActions.forEach(action => {
+      formPerms[module][action] = modulePerms.includes(action)
+    })
+
+    // 检查是否全选（只检查该模块实际拥有的权限）
+    const moduleActions = modulePerms.length > 0 ? modulePerms : []
+    formPerms[module].all = moduleActions.length > 0 && allActions.some(action => modulePerms.includes(action))
+  })
+
+  return formPerms
+}
+
+// 将前端对象格式的权限转换为后端数组格式
+const convertFormToPermissions = (formPerms) => {
+  const permissions = {}
+
+  Object.keys(formPerms).forEach(module => {
+    permissions[module] = []
+    const modulePerms = formPerms[module]
+
+    Object.keys(modulePerms).forEach(action => {
+      if (action !== 'all' && modulePerms[action] === true) {
+        permissions[module].push(action)
+      }
+    })
+  })
+
+  return permissions
+}
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadRoles()
+})
 
 // --- State ---
 const activeRole = ref(null)
@@ -634,27 +768,7 @@ const roleFormRules = {
 }
 
 // --- Computed ---
-const isWorkspaceAllChecked = computed({
-  get: () => {
-    if (!formData.permissions.project || !formData.permissions.datasource) return false
-    return formData.permissions.project.all && formData.permissions.datasource.all
-  },
-  set: (val) => {
-    toggleModule('project', val)
-    toggleModule('datasource', val)
-  }
-})
-
-const isSystemAllChecked = computed({
-  get: () => {
-    if (!formData.permissions.ops || !formData.permissions.settings) return false
-    return formData.permissions.ops.all && formData.permissions.settings.all
-  },
-  set: (val) => {
-    toggleModule('ops', val)
-    toggleModule('settings', val)
-  }
-})
+// 这些计算属性已不再需要，因为我们移除了全选功能
 
 // --- Methods ---
 const handleSelectRole = (role) => {
@@ -663,7 +777,20 @@ const handleSelectRole = (role) => {
   formData.name = role.name
   formData.description = role.description
   formData.scope = role.scope
-  formData.permissions = JSON.parse(JSON.stringify(role.permissions))
+
+  // 将后端数组格式转换为前端对象格式
+  if (role.permissions && typeof role.permissions === 'object') {
+    // 检查是否是数组格式（后端格式）
+    const firstKey = Object.keys(role.permissions)[0]
+    if (firstKey && Array.isArray(role.permissions[firstKey])) {
+      formData.permissions = convertPermissionsToForm(role.permissions)
+    } else {
+      // 已经是对象格式
+      formData.permissions = JSON.parse(JSON.stringify(role.permissions))
+    }
+  } else {
+    formData.permissions = convertPermissionsToForm(getDefaultPermissions())
+  }
 }
 
 // 打开编辑角色信息模态框
@@ -704,51 +831,28 @@ const handleRoleSubmit = async () => {
         scope: roleFormData.scope
       }
 
-      const response = await updateRole(editingRoleId.value, updateData)
+      await updateRole(editingRoleId.value, updateData)
 
-      if (response.code === 200) {
-        // 更新本地数据
-        const role = roles.value.find(r => r.id === editingRoleId.value)
-        if (role) {
-          role.name = roleFormData.name
-          role.description = roleFormData.description
-          role.scope = roleFormData.scope
+      // 更新本地数据
+      const role = roles.value.find(r => r.id === editingRoleId.value)
+      if (role) {
+        role.name = roleFormData.name
+        role.description = roleFormData.description
+        role.scope = roleFormData.scope
 
-          // 更新formData
-          formData.name = roleFormData.name
-          formData.description = roleFormData.description
-          formData.scope = roleFormData.scope
-        }
-
-        ElMessage.success('角色信息已更新')
-        roleSubmitting.value = false
-        closeRoleModal()
-      } else {
-        ElMessage.error(response.message || '更新失败')
-        roleSubmitting.value = false
+        // 更新formData
+        formData.name = roleFormData.name
+        formData.description = roleFormData.description
+        formData.scope = roleFormData.scope
       }
+
+      ElMessage.success('角色信息已更新')
+      closeRoleModal()
     } catch (error) {
       console.error('更新失败:', error)
-
-      // Mock更新逻辑（API调用失败时的降级方案）
-      setTimeout(() => {
-        const role = roles.value.find(r => r.id === editingRoleId.value)
-        if (role) {
-          role.name = roleFormData.name
-          role.description = roleFormData.description
-          role.scope = roleFormData.scope
-
-          // 更新formData
-          formData.name = roleFormData.name
-          formData.description = roleFormData.description
-          formData.scope = roleFormData.scope
-
-          ElMessage.success('角色信息已更新（Mock）')
-        }
-
-        roleSubmitting.value = false
-        closeRoleModal()
-      }, 800)
+      ElMessage.error('更新角色信息失败')
+    } finally {
+      roleSubmitting.value = false
     }
   })
 }
@@ -765,46 +869,34 @@ const handleSave = async () => {
   saving.value = true
 
   try {
+    // 将前端对象格式转换为后端数组格式
+    const backendPermissions = convertFormToPermissions(formData.permissions)
+
     // 调用后端API更新角色
     const updateData = {
       name: formData.name,
       description: formData.description,
       scope: formData.scope,
-      permissions: formData.permissions
+      permissions: backendPermissions
     }
 
-    const response = await updateRole(activeRole.value.id, updateData)
+    await updateRole(activeRole.value.id, updateData)
 
-    if (response.code === 200) {
-      // 更新本地数据
-      const roleIndex = roles.value.findIndex((r) => r.id === activeRole.value.id)
-      if (roleIndex !== -1) {
-        roles.value[roleIndex].name = formData.name
-        roles.value[roleIndex].description = formData.description
-        roles.value[roleIndex].scope = formData.scope
-        roles.value[roleIndex].permissions = JSON.parse(JSON.stringify(formData.permissions))
-      }
-      saving.value = false
-      ElMessage.success('角色权限已保存')
-    } else {
-      ElMessage.error(response.message || '保存失败')
-      saving.value = false
+    // 更新本地数据
+    const roleIndex = roles.value.findIndex((r) => r.id === activeRole.value.id)
+    if (roleIndex !== -1) {
+      roles.value[roleIndex].name = formData.name
+      roles.value[roleIndex].description = formData.description
+      roles.value[roleIndex].scope = formData.scope
+      roles.value[roleIndex].permissions = backendPermissions
     }
+
+    ElMessage.success('角色权限已保存')
   } catch (error) {
     console.error('保存失败:', error)
-
-    // Mock保存逻辑（API调用失败时的降级方案）
-    setTimeout(() => {
-      const roleIndex = roles.value.findIndex((r) => r.id === activeRole.value.id)
-      if (roleIndex !== -1) {
-        roles.value[roleIndex].name = formData.name
-        roles.value[roleIndex].description = formData.description
-        roles.value[roleIndex].scope = formData.scope
-        roles.value[roleIndex].permissions = JSON.parse(JSON.stringify(formData.permissions))
-      }
-      saving.value = false
-      ElMessage.success('角色权限已保存（Mock）')
-    }, 800)
+    ElMessage.error('保存角色权限失败')
+  } finally {
+    saving.value = false
   }
 }
 
@@ -882,62 +974,19 @@ const handleImportSubmit = async () => {
 
   try {
     // 调用后端API导入角色
-    const response = await importRoles(importPreview.value)
+    const result = await importRoles(importPreview.value)
 
-    if (response.code === 200) {
-      // 更新本地角色列表
-      if (response.data && response.data.imported) {
-        response.data.imported.forEach(newRole => {
-          roles.value.push(newRole)
-        })
-        ElMessage.success(`成功导入 ${response.data.imported.length} 个角色`)
-      }
-      importing.value = false
-      closeImportDialog()
-    } else {
-      ElMessage.error(response.message || '导入失败')
-      importing.value = false
-    }
+    // 重新加载角色列表
+    await loadRoles()
+
+    const importedCount = Array.isArray(result) ? result.length : (result.imported?.length || 0)
+    ElMessage.success(`成功导入 ${importedCount} 个角色`)
+    closeImportDialog()
   } catch (error) {
     console.error('导入失败:', error)
-
-    // Mock导入逻辑（API调用失败时的降级方案）
-    setTimeout(() => {
-      let importCount = 0
-
-      importPreview.value.forEach(importRole => {
-        // 检查是否已存在同名角色
-        const existingRole = roles.value.find(r => r.name === importRole.name)
-
-        if (!existingRole) {
-          // 添加新角色
-          const newRole = {
-            id: Date.now() + Math.random(),
-            name: importRole.name,
-            description: importRole.description || '',
-            isSystem: false,
-            scope: importRole.scope || 'self',
-            permissions: importRole.permissions || {
-              project: { all: false, view: false, create: false, edit: false, delete: false, export: false },
-              datasource: { all: false, view: false, edit: false, test: false, delete: false },
-              ops: { all: false, monitor: false, dbMonitor: false, publish: false },
-              settings: { all: false, org: false, role: false, audit: false, global: false },
-            }
-          }
-          roles.value.push(newRole)
-          importCount++
-        }
-      })
-
-      if (importCount > 0) {
-        ElMessage.success(`成功导入 ${importCount} 个角色（Mock）`)
-      } else {
-        ElMessage.warning('没有新角色被导入（可能已存在同名角色）')
-      }
-
-      importing.value = false
-      closeImportDialog()
-    }, 1000)
+    ElMessage.error('导入角色失败')
+  } finally {
+    importing.value = false
   }
 }
 

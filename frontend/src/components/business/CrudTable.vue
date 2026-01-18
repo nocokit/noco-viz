@@ -1,5 +1,8 @@
 <template>
   <div class="crud-table">
+    <!-- 额外内容插槽 -->
+    <slot name="toolbar-extra"></slot>
+
     <!-- 工具栏 -->
     <div class="crud-toolbar" v-if="showToolbar">
       <div class="toolbar-left">
@@ -188,7 +191,7 @@
     <div class="crud-pagination" v-if="pageable && tableData.length > 0">
       <el-pagination
         v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
+        v-model:page-size="internalPageSize"
         :total="total"
         :page-sizes="pageSizes"
         :layout="paginationLayout"
@@ -361,6 +364,7 @@ const currentView = ref(props.viewMode)
 const searchQuery = ref('')
 const selectedRows = ref([])
 const currentPage = ref(1)
+const internalPageSize = ref(props.pageSize)
 
 // 计算属性
 const tableData = computed(() => props.data)
@@ -413,8 +417,14 @@ const handlePageChange = (page) => {
 }
 
 const handleSizeChange = (size) => {
+  internalPageSize.value = size
   emit('size-change', size)
 }
+
+// 监听 props.pageSize 变化
+watch(() => props.pageSize, (newVal) => {
+  internalPageSize.value = newVal
+})
 
 const handleGridItemClick = (item) => {
   if (!props.selectable) return

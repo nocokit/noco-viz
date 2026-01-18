@@ -9,7 +9,7 @@ export const userApi = {
    * @param {Object} data - { username, phone, password, password_confirm }
    */
   register(data) {
-    return request.post('/users/auth/register/', data)
+    return request.post('/auth/register', data)
   },
 
   /**
@@ -17,7 +17,7 @@ export const userApi = {
    * @param {Object} data - { username, password }
    */
   login(data) {
-    return request.post('/users/auth/login/', data)
+    return request.post('/auth/login', data)
   },
 
   /**
@@ -25,14 +25,14 @@ export const userApi = {
    * @param {string} refreshToken
    */
   refreshToken(refreshToken) {
-    return request.post('/users/auth/refresh/', { refresh: refreshToken })
+    return request.post('/auth/refresh', { refresh: refreshToken })
   },
 
   /**
    * 获取当前用户信息
    */
   getProfile() {
-    return request.get('/users/auth/me/')
+    return request.get('/auth/profile')
   },
 
   /**
@@ -40,7 +40,7 @@ export const userApi = {
    * @param {Object} data - { email, phone, avatar, ... }
    */
   updateProfile(data) {
-    return request.put('/users/auth/me/', data)
+    return request.put('/auth/profile', data)
   },
 
   /**
@@ -48,13 +48,13 @@ export const userApi = {
    * @param {Object} data - { old_password, new_password, new_password_confirm }
    */
   changePassword(data) {
-    return request.post('/users/auth/change_password/', data)
+    return request.post('/auth/change-password', data)
   },
 
   /**
    * 退出登录
    */
   logout() {
-    return request.post('/users/auth/logout/')
+    return request.post('/auth/logout')
   },
 }

@@ -71,12 +71,18 @@ const routes = [
       },
       {
         path: 'components',
-        name: 'CustomComponents',
-        component: () => import('@/views/assets/CustomComponents'),
-        meta: { title: '自定义组件', hideLayoutHeader: true }
+        name: 'ComponentLibrary',
+        component: () => import('@/views/assets/ComponentLibrary'),
+        meta: { title: '组件库', hideLayoutHeader: true }
       },
 
       // ========== 安全与权限 ==========
+      {
+        path: 'users',
+        name: 'UserManagement',
+        component: () => import('@/views/security/UserManagement'),
+        meta: { title: '用户管理', hideLayoutHeader: true }
+      },
       {
         path: 'organization',
         name: 'Organization',
@@ -145,7 +151,7 @@ const routes = [
         path: 'recycle',
         name: 'Recycle',
         component: () => import('@/views/settings/RecycleBin'),
-        meta: { title: '回收站' }
+        meta: { title: '回收站', hideLayoutHeader: true }
       }
     ]
   },

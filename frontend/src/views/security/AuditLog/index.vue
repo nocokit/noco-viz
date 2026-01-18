@@ -35,10 +35,17 @@
 
       <select class="filter-select" v-model="filters.module">
         <option value="">所有模块</option>
-        <option value="project">项目管理</option>
-        <option value="datasource">数据源管理</option>
-        <option value="system">系统设置</option>
-        <option value="auth">登录认证</option>
+        <option value="系统登录">系统登录</option>
+        <option value="用户管理">用户管理</option>
+        <option value="角色管理">角色管理</option>
+        <option value="项目管理">项目管理</option>
+        <option value="数据源管理">数据源管理</option>
+        <option value="模板管理">模板管理</option>
+        <option value="系统设置">系统设置</option>
+        <option value="IP白名单">IP白名单</option>
+        <option value="备份管理">备份管理</option>
+        <option value="媒体管理">媒体管理</option>
+        <option value="播放列表">播放列表</option>
       </select>
 
       <select class="filter-select" v-model="filters.status">
@@ -136,12 +143,19 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { getAuditLogs, getAuditLogDetail, getAuditLogStatistics } from '@/api/auditLog'
 
-const totalLogs = ref(45201)
+const totalLogs = ref(0)
 const drawerOpen = ref(false)
 const selectedLog = ref(null)
+const loading = ref(false)
+const pagination = ref({
+  page: 1,
+  pageSize: 20,
+  total: 0
+})
 
 const filters = ref({
   search: '',
@@ -150,129 +164,105 @@ const filters = ref({
   status: ''
 })
 
-const logs = ref([
-  {
-    id: 1,
-    timestamp: '2023-10-27 14:32:05',
-    userName: 'Sarah Jen',
-    userInitials: 'SJ',
-    avatarColor: '#f59e0b',
-    ip: '192.168.10.5',
-    module: '数据源管理',
-    action: '删除',
-    actionType: 'delete',
-    description: '删除连接 <span class="obj-text">财务备用库</span>',
-    status: 'success',
-    statusText: '成功',
-    statusColor: '',
-    traceId: 'req_829301928301',
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/119.0.0.0',
-    detailsLabel: '快照备份',
-    details: `// 已自动备份被删除的数据源配置
-{
-  "name": "财务备用库",
-  "type": "Oracle",
-  "host": "192.168.1.200",
-  "deleted_at": "2023-10-27T14:32:05Z"
-}`
-  },
-  {
-    id: 2,
-    timestamp: '2023-10-27 14:30:11',
-    userName: 'Unknown',
-    userInitials: '?',
-    avatarColor: '#333',
-    ip: '202.106.0.1',
-    module: '系统登录',
-    action: '登录',
-    actionType: 'login',
-    description: '尝试登录账号 <span class="obj-text">admin</span>',
-    status: 'fail',
-    statusText: '密码错误',
-    statusColor: '#ef4444',
-    traceId: 'req_829301928302',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-    detailsLabel: '失败原因',
-    details: '密码验证失败 (重试次数: 3)'
-  },
-  {
-    id: 3,
-    timestamp: '2023-10-27 11:15:23',
-    userName: 'David Miller',
-    userInitials: 'DM',
-    avatarColor: '#3b82f6',
-    ip: '192.168.10.2',
-    module: '系统设置',
-    action: '更新',
-    actionType: 'update',
-    description: '修改安全策略配置',
-    status: 'success',
-    statusText: '成功',
-    statusColor: '',
-    traceId: 'req_829301928303',
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/119.0.0.0',
-    detailsLabel: '变更内容 (Diff)',
-    details: `{
-  "module": "security",
-  "changes": [
-    {
-      "key": "watermark_enabled",
-      "old_value": false,
-      "new_value": true
-    },
-    {
-      "key": "session_timeout",
-      "old_value": 30,
-      "new_value": 15
-    }
-  ]
-}`
-  },
-  {
-    id: 4,
-    timestamp: '2023-10-27 09:45:00',
-    userName: 'Mike Ross',
-    userInitials: 'MR',
-    avatarColor: '#8b5cf6',
-    ip: '192.168.10.8',
-    module: '项目管理',
-    action: '新建',
-    actionType: 'create',
-    description: '创建项目 <span class="obj-text">Q4销售大屏</span>',
-    status: 'success',
-    statusText: '成功',
-    statusColor: '',
-    traceId: 'req_829301928304',
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15',
-    detailsLabel: '项目信息',
-    details: `{
-  "name": "Q4销售大屏",
-  "type": "dashboard",
-  "created_at": "2023-10-27T09:45:00Z"
-}`
+const logs = ref([])
+
+// 获取用户首字母
+const getUserInitials = (userName) => {
+  if (!userName || userName === 'Unknown') return '?'
+  const words = userName.split(' ')
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase()
   }
-])
+  return userName.substring(0, 2).toUpperCase()
+}
+
+// 生成头像颜色
+const getAvatarColor = (userName) => {
+  const colors = ['#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#ef4444', '#6366f1']
+  if (!userName) return '#333'
+  const index = userName.charCodeAt(0) % colors.length
+  return colors[index]
+}
+
+// 格式化时间
+const formatTimestamp = (date) => {
+  const d = new Date(date)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  const seconds = String(d.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}
+
+// 转换后端数据为前端格式
+const transformLogData = (log) => {
+  return {
+    id: log.id,
+    timestamp: formatTimestamp(log.createdAt),
+    userName: log.userName || 'Unknown',
+    userInitials: getUserInitials(log.userName),
+    avatarColor: getAvatarColor(log.userName),
+    ip: log.ipAddress,
+    module: log.module,
+    action: log.action,
+    actionType: log.actionType,
+    description: log.description,
+    status: log.status,
+    statusText: log.status === 'success' ? '成功' : (log.error || '失败'),
+    statusColor: log.status === 'success' ? '' : '#ef4444',
+    traceId: log.traceId || '-',
+    userAgent: log.userAgent || '-',
+    detailsLabel: log.error ? '错误信息' : '请求详情',
+    details: log.error || log.requestBody || '-'
+  }
+}
+
+// 加载审计日志列表
+const loadAuditLogs = async () => {
+  loading.value = true
+  try {
+    const params = {
+      page: pagination.value.page,
+      pageSize: pagination.value.pageSize,
+      search: filters.value.search || undefined,
+      module: filters.value.module || undefined,
+      status: filters.value.status || undefined,
+      startDate: filters.value.dateRange || undefined,
+      endDate: filters.value.dateRange || undefined
+    }
+
+    const response = await getAuditLogs(params)
+
+    if (response.data) {
+      logs.value = response.data.map(transformLogData)
+      pagination.value.total = response.total || 0
+      totalLogs.value = response.total || 0
+    }
+  } catch (error) {
+    console.error('加载审计日志失败:', error)
+    ElMessage.error('加载审计日志失败')
+    logs.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+// 加载统计信息
+const loadStatistics = async () => {
+  try {
+    const response = await getAuditLogStatistics()
+    if (response.total !== undefined) {
+      totalLogs.value = response.total
+    }
+  } catch (error) {
+    console.error('加载统计信息失败:', error)
+  }
+}
 
 const filteredLogs = computed(() => {
-  let result = logs.value
-
-  if (filters.value.search) {
-    const search = filters.value.search.toLowerCase()
-    result = result.filter(log =>
-      log.userName.toLowerCase().includes(search) ||
-      log.ip.includes(search)
-    )
-  }
-
-  if (filters.value.module) {
-    result = result.filter(log => log.module.includes(filters.value.module))
-  }
-
-  if (filters.value.status) {
-    result = result.filter(log => log.status === filters.value.status)
-  }
-
-  return result
+  return logs.value
 })
 
 const openDrawer = (log) => {
@@ -285,7 +275,8 @@ const closeDrawer = () => {
 }
 
 const handleQuery = () => {
-  console.log('查询条件:', filters.value)
+  pagination.value.page = 1
+  loadAuditLogs()
 }
 
 const handleReset = () => {
@@ -295,8 +286,16 @@ const handleReset = () => {
     module: '',
     status: ''
   }
+  pagination.value.page = 1
+  loadAuditLogs()
   ElMessage.success('筛选条件已重置')
 }
+
+// 初始化加载
+onMounted(() => {
+  loadAuditLogs()
+  loadStatistics()
+})
 
 const handleExport = () => {
   try {
@@ -357,13 +356,7 @@ const handleExport = () => {
     // 添加筛选条件到文件名
     let filterSuffix = ''
     if (filters.value.module) {
-      const moduleMap = {
-        'project': '项目',
-        'datasource': '数据源',
-        'system': '系统',
-        'auth': '认证'
-      }
-      filterSuffix += `_${moduleMap[filters.value.module] || filters.value.module}`
+      filterSuffix += `_${filters.value.module}`
     }
     if (filters.value.status) {
       filterSuffix += `_${filters.value.status === 'success' ? '成功' : '失败'}`

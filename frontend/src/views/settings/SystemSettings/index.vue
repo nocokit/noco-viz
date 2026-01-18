@@ -360,6 +360,7 @@ import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Picture, Upload, CircleCheck } from '@element-plus/icons-vue'
 import { useTheme } from '@/composables/useTheme'
+import * as systemConfigApi from '@/api/systemConfig'
 
 // 主题相关
 const { currentTheme, setTheme, getAllThemes } = useTheme()
@@ -546,14 +547,37 @@ const beforeFaviconUpload = (file) => {
 const handleSaveConfig = async () => {
   saving.value = true
 
-  // 模拟保存
-  setTimeout(() => {
-    saving.value = false
-    ElMessage.success('配置已保存')
-  }, 1000)
+  try {
+    // 构建配置对象
+    const configs = {
+      'basic.systemName': configForm.basic.systemName,
+      'basic.language': configForm.basic.language,
+      'basic.adminEmail': configForm.basic.adminEmail,
+      'branding.logoUrl': configForm.branding.logoUrl,
+      'branding.faviconUrl': configForm.branding.faviconUrl,
+      'branding.copyright': configForm.branding.copyright,
+      'security.watermark': configForm.security.watermark,
+      'security.strongPassword': configForm.security.strongPassword,
+      'security.forceHttps': configForm.security.forceHttps,
+      'security.ipWhitelist': configForm.security.ipWhitelist,
+      'session.timeout': configForm.session.timeout,
+      'session.singleSignOn': configForm.session.singleSignOn,
+      'session.rememberMe': configForm.session.rememberMe,
+      'email.smtpServer': configForm.email.smtpServer,
+      'email.port': configForm.email.port,
+      'email.encryption': configForm.email.encryption,
+      'email.account': configForm.email.account,
+      'email.password': configForm.email.password,
+    }
 
-  // TODO: 实际保存逻辑
-  // await saveSystemConfig(configForm)
+    await systemConfigApi.batchUpdateConfig(configs)
+    ElMessage.success('配置已保存')
+  } catch (error) {
+    console.error('保存配置失败:', error)
+    ElMessage.error('保存配置失败')
+  } finally {
+    saving.value = false
+  }
 }
 
 // 发送测试邮件
@@ -565,20 +589,59 @@ const handleSendTestEmail = async () => {
 
   sendingEmail.value = true
 
-  // 模拟发送
-  setTimeout(() => {
-    sendingEmail.value = false
+  try {
+    await systemConfigApi.sendTestEmail(configForm.email)
     ElMessage.success('测试邮件已发送，请检查收件箱')
-  }, 2000)
+  } catch (error) {
+    console.error('发送测试邮件失败:', error)
+    ElMessage.error('发送测试邮件失败')
+  } finally {
+    sendingEmail.value = false
+  }
+}
 
-  // TODO: 实际发送逻辑
-  // await sendTestEmail(configForm.email)
+// 加载配置
+const loadConfig = async () => {
+  try {
+    const configs = await systemConfigApi.getSystemConfig()
+
+    // 基础设置
+    if (configs['basic.systemName']) configForm.basic.systemName = configs['basic.systemName']
+    if (configs['basic.language']) configForm.basic.language = configs['basic.language']
+    if (configs['basic.adminEmail']) configForm.basic.adminEmail = configs['basic.adminEmail']
+
+    // 品牌化
+    if (configs['branding.logoUrl']) configForm.branding.logoUrl = configs['branding.logoUrl']
+    if (configs['branding.faviconUrl']) configForm.branding.faviconUrl = configs['branding.faviconUrl']
+    if (configs['branding.copyright']) configForm.branding.copyright = configs['branding.copyright']
+
+    // 安全策略
+    if (configs['security.watermark'] !== undefined) configForm.security.watermark = configs['security.watermark']
+    if (configs['security.strongPassword'] !== undefined) configForm.security.strongPassword = configs['security.strongPassword']
+    if (configs['security.forceHttps'] !== undefined) configForm.security.forceHttps = configs['security.forceHttps']
+    if (configs['security.ipWhitelist'] !== undefined) configForm.security.ipWhitelist = configs['security.ipWhitelist']
+
+    // 会话控制
+    if (configs['session.timeout']) configForm.session.timeout = configs['session.timeout']
+    if (configs['session.singleSignOn'] !== undefined) configForm.session.singleSignOn = configs['session.singleSignOn']
+    if (configs['session.rememberMe'] !== undefined) configForm.session.rememberMe = configs['session.rememberMe']
+
+    // 邮件服务
+    if (configs['email.smtpServer']) configForm.email.smtpServer = configs['email.smtpServer']
+    if (configs['email.port']) configForm.email.port = configs['email.port']
+    if (configs['email.encryption']) configForm.email.encryption = configs['email.encryption']
+    if (configs['email.account']) configForm.email.account = configs['email.account']
+    if (configs['email.password']) configForm.email.password = configs['email.password']
+  } catch (error) {
+    console.warn('加载配置失败，使用默认值:', error)
+  }
 }
 
 onMounted(() => {
   if (scrollContainer.value) {
     scrollContainer.value.addEventListener('scroll', handleScroll)
   }
+  loadConfig()
 })
 
 onUnmounted(() => {
