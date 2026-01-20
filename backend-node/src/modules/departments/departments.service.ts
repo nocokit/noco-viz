@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, TreeRepository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
 import { Department } from './entities/department.entity';
@@ -9,7 +9,7 @@ import { Department } from './entities/department.entity';
 export class DepartmentsService {
   constructor(
     @InjectRepository(Department)
-    private departmentRepository: TreeRepository<Department>,
+    private departmentRepository: Repository<Department>,
   ) {}
 
   async create(createDepartmentDto: CreateDepartmentDto): Promise<Department> {
@@ -29,7 +29,7 @@ export class DepartmentsService {
   }
 
   async findAll(): Promise<Department[]> {
-    return this.departmentRepository.findTrees();
+    return this.departmentRepository.manager.getTreeRepository(Department).findTrees();
   }
 
   async findOne(id: number): Promise<Department> {
@@ -68,12 +68,12 @@ export class DepartmentsService {
   }
 
   async getTree(): Promise<Department[]> {
-    return this.departmentRepository.findTrees();
+    return this.departmentRepository.manager.getTreeRepository(Department).findTrees();
   }
 
   async getDescendants(id: number): Promise<Department[]> {
     const department = await this.findOne(id);
-    return this.departmentRepository.findDescendants(department);
+    return this.departmentRepository.manager.getTreeRepository(Department).findDescendants(department);
   }
 
   async updateMemberCount(id: number, count: number): Promise<Department> {

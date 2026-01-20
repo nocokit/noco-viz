@@ -23,6 +23,7 @@ export class TemplatesService {
   async findAll(params?: any): Promise<Template[]> {
     const query = this.templatesRepository.createQueryBuilder('template')
       .leftJoinAndSelect('template.createdBy', 'createdBy')
+      .leftJoinAndSelect('template.thumbnailMedia', 'thumbnailMedia')
       .orderBy('template.createdAt', 'DESC');
 
     if (params?.category) {
@@ -39,7 +40,7 @@ export class TemplatesService {
   async findOne(id: number): Promise<Template> {
     const template = await this.templatesRepository.findOne({
       where: { id },
-      relations: ['createdBy'],
+      relations: ['createdBy', 'thumbnailMedia'],
     });
 
     if (!template) {

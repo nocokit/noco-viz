@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEnum, IsOptional, IsObject, IsUrl } from 'class-validator';
+import { IsString, IsEnum, IsOptional, IsObject } from 'class-validator';
 import { ProjectType, ProjectStatus } from '../entities/project.entity';
 
 export class CreateProjectDto {
@@ -25,12 +25,12 @@ export class CreateProjectDto {
   description?: string;
 
   @ApiProperty({
-    example: 'https://example.com/cover.png',
-    description: '封面图片',
+    example: '/uploads/media/cover.png',
+    description: '封面图片URL或路径',
     required: false,
   })
   @IsOptional()
-  @IsUrl()
+  @IsString()
   coverImage?: string;
 
   @ApiProperty({

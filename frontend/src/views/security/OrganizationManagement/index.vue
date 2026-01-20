@@ -277,7 +277,8 @@ const loadDepartmentTree = async () => {
   try {
     loading.value = true
     const res = await getDepartmentTree()
-    treeData.value = res.data || []
+    // 后端直接返回数组，不需要访问 .data
+    treeData.value = Array.isArray(res) ? res : (res.data || [])
     if (treeData.value.length > 0) {
       currentDept.value = treeData.value[0]
     }

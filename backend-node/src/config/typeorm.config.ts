@@ -13,7 +13,7 @@ export const dataSourceOptions: DataSourceOptions = {
   entities: ['dist/**/*.entity.js'],
   migrations: ['dist/migrations/*.js'],
   synchronize: true, // 自动同步数据库结构
-  logging: process.env.NODE_ENV === 'development',
+  logging: false, // 关闭 SQL 日志
   charset: 'utf8mb4',
 };
 

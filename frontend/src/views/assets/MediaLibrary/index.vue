@@ -101,9 +101,10 @@
 
               <!-- Image / Preview -->
               <img
-                :src="item.url"
+                :src="getMediaUrl(item)"
                 class="asset-img"
                 :style="getFilterStyle(item.type)"
+                @error="handleImageError"
               >
 
               <div class="select-check">✓</div>
@@ -134,7 +135,7 @@
             <el-table-column width="80">
               <template #default="{ row }">
                 <div class="list-thumb">
-                  <img :src="row.url" />
+                  <img :src="getMediaUrl(row)" @error="handleImageError" />
                   <span v-if="row.type === '3d'" class="type-badge badge-3d">GLB</span>
                   <span v-else-if="row.type === 'video'" class="type-badge badge-video">MP4</span>
                 </div>
@@ -180,7 +181,7 @@
       </div>
       <div class="detail-body">
         <div class="preview-box">
-          <img :src="selectedAsset.url" class="preview-img">
+          <img :src="getMediaUrl(selectedAsset)" class="preview-img" @error="handleImageError">
         </div>
 
         <div class="prop-row">
@@ -579,7 +580,7 @@ const filteredMedia = computed(() => {
   return mockMediaList.value.filter(item => {
     // Folder Filter
     if (activeFolder.value !== 0) {
-      // Simple mapping for demo: 
+      // Simple mapping for demo:
       // If logic is strict: item.folderId === activeFolder.value
       // But for demo, we might want to show some items in multiple 'categories' or just keep it simple
       if (item.folderId !== activeFolder.value) return false
@@ -592,6 +593,56 @@ const filteredMedia = computed(() => {
     return true
   })
 })
+
+// 获取媒体URL（优先使用thumbnail，其次url）
+const getMediaUrl = (media) => {
+  if (!media) return getDefaultMediaThumbnail(media?.type)
+
+  // 优先使用缩略图
+  if (media.thumbnail) {
+    return processUrl(media.thumbnail)
+  }
+
+  // 其次使用原始URL
+  if (media.url) {
+    return processUrl(media.url)
+  }
+
+  // 返回默认占位图
+  return getDefaultMediaThumbnail(media.type)
+}
+
+// 处理URL（支持相对路径和绝对路径）
+const processUrl = (url) => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return url // 相对路径由vite代理处理
+}
+
+// 获取默认媒体缩略图
+const getDefaultMediaThumbnail = (type) => {
+  switch (type) {
+    case 'image':
+      return '/images/media-placeholder-image.svg'
+    case 'video':
+      return '/images/media-placeholder-video.svg'
+    case '3d':
+      return '/images/media-placeholder-3d.svg'
+    case 'audio':
+      return '/images/media-placeholder-audio.svg'
+    default:
+      return '/images/media-placeholder.svg'
+  }
+}
+
+// 处理图片加载错误
+const handleImageError = (event) => {
+  const img = event.target
+  if (img && !img.dataset.errorHandled) {
+    img.dataset.errorHandled = 'true'
+    img.src = '/images/media-placeholder.svg'
+  }
+}
 
 // Methods
 const selectAsset = (item) => {
@@ -696,11 +747,17 @@ const formatDate = (timestamp) => {
   return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
 }
 
-// Utility: Mime Type
+// Utility: Mime Type - 返回中文类型名称
 const getMimeType = (type) => {
-  if (type === '3d') return 'model/gltf-binary'
-  if (type === 'video') return 'video/mp4'
-  return 'image/jpeg' // Default
+  const typeMap = {
+    'image': '图片',
+    'video': '视频',
+    'audio': '音频',
+    '3d': '3D模型',
+    'document': '文档',
+    'other': '其他'
+  }
+  return typeMap[type] || '未知'
 }
 
 // Utility: Filter Style for thumbnails (to match prototype look)

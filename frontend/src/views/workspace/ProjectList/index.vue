@@ -175,6 +175,55 @@
                 show-word-limit
               />
             </el-form-item>
+
+            <el-form-item label="封面图片 (可选)" prop="coverImage">
+              <div class="cover-upload-container">
+                <!-- 封面预览 -->
+                <div v-if="newProject.coverImage" class="cover-preview-box">
+                  <img :src="getImageUrl(newProject.coverImage)" alt="封面图" class="cover-preview-img">
+                  <div class="cover-actions">
+                    <el-button size="small" @click="showMediaSelector">
+                      <el-icon><Picture /></el-icon>
+                      从资源库选择
+                    </el-button>
+                    <el-button size="small" @click="removeCoverImage">
+                      <el-icon><Delete /></el-icon>
+                      移除封面
+                    </el-button>
+                  </div>
+                </div>
+
+                <!-- 选择封面 -->
+                <div v-else class="cover-select-box">
+                  <el-button type="primary" @click="showMediaSelector" class="select-btn">
+                    <el-icon><Picture /></el-icon>
+                    从资源库选择封面
+                  </el-button>
+                  <div class="or-divider">
+                    <span>或</span>
+                  </div>
+                  <el-upload
+                    class="cover-uploader"
+                    :action="uploadAction"
+                    :headers="uploadHeaders"
+                    :show-file-list="false"
+                    :on-success="handleUploadSuccess"
+                    :on-error="handleUploadError"
+                    :before-upload="beforeUpload"
+                    accept="image/*"
+                    :disabled="uploading"
+                  >
+                    <el-button :loading="uploading">
+                      <el-icon><Upload /></el-icon>
+                      {{ uploading ? '上传中...' : '上传本地图片' }}
+                    </el-button>
+                  </el-upload>
+                </div>
+                <div class="upload-description">
+                  建议尺寸: 16:9, 支持 JPG、PNG 格式
+                </div>
+              </div>
+            </el-form-item>
           </el-form>
 
           <div class="form-footer">
@@ -186,14 +235,21 @@
         </div>
       </div>
     </div>
+
+    <!-- 媒体选择器对话框 -->
+    <MediaSelector
+      v-model="mediaSelectorVisible"
+      @select="handleMediaSelect"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, h, reactive, onMounted } from 'vue'
+import { ref, h, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Plus } from '@element-plus/icons-vue'
+import { Search, Plus, Delete, ZoomIn, Loading, Picture, Upload } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
+import MediaSelector from '@/components/MediaSelector.vue'
 import {
   getProjectList,
   createProject,
@@ -202,6 +258,7 @@ import {
   cloneProject,
   unpublishProject
 } from '@/api/project'
+import { uploadMedia } from '@/api/media'
 
 const router = useRouter()
 const searchQuery = ref('')
@@ -210,6 +267,20 @@ const modalStep = ref(1) // 1: 选择类型, 2: 填写信息
 const creating = ref(false)
 const projectFormRef = ref(null)
 const loading = ref(false)
+const uploading = ref(false)
+const mediaSelectorVisible = ref(false) // 媒体选择器对话框
+
+// 获取上传配置
+const uploadAction = computed(() => {
+  return '/api/media/upload'
+})
+
+const uploadHeaders = computed(() => {
+  const token = localStorage.getItem('token')
+  return {
+    Authorization: `Bearer ${token}`
+  }
+})
 
 // Icons components for direct usage in v-for
 const ScreenIcon = {
@@ -232,7 +303,8 @@ const getIcon = (type) => {
 const newProject = reactive({
   type: '',
   title: '',
-  description: ''
+  description: '',
+  coverImage: ''
 })
 
 // 表单验证规则
@@ -294,6 +366,68 @@ const selectType = (type) => {
   modalStep.value = 2
 }
 
+// 图片上传前验证
+const beforeUpload = (file) => {
+  const isImage = file.type.startsWith('image/')
+  const isLt5M = file.size / 1024 / 1024 < 5
+
+  if (!isImage) {
+    ElMessage.error('只能上传图片文件!')
+    return false
+  }
+  if (!isLt5M) {
+    ElMessage.error('图片大小不能超过 5MB!')
+    return false
+  }
+  uploading.value = true
+  return true
+}
+
+// 上传成功回调
+const handleUploadSuccess = (response) => {
+  uploading.value = false
+  if (response && response.url) {
+    newProject.coverImage = response.url
+    ElMessage.success('封面上传成功')
+  } else {
+    ElMessage.error('上传失败，请重试')
+  }
+}
+
+// 上传失败回调
+const handleUploadError = (error) => {
+  uploading.value = false
+  console.error('上传失败:', error)
+  ElMessage.error('上传失败，请重试')
+}
+
+// 移除封面图片
+const removeCoverImage = () => {
+  newProject.coverImage = ''
+}
+
+// 显示媒体选择器
+const showMediaSelector = () => {
+  mediaSelectorVisible.value = true
+}
+
+// 处理媒体选择
+const handleMediaSelect = (media) => {
+  if (media && media.url) {
+    newProject.coverImage = media.url
+    ElMessage.success('封面选择成功')
+  }
+}
+
+// 获取图片完整URL
+const getImageUrl = (url) => {
+  if (!url) return ''
+  // 如果是完整URL,直接返回
+  if (url.startsWith('http')) return url
+  // 如果是相对路径,直接使用(由vite proxy处理)
+  return url
+}
+
 // 关闭弹窗
 const closeModal = () => {
   modalVisible.value = false
@@ -302,6 +436,7 @@ const closeModal = () => {
     newProject.type = ''
     newProject.title = ''
     newProject.description = ''
+    newProject.coverImage = ''
     projectFormRef.value?.clearValidate()
   }, 300)
 }
@@ -320,6 +455,7 @@ const handleCreateProject = async () => {
         title: newProject.title,
         type: newProject.type,
         description: newProject.description,
+        coverImage: newProject.coverImage,
         status: 'draft'
       }
 
@@ -807,5 +943,142 @@ const handleDeleteProject = async (project) => {
 .form-footer :deep(.el-button--primary:hover) {
   background-color: #2563eb;
   border-color: #2563eb;
+}
+
+/* Cover Upload Styles */
+.cover-upload-container {
+  width: 100%;
+}
+
+/* 封面选择盒子 */
+.cover-select-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px;
+  border: 2px dashed #303033;
+  border-radius: 8px;
+  background: #1a1b1e;
+}
+
+.select-btn {
+  min-width: 200px;
+}
+
+.or-divider {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  color: #606266;
+  font-size: 12px;
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #303033;
+}
+
+.or-divider::before {
+  left: 0;
+}
+
+.or-divider::after {
+  right: 0;
+}
+
+.or-divider span {
+  padding: 0 12px;
+  background: #1a1b1e;
+}
+
+/* 封面预览盒子 */
+.cover-preview-box {
+  width: 100%;
+  border: 2px solid #303033;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1a1b1e;
+}
+
+.cover-preview-img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.cover-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  background: #1c1d21;
+  border-top: 1px solid #303033;
+}
+
+.cover-actions .el-button {
+  flex: 1;
+}
+
+.upload-description {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* 旧样式保留用于兼容 */
+.cover-uploader {
+  width: 100%;
+}
+
+.cover-uploader :deep(.el-upload) {
+  width: 100%;
+}
+
+.cover-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.cover-preview:hover .cover-mask {
+  opacity: 1;
+}
+
+.cover-icon {
+  font-size: 24px;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.2s;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.cover-icon:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.upload-description {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.5;
 }
 </style>

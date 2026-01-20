@@ -105,13 +105,14 @@
         <el-upload
           class="thumbnail-uploader"
           :action="uploadAction"
+          :headers="uploadHeaders"
           :show-file-list="false"
           :before-upload="beforeThumbnailUpload"
           :on-success="handleThumbnailSuccess"
           :on-progress="handleUploadProgress"
           accept="image/*"
         >
-          <img v-if="form.thumbnail" :src="form.thumbnail" class="thumbnail-preview" />
+          <img v-if="form.thumbnail" :src="getImageUrl(form.thumbnail)" class="thumbnail-preview" />
           <div v-else class="thumbnail-placeholder">
             <el-icon class="upload-icon"><Plus /></el-icon>
             <div class="upload-text">点击上传缩略图</div>
@@ -194,7 +195,25 @@ const tagInputVisible = ref(false)
 const tagInputValue = ref('')
 const uploadProgress = ref(0)
 const submitting = ref(false)
-const uploadAction = ref('#')
+
+// 获取上传配置
+const uploadAction = computed(() => {
+  return '/api/media/upload'
+})
+
+const uploadHeaders = computed(() => {
+  const token = localStorage.getItem('token')
+  return {
+    Authorization: `Bearer ${token}`
+  }
+})
+
+// 获取图片完整URL
+const getImageUrl = (url) => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return url
+}
 
 // 显示标签输入框
 const showTagInput = () => {

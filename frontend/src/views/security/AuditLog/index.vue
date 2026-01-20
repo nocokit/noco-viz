@@ -70,12 +70,13 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th width="18%">操作时间</th>
-            <th width="20%">操作人 / IP</th>
+            <th width="16%">操作时间</th>
+            <th width="12%">操作人</th>
+            <th width="12%">IP地址</th>
             <th width="12%">功能模块</th>
             <th width="12%">操作类型</th>
             <th width="20%">操作对象 / 描述</th>
-            <th width="10%">状态</th>
+            <th width="8%">状态</th>
             <th width="8%">详情</th>
           </tr>
         </thead>
@@ -87,11 +88,11 @@
                 <div class="avatar" :style="{ background: log.avatarColor }">
                   {{ log.userInitials }}
                 </div>
-                <div class="user-info">
-                  <div>{{ log.userName }}</div>
-                  <div class="user-ip">{{ log.ip }}</div>
-                </div>
+                <div class="user-name">{{ log.userName }}</div>
               </div>
+            </td>
+            <td>
+              <span class="user-ip">{{ log.ip }}</span>
             </td>
             <td>{{ log.module }}</td>
             <td>
@@ -544,6 +545,7 @@ const handleExport = () => {
 .col-user {
   display: flex;
   gap: 10px;
+  align-items: center;
 }
 
 .avatar {
@@ -559,13 +561,13 @@ const handleExport = () => {
   flex-shrink: 0;
 }
 
-.user-info div {
+.user-name {
   line-height: 1.4;
 }
 
 .user-ip {
-  font-size: 11px;
-  color: var(--text-muted);
+  font-size: 12px;
+  color: var(--text-secondary);
   font-family: monospace;
 }
 

@@ -2,7 +2,7 @@
   <div class="tpl-card" @mouseenter="isHovered = true" @mouseleave="isHovered = false">
     <!-- 缩略图 -->
     <div class="tpl-thumb">
-      <img :src="template.thumbnail" :alt="template.name" class="tpl-img" />
+      <img :src="getThumbnailUrl(template)" :alt="template.name" class="tpl-img" />
 
       <!-- Hover 遮罩 -->
       <transition name="overlay-fade">
@@ -66,6 +66,21 @@ defineProps({
 defineEmits(['use', 'preview', 'edit', 'delete', 'review'])
 
 const isHovered = ref(false)
+
+// 获取缩略图URL - 优先使用媒体资源库的图片
+const getThumbnailUrl = (template) => {
+  // 优先使用媒体资源库的图片
+  if (template.thumbnailMedia?.url) {
+    return template.thumbnailMedia.url
+  }
+  // 其次使用thumbnail字段
+  if (template.thumbnail) {
+    if (template.thumbnail.startsWith('http')) return template.thumbnail
+    return template.thumbnail
+  }
+  // 默认占位图
+  return '/images/template-placeholder.svg'
+}
 
 // 格式化使用次数
 const formatUsageCount = (count) => {

@@ -62,7 +62,7 @@ export class ComponentsController {
   @Delete(':id')
   async remove(@Param('id', ParseIntPipe) id: number) {
     await this.componentsService.remove(id);
-    return { message: '删除成功' };
+    return { success: true };
   }
 
   @Post(':id/clone')

@@ -9,6 +9,7 @@ import {
   Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Media } from '../../media/entities/media.entity';
 
 export enum TemplateStatus {
   DRAFT = 'draft',
@@ -47,6 +48,13 @@ export class Template {
 
   @Column({ nullable: true, length: 500 })
   thumbnail: string;
+
+  @Column({ name: 'thumbnail_media_id', nullable: true })
+  thumbnailMediaId: number;
+
+  @ManyToOne(() => Media, { nullable: true })
+  @JoinColumn({ name: 'thumbnail_media_id' })
+  thumbnailMedia: Media;
 
   @Column({ type: 'simple-json', nullable: true })
   config: Record<string, any>;

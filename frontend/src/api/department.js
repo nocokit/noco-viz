@@ -1,11 +1,11 @@
-import request from './index'
+import request from './http'
 
 /**
  * 获取部门树形结构
  */
 export function getDepartmentTree() {
   return request({
-    url: '/api/departments',
+    url: '/departments/tree',
     method: 'get'
   })
 }
@@ -15,7 +15,7 @@ export function getDepartmentTree() {
  */
 export function getDepartmentDetail(id) {
   return request({
-    url: `/api/departments/${id}`,
+    url: `/departments/${id}`,
     method: 'get'
   })
 }
@@ -25,7 +25,7 @@ export function getDepartmentDetail(id) {
  */
 export function createDepartment(data) {
   return request({
-    url: '/api/departments',
+    url: '/departments',
     method: 'post',
     data
   })
@@ -36,7 +36,7 @@ export function createDepartment(data) {
  */
 export function updateDepartment(id, data) {
   return request({
-    url: `/api/departments/${id}`,
+    url: `/departments/${id}`,
     method: 'patch',
     data
   })
@@ -47,7 +47,7 @@ export function updateDepartment(id, data) {
  */
 export function deleteDepartment(id) {
   return request({
-    url: `/api/departments/${id}`,
+    url: `/departments/${id}`,
     method: 'delete'
   })
 }
@@ -57,7 +57,7 @@ export function deleteDepartment(id) {
  */
 export function updateDepartmentCount(id, count) {
   return request({
-    url: `/api/departments/${id}/count`,
+    url: `/departments/${id}/count`,
     method: 'patch',
     data: { count }
   })
@@ -68,7 +68,7 @@ export function updateDepartmentCount(id, count) {
  */
 export function getDepartmentDescendants(id) {
   return request({
-    url: `/api/departments/${id}/descendants`,
+    url: `/departments/${id}/descendants`,
     method: 'get'
   })
 }

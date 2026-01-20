@@ -8,8 +8,9 @@ import {
   Delete,
   Request,
   UseGuards,
+  Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { PlaylistsService } from './playlists.service';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
@@ -31,8 +32,9 @@ export class PlaylistsController {
 
   @Get()
   @ApiOperation({ summary: '获取所有轮播组' })
-  findAll() {
-    return this.playlistsService.findAll();
+  @ApiQuery({ name: 'status', required: false, enum: PlaylistStatus, description: '按状态筛选' })
+  findAll(@Query('status') status?: PlaylistStatus) {
+    return this.playlistsService.findAll(status);
   }
 
   @Get(':id')

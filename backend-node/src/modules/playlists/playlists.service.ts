@@ -4,12 +4,15 @@ import { Repository } from 'typeorm';
 import { Playlist, PlaylistStatus } from './entities/playlist.entity';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
+import { Project } from '../projects/entities/project.entity';
 
 @Injectable()
 export class PlaylistsService {
   constructor(
     @InjectRepository(Playlist)
     private playlistsRepository: Repository<Playlist>,
+    @InjectRepository(Project)
+    private projectsRepository: Repository<Project>,
   ) {}
 
   async create(createPlaylistDto: CreatePlaylistDto, userId: number): Promise<Playlist> {
@@ -17,25 +20,50 @@ export class PlaylistsService {
       ...createPlaylistDto,
       createdById: userId,
       url: `http://view.nocoviz.com/p/${Date.now()}`,
-      slides: createPlaylistDto.slides || [
-        {
-          id: Date.now(),
-          name: '新增大屏页面',
-          version: 'v1.0',
-          duration: 30,
-          thumbnail: `https://picsum.photos/160/90?random=${Date.now()}`,
-        },
-      ],
+      slides: createPlaylistDto.slides || [],
     });
 
     return this.playlistsRepository.save(playlist);
   }
 
-  async findAll(): Promise<Playlist[]> {
-    return this.playlistsRepository.find({
-      relations: ['createdBy'],
-      order: { createdAt: 'DESC' },
-    });
+  async findAll(status?: PlaylistStatus): Promise<Playlist[]> {
+    const queryBuilder = this.playlistsRepository
+      .createQueryBuilder('playlist')
+      .leftJoinAndSelect('playlist.createdBy', 'createdBy')
+      .orderBy('playlist.createdAt', 'DESC');
+
+    // 如果指定了状态，则按状态筛选
+    if (status) {
+      queryBuilder.where('playlist.status = :status', { status });
+    }
+
+    const playlists = await queryBuilder.getMany();
+
+    // 填充项目信息
+    for (const playlist of playlists) {
+      if (playlist.slides && playlist.slides.length > 0) {
+        const enrichedSlides = [];
+        for (const slide of playlist.slides) {
+          if (slide.projectId) {
+            const project = await this.projectsRepository.findOne({
+              where: { id: slide.projectId },
+            });
+            if (project) {
+              enrichedSlides.push({
+                ...slide,
+                id: slide.projectId,
+                name: project.title,
+                version: 'v1.0',
+                thumbnail: project.coverImage || '/images/project-cover.svg',
+              });
+            }
+          }
+        }
+        playlist.slides = enrichedSlides;
+      }
+    }
+
+    return playlists;
   }
 
   async findOne(id: number): Promise<Playlist> {

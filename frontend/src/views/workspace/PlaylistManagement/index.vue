@@ -1,162 +1,252 @@
 <template>
   <div class="playlist-management">
-    <!-- 顶部 -->
+    <!-- 头部区域 -->
     <div class="header">
       <div>
-        <h2>多屏轮播 (Playlists)</h2>
+        <h2>轮播管理</h2>
         <p>将多个已发布的大屏组合成播放列表，在展厅、大堂等显示器循环播放。</p>
       </div>
-      <el-button type="primary" @click="openCreateModal">
-        <el-icon><Plus /></el-icon>
-        新建轮播组
-      </el-button>
+      <div class="header-actions">
+        <el-button type="primary" @click="openCreateModal">
+          <el-icon><Plus /></el-icon>
+          新建轮播组
+        </el-button>
+      </div>
     </div>
 
-    <!-- 布局容器：左列表，右预览 -->
-    <div class="layout-grid">
-      <!-- 左侧：轮播组列表 -->
-      <div class="playlist-list">
-        <div class="list-header">
-          <input
-            v-model="searchKeyword"
-            type="text"
-            class="search-mini"
-            placeholder="搜索轮播组..."
-          >
+    <!-- 筛选和搜索 -->
+    <div class="filter-header">
+      <div class="filter-tabs">
+        <div
+          v-for="filter in filters"
+          :key="filter.id"
+          :class="['filter-tab', { active: activeFilter === filter.id }]"
+          @click="activeFilter = filter.id"
+        >
+          {{ filter.label }}
         </div>
+      </div>
+      <div class="view-controls">
+        <el-input
+          v-model="searchKeyword"
+          class="search-input"
+          placeholder="搜索轮播组..."
+          prefix-icon="Search"
+          clearable
+        />
+        <div class="view-switcher">
+          <el-tooltip content="网格视图" placement="top">
+            <button
+              :class="['view-btn', { active: viewMode === 'grid' }]"
+              @click="viewMode = 'grid'"
+            >
+              <el-icon><Grid /></el-icon>
+            </button>
+          </el-tooltip>
+          <el-tooltip content="分栏视图" placement="top">
+            <button
+              :class="['view-btn', { active: viewMode === 'split' }]"
+              @click="viewMode = 'split'"
+            >
+              <el-icon><Menu /></el-icon>
+            </button>
+          </el-tooltip>
+        </div>
+      </div>
+    </div>
 
+    <!-- 内容区域 -->
+    <div class="content-area">
+      <!-- 空状态 -->
+      <div v-if="filteredPlaylists.length === 0" class="empty-state">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" style="color: #6b7280; margin-bottom: 16px;">
+          <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/>
+        </svg>
+        <div class="empty-title">暂无轮播组</div>
+        <div class="empty-desc">暂时没有找到符合条件的轮播组</div>
+      </div>
+
+      <!-- 网格视图 -->
+      <div v-else-if="viewMode === 'grid'" class="playlist-grid">
         <div
           v-for="playlist in filteredPlaylists"
           :key="playlist.id"
-          class="playlist-item"
-          :class="{ selected: selectedPlaylist?.id === playlist.id }"
-          @click="selectPlaylist(playlist)"
+          class="playlist-card"
+          @click="handleConfigPlaylist(playlist)"
         >
-          <div class="item-content">
-            <div class="item-title">
-              {{ playlist.name }}
-              <span
-                :style="{
-                  color: playlist.status === 'playing' ? '#10b981' : '#9ca3af',
-                  fontSize: '12px',
-                  cursor: 'pointer'
-                }"
-                @click.stop="togglePlaylistStatus(playlist)"
-                :title="playlist.status === 'playing' ? '点击设为闲置' : '点击设为播放中'"
-              >
-                ● {{ playlist.status === 'playing' ? '播放中' : '闲置' }}
-              </span>
+          <div class="card-header">
+            <div class="card-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/>
+              </svg>
             </div>
-            <div class="item-meta">
-              <span>{{ playlist.slides.length }} 个页面</span>
-              <span>{{ playlist.resolution }}</span>
+            <div class="card-status" :class="{ playing: playlist.status === 'playing' }">
+              {{ playlist.status === 'playing' ? '● 播放中' : '闲置' }}
             </div>
           </div>
-          <div class="item-actions" @click.stop>
-            <button class="action-btn" @click="openEditModal(playlist)" title="编辑">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-              </svg>
-            </button>
-            <button class="action-btn delete" @click="handleDelete(playlist)" title="删除">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-              </svg>
-            </button>
+          <div class="card-body">
+            <h3 class="card-title">{{ playlist.name }}</h3>
+            <div class="card-meta">
+              <span>{{ playlist.slides.length }} 个页面</span>
+              <span>·</span>
+              <span>{{ playlist.resolution }}</span>
+            </div>
+            <div class="card-info">
+              <span>过渡: {{ getTransitionLabel(playlist.transition) }}</span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <el-button size="small" @click.stop="handleConfigPlaylist(playlist)">
+              配置轮播
+            </el-button>
+            <el-dropdown @command="handleCommand($event, playlist)" @click.stop>
+              <el-button size="small" text>
+                <el-icon><MoreFilled /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="edit">编辑信息</el-dropdown-item>
+                  <el-dropdown-item command="toggle">
+                    {{ playlist.status === 'playing' ? '设为闲置' : '设为播放中' }}
+                  </el-dropdown-item>
+                  <el-dropdown-item command="copy">复制链接</el-dropdown-item>
+                  <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </div>
         </div>
       </div>
 
-      <!-- 右侧：配置区 -->
-      <div class="config-panel">
-        <div class="panel-toolbar">
-          <div style="font-weight: 600">
-            {{ selectedPlaylist?.name }}
-            <span
-              style="
-                font-weight: 400;
-                font-size: 12px;
-                color: #9ca3af;
-                margin-left: 8px;
-              "
-            >
-              总时长: {{ totalDuration }}
-            </span>
-          </div>
-          <div style="display: flex; gap: 12px; align-items: center">
-            <div class="playlist-url">
-              {{ selectedPlaylist?.url }}
-              <span class="copy-btn" @click="copyUrl">复制</span>
-            </div>
-            <button class="btn-primary" style="padding: 6px 12px" @click="saveConfig">
-              保存配置
-            </button>
-          </div>
-        </div>
-
-        <div class="slides-container">
-          <!-- 轮播项 -->
+      <!-- 分栏视图 -->
+      <div v-else-if="viewMode === 'split'" class="split-view">
+        <!-- 左侧：轮播组列表 -->
+        <div class="playlist-list">
           <div
-            v-for="(slide, index) in selectedPlaylist?.slides"
-            :key="slide.id"
-            class="slide-card"
+            v-for="playlist in filteredPlaylists"
+            :key="playlist.id"
+            class="playlist-item"
+            :class="{ selected: selectedPlaylist?.id === playlist.id }"
+            @click="selectPlaylist(playlist)"
           >
-            <div class="drag-handle">☰</div>
-            <div class="slide-thumb">
-              <img :src="slide.thumbnail" class="thumb-img" />
+            <div class="item-content">
+              <div class="item-title">
+                {{ playlist.name }}
+                <span
+                  :class="['status-dot', { playing: playlist.status === 'playing' }]"
+                  @click.stop="togglePlaylistStatus(playlist)"
+                  :title="playlist.status === 'playing' ? '点击设为闲置' : '点击设为播放中'"
+                >
+                  ● {{ playlist.status === 'playing' ? '播放中' : '闲置' }}
+                </span>
+              </div>
+              <div class="item-meta">
+                <span>{{ playlist.slides.length }} 个页面</span>
+                <span>{{ playlist.resolution }}</span>
+              </div>
             </div>
-            <div class="slide-info">
-              <div class="slide-name">{{ slide.name }}</div>
-              <div class="slide-status">{{ slide.version }} • 已发布</div>
-            </div>
-            <div class="slide-settings">
-              <input
-                v-model.number="slide.duration"
-                type="number"
-                class="duration-input"
-                min="1"
-              />
-              <span class="unit">秒</span>
-              <div class="remove-btn" @click="removeSlide(index)">✕</div>
+            <div class="item-actions" @click.stop>
+              <el-button size="small" text @click="openEditModal(playlist)" title="编辑">
+                <el-icon><Edit /></el-icon>
+              </el-button>
+              <el-button size="small" text type="danger" @click="handleDelete(playlist)" title="删除">
+                <el-icon><Delete /></el-icon>
+              </el-button>
             </div>
           </div>
-
-          <!-- 添加按钮 -->
-          <button class="add-slide-btn" @click="addSlide">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-            </svg>
-            添加大屏页面
-          </button>
         </div>
 
-        <!-- 底部预览条 -->
-        <div v-if="selectedPlaylist" class="preview-footer">
-          <div class="device-mock">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"
-              />
-            </svg>
-            分辨率设置: {{ selectedPlaylist.resolution }} (16:9)
+        <!-- 右侧：配置区 -->
+        <div class="config-panel" v-if="selectedPlaylist">
+          <div class="panel-toolbar">
+            <div class="toolbar-title">
+              {{ selectedPlaylist.name }}
+              <span class="toolbar-subtitle">
+                总时长: {{ totalDuration }}
+              </span>
+            </div>
+            <div class="toolbar-actions">
+              <el-button size="small" @click="copyPlaylistUrl">
+                <el-icon><Link /></el-icon>
+                复制链接
+              </el-button>
+              <el-button type="primary" size="small" @click="saveConfig">
+                保存配置
+              </el-button>
+            </div>
           </div>
-          <div style="font-size: 12px; color: #9ca3af">
-            过渡效果:
-            <select
-              v-model="selectedPlaylist.transition"
-              style="
-                background: #000;
-                color: #fff;
-                border: 1px solid #2d2e33;
-                padding: 2px;
-                border-radius: 4px;
-              "
+
+          <div class="slides-container">
+            <!-- 轮播项 -->
+            <div
+              v-for="(slide, index) in selectedPlaylist.slides"
+              :key="slide.id"
+              class="slide-card"
             >
-              <option value="fade">淡入淡出 (Fade)</option>
-              <option value="none">直接切换 (None)</option>
-              <option value="slide">滑动 (Slide)</option>
-            </select>
+              <div class="slide-drag">
+                <el-icon><Rank /></el-icon>
+              </div>
+              <div class="slide-thumb">
+                <img :src="slide.thumbnail" />
+              </div>
+              <div class="slide-info">
+                <div class="slide-name">{{ slide.name }}</div>
+                <div class="slide-version">{{ slide.version }} • 已发布</div>
+              </div>
+              <div class="slide-duration">
+                <el-input-number
+                  v-model="slide.duration"
+                  :min="1"
+                  :max="3600"
+                  size="small"
+                />
+                <span class="duration-unit">秒</span>
+              </div>
+              <el-button
+                type="danger"
+                text
+                size="small"
+                @click="removeSlide(index)"
+              >
+                <el-icon><Delete /></el-icon>
+              </el-button>
+            </div>
+
+            <!-- 添加按钮 -->
+            <el-button class="add-slide-btn" @click="addSlide">
+              <el-icon><Plus /></el-icon>
+              添加大屏页面
+            </el-button>
           </div>
+
+          <!-- 底部信息栏 -->
+          <div class="panel-footer">
+            <div class="footer-info">
+              <el-icon><Monitor /></el-icon>
+              分辨率: {{ selectedPlaylist.resolution }}
+            </div>
+            <div class="footer-info">
+              过渡效果:
+              <el-select
+                v-model="selectedPlaylist.transition"
+                size="small"
+                style="width: 140px; margin-left: 8px"
+              >
+                <el-option label="淡入淡出" value="fade" />
+                <el-option label="直接切换" value="none" />
+                <el-option label="滑动" value="slide" />
+              </el-select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧空状态 -->
+        <div v-else class="config-panel-empty">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" style="color: #6b7280; margin-bottom: 16px;">
+            <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/>
+          </svg>
+          <div class="empty-title">请选择轮播组</div>
+          <div class="empty-desc">从左侧列表选择一个轮播组进行配置</div>
         </div>
       </div>
     </div>
@@ -210,13 +300,84 @@
         </el-form-item>
       </el-form>
     </CommonModal>
+
+    <!-- 配置轮播模态框 -->
+    <el-dialog
+      v-model="configModalVisible"
+      :title="`配置轮播组: ${selectedPlaylist?.name}`"
+      width="900px"
+      :close-on-click-modal="false"
+    >
+      <div class="config-content">
+        <div class="config-toolbar">
+          <div class="toolbar-info">
+            <span class="info-label">总时长:</span>
+            <span class="info-value">{{ totalDuration }}</span>
+            <span class="info-label" style="margin-left: 24px">分辨率:</span>
+            <span class="info-value">{{ selectedPlaylist?.resolution }}</span>
+          </div>
+          <div class="toolbar-actions">
+            <el-button size="small" @click="copyPlaylistUrl">
+              <el-icon><Link /></el-icon>
+              复制链接
+            </el-button>
+          </div>
+        </div>
+
+        <div class="slides-list">
+          <div
+            v-for="(slide, index) in selectedPlaylist?.slides"
+            :key="slide.id"
+            class="slide-item"
+          >
+            <div class="slide-drag">
+              <el-icon><Rank /></el-icon>
+            </div>
+            <div class="slide-thumb">
+              <img :src="slide.thumbnail" />
+            </div>
+            <div class="slide-info">
+              <div class="slide-name">{{ slide.name }}</div>
+              <div class="slide-version">{{ slide.version }} • 已发布</div>
+            </div>
+            <div class="slide-duration">
+              <el-input-number
+                v-model="slide.duration"
+                :min="1"
+                :max="3600"
+                size="small"
+              />
+              <span class="duration-unit">秒</span>
+            </div>
+            <el-button
+              type="danger"
+              text
+              size="small"
+              @click="removeSlide(index)"
+            >
+              <el-icon><Delete /></el-icon>
+            </el-button>
+          </div>
+
+          <el-button class="add-slide-btn" @click="addSlide">
+            <el-icon><Plus /></el-icon>
+            添加大屏页面
+          </el-button>
+        </div>
+      </div>
+
+      <template #footer>
+        <el-button @click="configModalVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveConfig">保存配置</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, MoreFilled, Link, Rank, Delete, Edit, Grid, Menu, Monitor } from '@element-plus/icons-vue'
 import CommonModal from '@/components/CommonModal.vue'
 import {
   getPlaylists,
@@ -231,11 +392,21 @@ import {
 const searchKeyword = ref('')
 const selectedPlaylist = ref(null)
 const modalVisible = ref(false)
+const configModalVisible = ref(false)
 const isEditMode = ref(false)
 const submitting = ref(false)
 const formRef = ref(null)
 const editingPlaylistId = ref(null)
 const loading = ref(false)
+const activeFilter = ref('all')
+const viewMode = ref('grid') // 'grid' 或 'split'
+
+// 筛选选项
+const filters = [
+  { id: 'all', label: '全部轮播' },
+  { id: 'playing', label: '播放中' },
+  { id: 'idle', label: '闲置' }
+]
 
 // 表单数据
 const formData = reactive({
@@ -270,11 +441,6 @@ const loadPlaylists = async () => {
       ...playlist,
       slides: playlist.slides || []
     }))
-
-    // 初始选中第一个
-    if (playlists.value.length > 0 && !selectedPlaylist.value) {
-      selectedPlaylist.value = playlists.value[0]
-    }
   } catch (error) {
     console.error('加载轮播列表失败:', error)
     ElMessage.error('加载轮播列表失败')
@@ -290,9 +456,22 @@ onMounted(() => {
 
 // 过滤后的播放列表
 const filteredPlaylists = computed(() => {
-  if (!searchKeyword.value) return playlists.value
-  const keyword = searchKeyword.value.toLowerCase()
-  return playlists.value.filter(p => p.name.toLowerCase().includes(keyword))
+  let result = playlists.value
+
+  // 按状态筛选
+  if (activeFilter.value === 'playing') {
+    result = result.filter(p => p.status === 'playing')
+  } else if (activeFilter.value === 'idle') {
+    result = result.filter(p => p.status === 'idle')
+  }
+
+  // 按关键词搜索
+  if (searchKeyword.value) {
+    const keyword = searchKeyword.value.toLowerCase()
+    result = result.filter(p => p.name.toLowerCase().includes(keyword))
+  }
+
+  return result
 })
 
 // 总时长
@@ -307,9 +486,52 @@ const totalDuration = computed(() => {
   return `${total}秒`
 })
 
-// 选择播放列表
+// 获取过渡效果标签
+const getTransitionLabel = (transition) => {
+  const labels = {
+    fade: '淡入淡出',
+    slide: '滑动',
+    none: '直接切换'
+  }
+  return labels[transition] || transition
+}
+
+// 选择播放列表（分栏视图）
 const selectPlaylist = (playlist) => {
   selectedPlaylist.value = playlist
+}
+
+// 打开配置轮播（网格视图）
+const handleConfigPlaylist = (playlist) => {
+  selectedPlaylist.value = playlist
+  configModalVisible.value = true
+}
+
+// 复制链接
+const copyPlaylistUrl = () => {
+  const url = selectedPlaylist.value?.url || `http://localhost:8000/playlist/${selectedPlaylist.value?.id}`
+  navigator.clipboard.writeText(url)
+  ElMessage.success('播放链接已复制到剪贴板')
+}
+
+// 处理下拉菜单命令
+const handleCommand = async (command, playlist) => {
+  switch (command) {
+    case 'edit':
+      openEditModal(playlist)
+      break
+    case 'toggle':
+      await togglePlaylistStatus(playlist)
+      break
+    case 'copy':
+      const url = playlist.url || `http://localhost:8000/playlist/${playlist.id}`
+      navigator.clipboard.writeText(url)
+      ElMessage.success('播放链接已复制到剪贴板')
+      break
+    case 'delete':
+      await handleDelete(playlist)
+      break
+  }
 }
 
 // 移除轮播项
@@ -345,11 +567,6 @@ const addSlide = () => {
   ElMessage.success('已添加')
 }
 
-// 复制链接
-const copyUrl = () => {
-  ElMessage.success('播放链接已复制到剪贴板')
-}
-
 // 保存配置
 const saveConfig = async () => {
   if (!selectedPlaylist.value) return
@@ -357,6 +574,10 @@ const saveConfig = async () => {
   try {
     await updateSlides(selectedPlaylist.value.id, selectedPlaylist.value.slides)
     ElMessage.success('配置已保存')
+    if (viewMode.value === 'grid') {
+      configModalVisible.value = false
+    }
+    await loadPlaylists()
   } catch (error) {
     console.error('保存配置失败:', error)
     ElMessage.error('保存配置失败')
@@ -416,16 +637,13 @@ const handleSubmit = async () => {
       }
 
       if (isEditMode.value) {
-        // 编辑模式
         await updatePlaylist(editingPlaylistId.value, playlistData)
         ElMessage.success(`轮播组 "${formData.name}" 已更新`)
       } else {
-        // 新建模式
         await createPlaylist(playlistData)
         ElMessage.success(`轮播组 "${formData.name}" 创建成功`)
       }
 
-      // 重新加载列表
       await loadPlaylists()
       closeModal()
     } catch (error) {
@@ -453,12 +671,11 @@ const handleDelete = async (playlist) => {
     await deletePlaylist(playlist.id)
     ElMessage.success('轮播组已删除')
 
-    // 清除选中
+    // 如果删除的是当前选中的，清除选中
     if (selectedPlaylist.value?.id === playlist.id) {
       selectedPlaylist.value = null
     }
 
-    // 重新加载列表
     await loadPlaylists()
   } catch (error) {
     if (error !== 'cancel') {
@@ -474,13 +691,13 @@ const togglePlaylistStatus = async (playlist) => {
     const newStatus = playlist.status === 'playing' ? 'idle' : 'playing'
     await updatePlaylistStatus(playlist.id, newStatus)
 
-    // 更新本地数据
     playlist.status = newStatus
     if (selectedPlaylist.value?.id === playlist.id) {
       selectedPlaylist.value.status = newStatus
     }
 
     ElMessage.success(`已设为${newStatus === 'playing' ? '播放中' : '闲置'}`)
+    await loadPlaylists()
   } catch (error) {
     console.error('更新状态失败:', error)
     ElMessage.error('更新播放状态失败')
@@ -490,109 +707,377 @@ const togglePlaylistStatus = async (playlist) => {
 
 <style scoped>
 .playlist-management {
-  padding: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  overflow: hidden;
+  background: var(--el-bg-color);
+  padding: 24px;
 }
 
-/* ========== 顶部 ========== */
+/* ========== 头部区域 ========== */
 .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--el-border-color);
+}
+
+.header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--el-text-color-primary);
+}
+
+.header p {
+  color: var(--el-text-color-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* ========== 筛选头部 ========== */
+.filter-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  gap: 20px;
 }
 
-.header h2 {
-  font-size: 22px;
-  margin-bottom: 6px;
+.filter-tabs {
+  display: flex;
+  gap: 8px;
 }
 
-.header p {
-  color: #9ca3af;
-  font-size: 13px;
-}
-
-.btn-primary {
-  background: #3b82f6;
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
+.filter-tab {
+  padding: 8px 16px;
+  font-size: 14px;
   border-radius: 6px;
-  font-size: 13px;
   cursor: pointer;
+  color: var(--el-text-color-secondary);
+  transition: all 0.2s;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.filter-tab:hover {
+  background: var(--el-fill-color);
+  color: var(--el-text-color-primary);
+}
+
+.filter-tab.active {
+  background: var(--el-color-primary);
+  color: #fff;
+  border-color: var(--el-color-primary);
+}
+
+.view-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.search-input {
+  width: 240px;
+}
+
+.view-switcher {
+  display: flex;
+  gap: 4px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 6px;
+  padding: 4px;
+  background: var(--el-fill-color-lighter);
+}
+
+.view-btn {
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
-  gap: 6px;
-  transition: 0.2s;
+  justify-content: center;
 }
 
-.btn-primary:hover {
-  background: #2563eb;
+.view-btn:hover {
+  background: var(--el-fill-color);
+  color: var(--el-text-color-primary);
 }
 
-/* ========== 布局网格 ========== */
-.layout-grid {
-  display: grid;
-  grid-template-columns: 350px 1fr;
-  gap: 24px;
+.view-btn.active {
+  background: var(--el-color-primary);
+  color: #fff;
+}
+
+/* ========== 内容区域 ========== */
+.content-area {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  padding-top: 4px;
 }
 
-/* ========== 左侧列表 ========== */
-.playlist-list {
-  background: #1c1d21;
-  border: 1px solid #2d2e33;
-  border-radius: 12px;
+.empty-state {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: var(--el-text-color-secondary);
 }
 
-.list-header {
-  padding: 16px;
-  border-bottom: 1px solid #2d2e33;
-  font-weight: 600;
+.empty-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--el-text-color-primary);
+}
+
+.empty-desc {
   font-size: 14px;
+  color: var(--el-text-color-secondary);
+}
+
+/* ========== 轮播网格 ========== */
+.playlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.playlist-card {
+  background: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.playlist-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-color: var(--el-color-primary);
+}
+
+.card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 16px;
 }
 
-.search-mini {
-  background: #000;
-  border: 1px solid #2d2e33;
-  color: #fff;
-  padding: 4px 8px;
-  border-radius: 4px;
-  width: 120px;
+.card-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--el-color-primary-light-9);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--el-color-primary);
+}
+
+.card-status {
   font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: var(--el-fill-color);
+  color: var(--el-text-color-secondary);
 }
 
-.search-mini::placeholder {
-  color: #6b7280;
+.card-status.playing {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.card-body {
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--el-text-color-primary);
+}
+
+.card-meta {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  margin-bottom: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+.card-info {
+  font-size: 12px;
+  color: var(--el-text-color-placeholder);
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+/* ========== 配置对话框 ========== */
+.config-content {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.config-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--el-fill-color-light);
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.toolbar-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.info-label {
+  color: var(--el-text-color-secondary);
+}
+
+.info-value {
+  color: var(--el-text-color-primary);
+  font-weight: 500;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.slides-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.slide-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--el-fill-color-light);
+  border-radius: 6px;
+  border: 1px solid var(--el-border-color-lighter);
+}
+
+.slide-drag {
+  cursor: grab;
+  color: var(--el-text-color-placeholder);
+}
+
+.slide-drag:active {
+  cursor: grabbing;
+}
+
+.slide-thumb {
+  width: 80px;
+  height: 45px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--el-fill-color);
+}
+
+.slide-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.slide-info {
+  flex: 1;
+}
+
+.slide-name {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--el-text-color-primary);
+}
+
+.slide-version {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+.slide-duration {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.duration-unit {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+.add-slide-btn {
+  width: 100%;
+  border-style: dashed;
+}
+
+/* ========== 分栏视图 ========== */
+.split-view {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 20px;
+  height: 100%;
+}
+
+/* 左侧列表 */
+.playlist-list {
+  background: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+  overflow-y: auto;
+  padding: 8px;
 }
 
 .playlist-item {
-  padding: 16px;
-  border-bottom: 1px solid #2d2e33;
+  padding: 12px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: 0.2s;
-  position: relative;
+  transition: all 0.2s;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 4px;
 }
 
 .playlist-item:hover {
-  background: #26272c;
+  background: var(--el-fill-color);
 }
 
 .playlist-item.selected {
-  background: rgba(59, 130, 246, 0.1);
-  border-left: 3px solid #3b82f6;
+  background: var(--el-color-primary-light-9);
+  border-left: 3px solid var(--el-color-primary);
 }
 
 .item-content {
@@ -607,13 +1092,25 @@ const togglePlaylistStatus = async (playlist) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  color: var(--el-text-color-primary);
+}
+
+.status-dot {
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--el-text-color-secondary);
+}
+
+.status-dot.playing {
+  color: #10b981;
 }
 
 .item-meta {
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--el-text-color-secondary);
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .item-actions {
@@ -627,216 +1124,149 @@ const togglePlaylistStatus = async (playlist) => {
   opacity: 1;
 }
 
-.action-btn {
-  background: transparent;
-  border: 1px solid #2d2e33;
-  color: #9ca3af;
-  padding: 6px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.action-btn:hover {
-  background: #26272c;
-  color: #fff;
-  border-color: #3b82f6;
-}
-
-.action-btn.delete:hover {
-  border-color: #ef4444;
-  color: #ef4444;
-}
-
-/* ========== 右侧配置面板 ========== */
+/* 右侧配置面板 */
 .config-panel {
-  background: #1c1d21;
-  border: 1px solid #2d2e33;
-  border-radius: 12px;
+  background: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
 .panel-toolbar {
-  padding: 16px 24px;
-  border-bottom: 1px solid #2d2e33;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--el-border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
 }
 
-.playlist-url {
-  background: #000;
-  padding: 6px 12px;
-  border-radius: 4px;
-  border: 1px solid #2d2e33;
-  font-family: monospace;
-  color: #3b82f6;
+.toolbar-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.toolbar-subtitle {
   font-size: 12px;
+  font-weight: 400;
+  color: var(--el-text-color-secondary);
+  margin-left: 12px;
+}
+
+.toolbar-actions {
   display: flex;
-  align-items: center;
   gap: 8px;
 }
 
-.copy-btn {
-  cursor: pointer;
-  color: #9ca3af;
-  font-size: 11px;
-  transition: 0.2s;
-}
-
-.copy-btn:hover {
-  color: #fff;
-}
-
-/* ========== 轮播项编辑区 ========== */
 .slides-container {
-  padding: 24px;
   flex: 1;
   overflow-y: auto;
+  padding: 20px;
 }
 
 .slide-card {
   display: flex;
   align-items: center;
-  background: #0a0b0d;
-  border: 1px solid #2d2e33;
-  border-radius: 8px;
+  gap: 12px;
   padding: 12px;
+  background: var(--el-fill-color-light);
+  border-radius: 6px;
+  border: 1px solid var(--el-border-color-lighter);
   margin-bottom: 12px;
-  transition: 0.2s;
+  transition: all 0.2s;
 }
 
 .slide-card:hover {
-  border-color: #9ca3af;
+  border-color: var(--el-border-color);
+  background: var(--el-fill-color);
 }
 
-.drag-handle {
-  color: #9ca3af;
+.slide-drag {
   cursor: grab;
-  padding: 0 10px;
-  font-size: 16px;
-  user-select: none;
+  color: var(--el-text-color-placeholder);
 }
 
-.drag-handle:active {
+.slide-drag:active {
   cursor: grabbing;
 }
 
 .slide-thumb {
   width: 80px;
   height: 45px;
-  background: #333;
   border-radius: 4px;
-  margin-right: 16px;
-  position: relative;
   overflow: hidden;
+  background: var(--el-fill-color);
+  flex-shrink: 0;
 }
 
-.thumb-img {
+.slide-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.7;
 }
 
 .slide-info {
   flex: 1;
+  min-width: 0;
 }
 
 .slide-name {
   font-size: 14px;
   font-weight: 500;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.slide-status {
-  font-size: 11px;
-  color: #9ca3af;
-}
-
-.slide-settings {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: 16px;
-}
-
-.duration-input {
-  width: 60px;
-  background: #000;
-  border: 1px solid #2d2e33;
-  color: #fff;
-  padding: 4px;
-  text-align: center;
-  border-radius: 4px;
-  font-size: 13px;
-}
-
-.duration-input::-webkit-inner-spin-button,
-.duration-input::-webkit-outer-spin-button {
-  opacity: 1;
-}
-
-.unit {
+.slide-version {
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--el-text-color-secondary);
 }
 
-.remove-btn {
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 4px;
-  font-size: 16px;
-  transition: 0.2s;
-}
-
-.remove-btn:hover {
-  color: #ef4444;
-}
-
-.add-slide-btn {
-  width: 100%;
-  border: 1px dashed #2d2e33;
-  background: transparent;
-  color: #9ca3af;
-  padding: 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.2s;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-}
-
-.add-slide-btn:hover {
-  border-color: #3b82f6;
-  color: #3b82f6;
-  background: rgba(59, 130, 246, 0.05);
-}
-
-/* ========== 底部预览条 ========== */
-.preview-footer {
-  padding: 16px 24px;
-  border-top: 1px solid #2d2e33;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(0, 0, 0, 0.2);
-  flex-shrink: 0;
-}
-
-.device-mock {
+.slide-duration {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
-  color: #9ca3af;
 }
+
+.duration-unit {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+.panel-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--el-border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--el-fill-color-lighter);
+  flex-shrink: 0;
+}
+
+.footer-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+}
+
+/* 右侧空状态 */
+.config-panel-empty {
+  background: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+}
+
 </style>

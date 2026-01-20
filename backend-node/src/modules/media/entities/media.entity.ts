@@ -48,6 +48,9 @@ export class Media {
   @Column({ type: 'text', nullable: true })
   description: string;
 
+  @Column({ length: 500, nullable: true })
+  thumbnail: string;
+
   @Column({ type: 'json', nullable: true })
   metadata: any;
 

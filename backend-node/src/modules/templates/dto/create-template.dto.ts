@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsOptional, IsEnum } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsEnum, IsNumber } from 'class-validator';
 import { TemplateCategory } from '../entities/template.entity';
 
 export class CreateTemplateDto {
@@ -21,6 +21,11 @@ export class CreateTemplateDto {
   @IsOptional()
   @IsString()
   thumbnail?: string;
+
+  @ApiProperty({ required: false, description: '封面图片媒体资源ID' })
+  @IsOptional()
+  @IsNumber()
+  thumbnailMediaId?: number;
 
   @ApiProperty({ required: false })
   @IsOptional()
