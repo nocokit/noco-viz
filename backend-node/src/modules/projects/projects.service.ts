@@ -1,17 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { BaseService } from '../../common/base/base.service';
 import { Project, ProjectStatus, ProjectType } from './entities/project.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 
 @Injectable()
-export class ProjectsService {
+export class ProjectsService extends BaseService<Project> {
   constructor(
     @InjectRepository(Project)
     private projectsRepository: Repository<Project>,
-  ) {}
+  ) {
+    super(projectsRepository);
+  }
 
+  // @ts-ignore
   async create(createProjectDto: CreateProjectDto, userId: number): Promise<Project> {
     const project = this.projectsRepository.create({
       ...createProjectDto,
@@ -33,11 +37,9 @@ export class ProjectsService {
       where: { id },
       relations: ['createdBy'],
     });
-
     if (!project) {
-      throw new NotFoundException(`项目 #${id} 不存在`);
+      throw new NotFoundException(`Project #${id} not found`);
     }
-
     return project;
   }
 
@@ -45,11 +47,6 @@ export class ProjectsService {
     const project = await this.findOne(id);
     Object.assign(project, updateProjectDto);
     return this.projectsRepository.save(project);
-  }
-
-  async remove(id: number): Promise<void> {
-    const project = await this.findOne(id);
-    await this.projectsRepository.remove(project);
   }
 
   async clone(id: number, newTitle: string, userId: number): Promise<Project> {

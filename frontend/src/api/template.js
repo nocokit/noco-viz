@@ -1,50 +1,33 @@
-import request from './http'
+import { createApiService } from './base'
 
 /**
  * 模板管理API
  */
+const templateApi = createApiService('templates')
 
 // 获取模板列表
 export function getTemplates(params) {
-  return request({
-    url: '/templates',
-    method: 'get',
-    params
-  })
+  return templateApi.getList(params)
 }
 
 // 获取单个模板详情
 export function getTemplate(id) {
-  return request({
-    url: `/templates/${id}`,
-    method: 'get'
-  })
+  return templateApi.getOne(id)
 }
 
 // 创建模板
 export function createTemplate(data) {
-  return request({
-    url: '/templates',
-    method: 'post',
-    data
-  })
+  return templateApi.create(data)
 }
 
 // 更新模板
 export function updateTemplate(id, data) {
-  return request({
-    url: `/templates/${id}`,
-    method: 'put',
-    data
-  })
+  return templateApi.update(id, data)
 }
 
 // 删除模板
 export function deleteTemplate(id) {
-  return request({
-    url: `/templates/${id}`,
-    method: 'delete'
-  })
+  return templateApi.delete(id)
 }
 
 // 发布模板

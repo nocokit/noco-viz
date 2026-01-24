@@ -1,17 +1,20 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { BaseService } from '../../common/base/base.service';
 import { CustomComponent } from './entities/component.entity';
 import { CreateComponentDto } from './dto/create-component.dto';
 import { UpdateComponentDto } from './dto/update-component.dto';
 import { QueryComponentDto } from './dto/query-component.dto';
 
 @Injectable()
-export class ComponentsService {
+export class ComponentsService extends BaseService<CustomComponent> {
   constructor(
     @InjectRepository(CustomComponent)
     private componentsRepository: Repository<CustomComponent>,
-  ) {}
+  ) {
+    super(componentsRepository);
+  }
 
   async create(createComponentDto: CreateComponentDto, userId?: number, userName?: string): Promise<CustomComponent> {
     const existingComponent = await this.componentsRepository.findOne({
@@ -31,6 +34,7 @@ export class ComponentsService {
     return this.componentsRepository.save(component);
   }
 
+  // @ts-ignore
   async findAll(queryDto: QueryComponentDto) {
     const { search, category, type, isPublic, creatorId, page = 1, pageSize = 20 } = queryDto;
 
@@ -76,24 +80,11 @@ export class ComponentsService {
   }
 
   async findOne(id: number): Promise<CustomComponent> {
-    const component = await this.componentsRepository.findOne({ where: { id } });
-
-    if (!component) {
-      throw new NotFoundException(`组件 #${id} 不存在`);
-    }
-
-    return component;
+    return super.findOne(id);
   }
 
   async update(id: number, updateComponentDto: UpdateComponentDto): Promise<CustomComponent> {
-    const component = await this.findOne(id);
-    Object.assign(component, updateComponentDto);
-    return this.componentsRepository.save(component);
-  }
-
-  async remove(id: number): Promise<void> {
-    const component = await this.findOne(id);
-    await this.componentsRepository.remove(component);
+    return super.update(id, updateComponentDto);
   }
 
   async incrementDownloads(id: number): Promise<void> {

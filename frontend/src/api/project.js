@@ -1,14 +1,16 @@
 /**
  * 项目管理相关 API
  */
-import request from './http'
+import { createApiService } from './base'
+
+const projectApi = createApiService('projects')
 
 /**
  * 获取项目列表
  * @param {Object} params - { page, limit, search, type, status }
  */
 export function getProjectList(params) {
-  return request.get('/projects', { params })
+  return projectApi.getList(params)
 }
 
 /**
@@ -16,7 +18,7 @@ export function getProjectList(params) {
  * @param {number} id
  */
 export function getProjectDetail(id) {
-  return request.get(`/projects/${id}`)
+  return projectApi.getOne(id)
 }
 
 /**
@@ -24,7 +26,7 @@ export function getProjectDetail(id) {
  * @param {Object} data - { name, description, type, config }
  */
 export function createProject(data) {
-  return request.post('/projects', data)
+  return projectApi.create(data)
 }
 
 /**
@@ -33,7 +35,7 @@ export function createProject(data) {
  * @param {Object} data - { name, description, config }
  */
 export function updateProject(id, data) {
-  return request.patch(`/projects/${id}`, data)
+  return projectApi.patch(id, data)
 }
 
 /**
@@ -41,7 +43,7 @@ export function updateProject(id, data) {
  * @param {number} id
  */
 export function deleteProject(id) {
-  return request.delete(`/projects/${id}`)
+  return projectApi.delete(id)
 }
 
 /**

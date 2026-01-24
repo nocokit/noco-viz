@@ -71,11 +71,9 @@ export class PlaylistsService {
       where: { id },
       relations: ['createdBy'],
     });
-
     if (!playlist) {
-      throw new NotFoundException(`轮播组 #${id} 不存在`);
+      throw new NotFoundException(`Playlist #${id} not found`);
     }
-
     return playlist;
   }
 

@@ -1,17 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { BaseService } from '../../common/base/base.service';
 import { Template, TemplateStatus } from './entities/template.entity';
 import { CreateTemplateDto } from './dto/create-template.dto';
 import { UpdateTemplateDto } from './dto/update-template.dto';
 
 @Injectable()
-export class TemplatesService {
+export class TemplatesService extends BaseService<Template> {
   constructor(
     @InjectRepository(Template)
     private templatesRepository: Repository<Template>,
-  ) {}
+  ) {
+    super(templatesRepository);
+  }
 
+  // @ts-ignore
   async create(createTemplateDto: CreateTemplateDto, userId: number): Promise<Template> {
     const template = this.templatesRepository.create({
       ...createTemplateDto,
@@ -42,11 +46,9 @@ export class TemplatesService {
       where: { id },
       relations: ['createdBy', 'thumbnailMedia'],
     });
-
     if (!template) {
-      throw new NotFoundException(`模板 #${id} 不存在`);
+      throw new NotFoundException(`Template #${id} not found`);
     }
-
     return template;
   }
 
@@ -62,11 +64,6 @@ export class TemplatesService {
     const template = await this.findOne(id);
     Object.assign(template, updateTemplateDto);
     return this.templatesRepository.save(template);
-  }
-
-  async remove(id: number): Promise<void> {
-    const template = await this.findOne(id);
-    await this.templatesRepository.remove(template);
   }
 
   async publish(createTemplateDto: CreateTemplateDto, userId: number): Promise<Template> {

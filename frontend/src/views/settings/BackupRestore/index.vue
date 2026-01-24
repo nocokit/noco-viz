@@ -1,8 +1,6 @@
 <template>
   <div class="backup-restore">
-    <header class="header">
-      <h2>备份与恢复 (Backup & Restore)</h2>
-    </header>
+    <PageHeader title="备份与恢复 (Backup & Restore)" />
 
     <div class="content-body">
       <!-- 自动备份策略配置 -->
@@ -169,6 +167,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import PageHeader from '@/components/PageHeader.vue'
 import CommonModal from '@/components/CommonModal.vue'
 import {
   getBackupList,

@@ -1,32 +1,25 @@
 <template>
   <div class="datasource-management">
     <!-- 头部区域 -->
-    <header class="library-header">
-      <div class="header-top">
-        <div class="header-title">
-          <h1>数据连接</h1>
-          <p>管理数据库、文件和 API 连接,为大屏提供数据支持。</p>
-        </div>
-        <div class="header-actions">
-          <el-button type="primary" class="btn-primary" @click="openModal()">
-            <el-icon><Plus /></el-icon>
-            新建连接
-          </el-button>
-        </div>
-      </div>
+    <PageHeader
+      title="数据连接"
+      description="管理数据库、文件和 API 连接,为大屏提供数据支持。"
+      :actions="[
+        { text: '新建连接', icon: 'Plus', type: 'primary', handler: () => openModal() }
+      ]"
+    />
 
-      <!-- 分类筛选 -->
-      <div class="filter-bar">
-        <div
-          v-for="filter in filters"
-          :key="filter.id"
-          :class="['filter-item', { active: activeFilter === filter.id }]"
-          @click="activeFilter = filter.id"
-        >
-          {{ filter.label }} ({{ getCount(filter.id) }})
-        </div>
+    <!-- 分类筛选 -->
+    <div class="filter-bar">
+      <div
+        v-for="filter in filters"
+        :key="filter.id"
+        :class="['filter-item', { active: activeFilter === filter.id }]"
+        @click="activeFilter = filter.id"
+      >
+        {{ filter.label }} ({{ getCount(filter.id) }})
       </div>
-    </header>
+    </div>
 
     <!-- 滚动列表 -->
     <div class="datasource-scroll">
@@ -362,6 +355,7 @@ import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Setting, ArrowDown } from '@element-plus/icons-vue'
+import PageHeader from '@/components/PageHeader.vue'
 
 const router = useRouter()
 

@@ -1,4 +1,7 @@
+import { createApiService } from './base'
 import request from './http'
+
+const roleApi = createApiService('roles')
 
 /**
  * 获取角色列表
@@ -6,11 +9,7 @@ import request from './http'
  * @returns {Promise}
  */
 export function getRoles(params = {}) {
-  return request({
-    url: '/roles',
-    method: 'get',
-    params
-  })
+  return roleApi.getList(params)
 }
 
 /**
@@ -19,10 +18,7 @@ export function getRoles(params = {}) {
  * @returns {Promise}
  */
 export function getRoleDetail(id) {
-  return request({
-    url: `/roles/${id}`,
-    method: 'get'
-  })
+  return roleApi.getOne(id)
 }
 
 /**
@@ -31,11 +27,7 @@ export function getRoleDetail(id) {
  * @returns {Promise}
  */
 export function createRole(data) {
-  return request({
-    url: '/roles',
-    method: 'post',
-    data
-  })
+  return roleApi.create(data)
 }
 
 /**
@@ -45,11 +37,7 @@ export function createRole(data) {
  * @returns {Promise}
  */
 export function updateRole(id, data) {
-  return request({
-    url: `/roles/${id}`,
-    method: 'put',
-    data
-  })
+  return roleApi.update(id, data)
 }
 
 /**

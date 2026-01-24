@@ -1,14 +1,16 @@
 /**
  * 用户管理相关 API
  */
-import request from './http'
+import { createApiService } from './base'
+
+const userApi = createApiService('users')
 
 /**
  * 获取用户列表
  * @param {Object} params - { page, limit, search, role, status }
  */
 export function getUserList(params) {
-  return request.get('/users', { params })
+  return userApi.getList(params)
 }
 
 /**
@@ -16,7 +18,7 @@ export function getUserList(params) {
  * @param {number} id
  */
 export function getUserDetail(id) {
-  return request.get(`/users/${id}`)
+  return userApi.getOne(id)
 }
 
 /**
@@ -24,7 +26,7 @@ export function getUserDetail(id) {
  * @param {Object} data - { username, email, password, phone, roleId, isActive }
  */
 export function createUser(data) {
-  return request.post('/users', data)
+  return userApi.create(data)
 }
 
 /**
@@ -33,7 +35,7 @@ export function createUser(data) {
  * @param {Object} data - { email, phone, roleId, isActive }
  */
 export function updateUser(id, data) {
-  return request.patch(`/users/${id}`, data)
+  return userApi.patch(id, data)
 }
 
 /**
@@ -41,7 +43,7 @@ export function updateUser(id, data) {
  * @param {number} id
  */
 export function deleteUser(id) {
-  return request.delete(`/users/${id}`)
+  return userApi.delete(id)
 }
 
 /**

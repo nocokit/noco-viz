@@ -50,80 +50,81 @@
         </div>
       </div>
 
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th width="5%">
-              <label class="checkbox-wrapper">
-                <input type="checkbox" :checked="isAllSelected" @click="toggleSelectAll">
-                <span class="checkbox-box"></span>
-              </label>
-            </th>
-            <th width="35%">名称 / 原位置</th>
-            <th width="20%">删除人</th>
-            <th width="20%">删除时间</th>
-            <th width="10%">剩余天数</th>
-            <th width="10%">操作</th>
-          </tr>
-        </thead>
-        <tbody v-if="filteredItems.length > 0">
-          <tr v-for="item in filteredItems" :key="item.id">
-            <td>
-              <label class="checkbox-wrapper">
-                <input type="checkbox" class="row-checkbox" v-model="selectedIds" :value="item.id">
-                <span class="checkbox-box"></span>
-              </label>
-            </td>
-            <td>
-              <div class="item-cell">
-                <div class="item-icon" :style="item.iconStyle">
-                  <!-- Render SVG icon based on type or just generic -->
-                  <svg v-if="item.type === 'project'" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z" />
-                  </svg>
-                   <svg v-else-if="item.type === 'datasource'" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M5 13h14v-2H5v2zm-2 4h14v-2H3v2zM7 7v2h14V7H7z"/>
-                  </svg>
-                   <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
-                  </svg>
+      <!-- 备份列表 -->
+      <div v-if="filteredItems.length > 0">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th width="5%">
+                <label class="checkbox-wrapper">
+                  <input type="checkbox" :checked="isAllSelected" @click="toggleSelectAll">
+                  <span class="checkbox-box"></span>
+                </label>
+              </th>
+              <th width="35%">名称 / 原位置</th>
+              <th width="20%">删除人</th>
+              <th width="20%">删除时间</th>
+              <th width="10%">剩余天数</th>
+              <th width="10%">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in filteredItems" :key="item.id">
+              <td>
+                <label class="checkbox-wrapper">
+                  <input type="checkbox" class="row-checkbox" v-model="selectedIds" :value="item.id">
+                  <span class="checkbox-box"></span>
+                </label>
+              </td>
+              <td>
+                <div class="item-cell">
+                  <div class="item-icon" :style="item.iconStyle">
+                    <!-- Render SVG icon based on type or just generic -->
+                    <svg v-if="item.type === 'project'" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z" />
+                    </svg>
+                     <svg v-else-if="item.type === 'datasource'" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M5 13h14v-2H5v2zm-2 4h14v-2H3v2zM7 7v2h14V7H7z"/>
+                    </svg>
+                     <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
+                    </svg>
+                  </div>
+                  <div class="item-text">
+                    <div>{{ item.name }}</div>
+                    <div>{{ item.location }}</div>
+                  </div>
                 </div>
+              </td>
+              <td>
                 <div class="item-text">
-                  <div>{{ item.name }}</div>
-                  <div>{{ item.location }}</div>
+                  <div>{{ item.deletedBy }}</div>
+                  <div>{{ item.deletedById }}</div>
                 </div>
-              </div>
-            </td>
-            <td>
-              <div class="item-text">
-                <div>{{ item.deletedBy }}</div>
-                <div>{{ item.deletedById }}</div>
-              </div>
-            </td>
-            <td style="color:var(--text-secondary)">{{ item.deletedAt }}</td>
-            <td>
-              <span class="time-badge" :class="{ urgent: item.daysLeft <= 3 }">{{ item.daysLeft }} 天</span>
-            </td>
-            <td>
-              <span class="btn-text" @click="restoreItem(item)">还原</span>
-              <span class="btn-text danger" @click="handleDeleteSingle(item)">删除</span>
-            </td>
-          </tr>
-        </tbody>
-        <tbody v-else>
-          <tr>
-            <td colspan="6" class="empty-state">
-              <div class="empty-content">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" style="color: #6b7280; margin-bottom: 16px;">
-                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                </svg>
-                <div class="empty-title">回收站为空</div>
-                <div class="empty-desc">暂无已删除的项目</div>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              </td>
+              <td style="color:var(--text-secondary)">{{ item.deletedAt }}</td>
+              <td>
+                <span class="time-badge" :class="{ urgent: item.daysLeft <= 3 }">{{ item.daysLeft }} 天</span>
+              </td>
+              <td>
+                <span class="btn-text" @click="restoreItem(item)">还原</span>
+                <span class="btn-text danger" @click="handleDeleteSingle(item)">删除</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 空状态 -->
+      <div v-else class="empty-state-container">
+        <div class="empty-state-content">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #4b5563; margin-bottom: 24px;">
+            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+          </svg>
+          <div class="empty-title">回收站为空</div>
+          <div class="empty-desc">暂无已删除的{{ currentTab === 'project' ? '大屏项目' : currentTab === 'datasource' ? '数据源' : currentTab === 'media' ? '媒体资源' : '组件包' }}</div>
+        </div>
+      </div>
     </div>
 
     <!-- Modal: Delete/Empty Confirmation -->
@@ -378,6 +379,8 @@ function handleDeleteSingle(item) {
   padding: 32px;
   flex: 1;
   overflow-y: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Filter Tabs */
@@ -438,9 +441,11 @@ function handleDeleteSingle(item) {
 /* Table */
 .data-table {
   width: 100%;
+  min-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 13px;
+  table-layout: fixed;
 }
 
 .data-table th {
@@ -515,13 +520,18 @@ function handleDeleteSingle(item) {
 }
 
 /* Empty State */
-.empty-state {
+.empty-state-container {
+  background: var(--bg-card);
+  border-radius: 8px;
+  padding: 80px 20px;
   text-align: center;
-  padding: 60px 20px !important;
-  background: var(--bg-card) !important;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.empty-content {
+.empty-state-content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -529,14 +539,14 @@ function handleDeleteSingle(item) {
 }
 
 .empty-title {
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 600;
   color: var(--text-main);
   margin-bottom: 8px;
 }
 
 .empty-desc {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary);
 }
 

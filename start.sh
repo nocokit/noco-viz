@@ -95,5 +95,5 @@ echo -e "${GREEN}API文档:  http://localhost:8000/api${NC}"
 echo -e "\n${YELLOW}按 Ctrl+C 停止所有服务${NC}"
 echo -e "${GREEN}========================================${NC}\n"
 
-# 实时显示日志
-tail -f /tmp/noco-backend.log /tmp/noco-frontend.log
+# 保持脚本运行
+wait

@@ -7,8 +7,8 @@ import { userApi } from '@/api'
 
 export const useUserStore = defineStore('user', () => {
   // 状态
-  const accessToken = ref(localStorage.getItem('access_token') || '')
-  const refreshToken = ref(localStorage.getItem('refresh_token') || '')
+  const accessToken = ref(sessionStorage.getItem('access_token') || '')
+  const refreshToken = ref(sessionStorage.getItem('refresh_token') || '')
   const userInfo = ref(null)
 
   // 是否已登录
@@ -24,8 +24,8 @@ export const useUserStore = defineStore('user', () => {
     accessToken.value = res.access_token
     // 后端暂时没有返回 refresh token，使用 access_token 作为临时方案
     refreshToken.value = res.access_token
-    localStorage.setItem('access_token', res.access_token)
-    localStorage.setItem('refresh_token', res.access_token)
+    sessionStorage.setItem('access_token', res.access_token)
+    sessionStorage.setItem('refresh_token', res.access_token)
 
     // 保存用户信息
     userInfo.value = res.user
@@ -43,8 +43,8 @@ export const useUserStore = defineStore('user', () => {
     // 保存 Token (适配后端返回格式)
     accessToken.value = res.access_token
     refreshToken.value = res.access_token
-    localStorage.setItem('access_token', res.access_token)
-    localStorage.setItem('refresh_token', res.access_token)
+    sessionStorage.setItem('access_token', res.access_token)
+    sessionStorage.setItem('refresh_token', res.access_token)
 
     // 保存用户信息
     userInfo.value = res.user
@@ -65,7 +65,7 @@ export const useUserStore = defineStore('user', () => {
 
     // 更新 Access Token (适配后端返回格式)
     accessToken.value = res.access_token
-    localStorage.setItem('access_token', res.access_token)
+    sessionStorage.setItem('access_token', res.access_token)
 
     return res
   }
@@ -108,9 +108,9 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = null
     isLoggedIn.value = false
 
-    // 清除 localStorage
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
+    // 清除 sessionStorage
+    sessionStorage.removeItem('access_token')
+    sessionStorage.removeItem('refresh_token')
   }
 
   return {

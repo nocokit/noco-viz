@@ -1,17 +1,20 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { BaseService } from '../../common/base/base.service';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
-export class UsersService {
+export class UsersService extends BaseService<User> {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {}
+  ) {
+    super(usersRepository);
+  }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     // 检查用户名是否已存在
@@ -38,60 +41,34 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
-    return this.usersRepository.find({
+    return super.findAll({
       relations: ['role'],
       order: { createdAt: 'DESC' },
     });
   }
 
   async findOne(id: number): Promise<User> {
-    const user = await this.usersRepository.findOne({
-      where: { id },
-      relations: ['role'],
-    });
-
-    if (!user) {
-      throw new NotFoundException(`用户 #${id} 不存在`);
-    }
-
-    return user;
+    return super.findOne(id, ['role']);
   }
 
   async findByUsername(username: string): Promise<User | null> {
-    return this.usersRepository.findOne({
-      where: { username },
-      relations: ['role'],
-    });
+    return this.findOneBy({ username }, ['role']);
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({
-      where: { email },
-      relations: ['role'],
-    });
+    return this.findOneBy({ email }, ['role']);
   }
 
   async findByPhone(phone: string): Promise<User | null> {
-    return this.usersRepository.findOne({
-      where: { phone },
-      relations: ['role'],
-    });
+    return this.findOneBy({ phone }, ['role']);
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.findOne(id);
-
     // 如果更新密码，需要加密
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
-    Object.assign(user, updateUserDto);
-    return this.usersRepository.save(user);
-  }
-
-  async remove(id: number): Promise<void> {
-    const user = await this.findOne(id);
-    await this.usersRepository.remove(user);
+    return super.update(id, updateUserDto);
   }
 }

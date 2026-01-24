@@ -63,11 +63,9 @@ export class MediaService {
       where: { id },
       relations: ['user'],
     });
-
     if (!media) {
-      throw new NotFoundException(`Media with ID ${id} not found`);
+      throw new NotFoundException(`Media #${id} not found`);
     }
-
     return media;
   }
 

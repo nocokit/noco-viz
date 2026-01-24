@@ -4,10 +4,12 @@ import 'element-plus/dist/index.css'
 import '@/assets/styles/theme-variables.css'
 import '@/assets/styles/main.css'
 import '@/styles/dialog.css'
+import '@/styles/page-layout.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
 import pinia from './store'
+import directives from './directives'
 import { initTheme } from '@/config/themes'
 
 // 初始化主题系统
@@ -23,4 +25,5 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 app.use(ElementPlus)
 app.use(pinia)
 app.use(router)
+app.use(directives)
 app.mount('#app')

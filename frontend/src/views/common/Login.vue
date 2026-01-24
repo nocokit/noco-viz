@@ -387,11 +387,11 @@ const handleSubmit = async () => {
 
 /* 登录卡片 */
 .login-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: rgba(26, 27, 30, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-2xl);
   padding: 40px 32px;
-  box-shadow: var(--shadow-xl);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(10px);
 }
 
@@ -423,7 +423,7 @@ const handleSubmit = async () => {
 }
 
 .login-form :deep(.el-input__inner) {
-  background: var(--bg-elevated);
+  background: #1a1b1e !important;
   border-color: var(--border);
   color: var(--text-primary);
   height: 44px;
@@ -433,7 +433,7 @@ const handleSubmit = async () => {
 
 .login-form :deep(.el-input__inner:focus) {
   border-color: var(--color-primary);
-  background: var(--bg-card);
+  background: #1a1b1e !important;
 }
 
 .login-form :deep(.el-input__inner::placeholder) {

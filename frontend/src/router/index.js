@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useUserStore } from '@/store'
+import { setupRouterGuards } from './guards'
 import Layout from '@/layout/MainLayout.vue'
 import ComingSoon from '@/components/ComingSoon.vue'
 import ProjectList from '@/views/workspace/ProjectList'
@@ -192,28 +192,7 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫：认证检查
-router.beforeEach((to, from, next) => {
-  const userStore = useUserStore()
-
-  // 设置页面标题
-  document.title = to.meta.title ? `${to.meta.title} - NocoViz` : 'NocoViz'
-
-  // 检查是否需要认证
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth !== false)
-
-  if (requiresAuth && !userStore.isLoggedIn) {
-    // 需要认证但未登录，跳转到登录页
-    next({
-      path: '/login',
-      query: { redirect: to.fullPath }
-    })
-  } else if (to.path === '/login' && userStore.isLoggedIn) {
-    // 已登录用户访问登录页，跳转到首页
-    next('/')
-  } else {
-    next()
-  }
-})
+// 注册路由守卫
+setupRouterGuards(router)
 
 export default router

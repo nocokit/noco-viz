@@ -4,26 +4,12 @@
     <PageHeader
       title="用户管理"
       subtitle="管理系统用户账号及角色分配"
-    >
-      <template #actions>
-        <div class="header-actions">
-          <div class="toolbar-stats">
-            <span class="stat-item">
-              <span class="stat-label">总用户数：</span>
-              <span class="stat-value">{{ users.length }}</span>
-            </span>
-            <span class="stat-item">
-              <span class="stat-label">活跃用户：</span>
-              <span class="stat-value">{{ activeUsersCount }}</span>
-            </span>
-            <span class="stat-item">
-              <span class="stat-label">禁用用户：</span>
-              <span class="stat-value">{{ inactiveUsersCount }}</span>
-            </span>
-          </div>
-        </div>
-      </template>
-    </PageHeader>
+      :stats="[
+        { label: '总用户数', value: users.length },
+        { label: '活跃用户', value: activeUsersCount },
+        { label: '禁用用户', value: inactiveUsersCount }
+      ]"
+    />
 
     <!-- CRUD Table -->
     <div class="table-container">

@@ -4,9 +4,13 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { GlobalExceptionFilter } from './common/filters/exception.filter';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { Logger } from './common/utils/logger';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const logger = new Logger('Bootstrap');
 
   // 配置静态文件服务 - 提供上传文件访问
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
@@ -24,6 +28,12 @@ async function bootstrap() {
     res.setHeader('Surrogate-Control', 'no-store');
     next();
   });
+
+  // 全局异常过滤器
+  app.useGlobalFilters(new GlobalExceptionFilter());
+
+  // 全局响应转换拦截器
+  app.useGlobalInterceptors(new TransformInterceptor());
 
   // 全局验证管道
   app.useGlobalPipes(
@@ -59,8 +69,8 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  console.log(`\n🚀 Application is running on: http://localhost:${port}`);
-  console.log(`📚 Swagger docs: http://localhost:${port}/api/docs\n`);
+  logger.log(`Application is running on: http://localhost:${port}`);
+  logger.log(`Swagger docs: http://localhost:${port}/api/docs`);
 }
 
 bootstrap();

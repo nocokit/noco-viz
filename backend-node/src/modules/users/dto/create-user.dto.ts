@@ -1,41 +1,24 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEmail, IsOptional, MinLength, MaxLength, Matches } from 'class-validator';
+import { IsUsername, IsRequiredEmail, IsPassword, IsOptionalString, IsOptionalPhone, IsOptionalInt } from '../../../common/decorators/validation.decorator';
 
 export class CreateUserDto {
-  @ApiProperty({ example: 'johndoe', description: '用户名' })
-  @IsString()
-  @MinLength(3)
-  @MaxLength(150)
+  @IsUsername({ description: '用户名', example: 'johndoe' })
   username: string;
 
-  @ApiProperty({ example: 'john@example.com', description: '邮箱' })
-  @IsEmail()
+  @IsRequiredEmail({ description: '邮箱', example: 'john@example.com' })
   email: string;
 
-  @ApiProperty({ example: 'password123', description: '密码（至少6位）' })
-  @IsString()
-  @MinLength(6)
+  @IsPassword({ description: '密码（至少6位）', example: 'password123' })
   password: string;
 
-  @ApiProperty({ example: 'John', description: '名字', required: false })
-  @IsOptional()
-  @IsString()
-  @MaxLength(150)
+  @IsOptionalString({ maxLength: 150, description: '名字', example: 'John' })
   firstName?: string;
 
-  @ApiProperty({ example: 'Doe', description: '姓氏', required: false })
-  @IsOptional()
-  @IsString()
-  @MaxLength(150)
+  @IsOptionalString({ maxLength: 150, description: '姓氏', example: 'Doe' })
   lastName?: string;
 
-  @ApiProperty({ example: '13800138000', description: '手机号', required: false })
-  @IsOptional()
-  @IsString()
-  @Matches(/^1[3-9]\d{9}$/, { message: '手机号格式不正确' })
+  @IsOptionalPhone({ description: '手机号', example: '13800138000' })
   phone?: string;
 
-  @ApiProperty({ example: 1, description: '角色ID', required: false })
-  @IsOptional()
+  @IsOptionalInt({ description: '角色ID', example: 1 })
   roleId?: number;
 }

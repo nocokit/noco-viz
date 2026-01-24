@@ -1,16 +1,19 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { BaseService } from '../../common/base/base.service';
 import { Role } from './entities/role.entity';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 
 @Injectable()
-export class RolesService {
+export class RolesService extends BaseService<Role> {
   constructor(
     @InjectRepository(Role)
     private rolesRepository: Repository<Role>,
-  ) {}
+  ) {
+    super(rolesRepository);
+  }
 
   async create(createRoleDto: CreateRoleDto): Promise<Role> {
     const existingRole = await this.rolesRepository.findOne({
@@ -39,14 +42,7 @@ export class RolesService {
   }
 
   async findOne(id: number): Promise<any> {
-    const role = await this.rolesRepository.findOne({
-      where: { id },
-      relations: ['users'],
-    });
-
-    if (!role) {
-      throw new NotFoundException(`角色 #${id} 不存在`);
-    }
+    const role = await super.findOne(id, ['users']);
 
     return {
       ...role,
@@ -62,8 +58,7 @@ export class RolesService {
       throw new ConflictException('系统内置角色不能修改');
     }
 
-    Object.assign(role, updateRoleDto);
-    return this.rolesRepository.save(role);
+    return super.update(id, updateRoleDto);
   }
 
   async remove(id: number): Promise<void> {
@@ -73,7 +68,7 @@ export class RolesService {
       throw new ConflictException('系统内置角色不能删除');
     }
 
-    await this.rolesRepository.remove(role);
+    await super.remove(id);
   }
 
   async importRoles(roles: CreateRoleDto[]): Promise<{ success: number; failed: number; errors: any[] }> {

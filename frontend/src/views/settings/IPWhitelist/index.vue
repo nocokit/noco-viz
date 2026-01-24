@@ -1,8 +1,6 @@
 <template>
   <div class="ip-whitelist">
-    <header class="header">
-      <h2>IP 白名单 (IP Whitelist)</h2>
-    </header>
+    <PageHeader title="IP 白名单 (IP Whitelist)" />
 
     <div class="content-body">
       <!-- IP 白名单配置 -->
@@ -145,6 +143,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import PageHeader from '@/components/PageHeader.vue'
 import CommonModal from '@/components/CommonModal.vue'
 import * as ipWhitelistApi from '@/api/ipWhitelist'
 

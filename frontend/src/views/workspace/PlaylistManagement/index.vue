@@ -1,18 +1,13 @@
 <template>
   <div class="playlist-management">
     <!-- 头部区域 -->
-    <div class="header">
-      <div>
-        <h2>轮播管理</h2>
-        <p>将多个已发布的大屏组合成播放列表，在展厅、大堂等显示器循环播放。</p>
-      </div>
-      <div class="header-actions">
-        <el-button type="primary" @click="openCreateModal">
-          <el-icon><Plus /></el-icon>
-          新建轮播组
-        </el-button>
-      </div>
-    </div>
+    <PageHeader
+      title="轮播管理"
+      description="将多个已发布的大屏组合成播放列表，在展厅、大堂等显示器循环播放。"
+      :actions="[
+        { text: '新建轮播组', icon: 'Plus', type: 'primary', handler: openCreateModal }
+      ]"
+    />
 
     <!-- 筛选和搜索 -->
     <div class="filter-header">
@@ -378,6 +373,7 @@
 import { ref, computed, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, MoreFilled, Link, Rank, Delete, Edit, Grid, Menu, Monitor } from '@element-plus/icons-vue'
+import PageHeader from '@/components/PageHeader.vue'
 import CommonModal from '@/components/CommonModal.vue'
 import {
   getPlaylists,

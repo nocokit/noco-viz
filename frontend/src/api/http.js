@@ -49,8 +49,13 @@ request.interceptors.request.use(
  */
 request.interceptors.response.use(
   (response) => {
-    // HTTP 状态码 2xx 表示成功，直接返回响应数据
-    // NestJS 默认直接返回数据，不需要额外解包
+    // HTTP 状态码 2xx 表示成功
+    // NestJS 返回格式: { success: true, data: {...}, timestamp, path }
+    // 解包返回 data 字段
+    if (response.data && response.data.success && response.data.data !== undefined) {
+      return response.data.data
+    }
+    // 兼容直接返回数据的情况
     return response.data
   },
   async (error) => {
@@ -97,8 +102,8 @@ request.interceptors.response.use(
         userStore.refreshToken = ''
         userStore.userInfo = null
         userStore.isLoggedIn = false
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
+        sessionStorage.removeItem('access_token')
+        sessionStorage.removeItem('refresh_token')
 
         ElMessage.error('登录已过期，请重新登录')
 

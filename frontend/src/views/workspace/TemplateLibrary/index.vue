@@ -1,71 +1,23 @@
 <template>
   <div class="template-library">
     <!-- 头部区域 -->
-    <div class="header">
-      <div>
-        <h2>企业模板库</h2>
-        <p>浏览并使用企业内部标准化的数据大屏模板。所有模板均已通过安全审计，适配公司标准数据源。</p>
-      </div>
-      <div class="header-actions">
-        <el-button @click="handleImportTemplate">
-          <el-icon><Upload /></el-icon>
-          导入模板包
-        </el-button>
-        <el-button type="primary" @click="handlePublishTemplate">
-          <el-icon><Plus /></el-icon>
-          发布我的模板
-        </el-button>
-      </div>
-    </div>
+    <PageHeader
+      title="企业模板库"
+      description="浏览并使用企业内部标准化的数据大屏模板。所有模板均已通过安全审计，适配公司标准数据源。"
+      :actions="headerActions"
+    />
 
     <!-- 筛选和视图切换 -->
-    <div class="filter-header">
-      <div class="filter-tabs">
-        <div
-          v-for="filter in filters"
-          :key="filter.id"
-          :class="['filter-tab', { active: activeFilter === filter.id }]"
-          @click="activeFilter = filter.id"
-        >
-          {{ filter.label }}
-        </div>
-      </div>
-      <div class="view-controls">
-        <el-input
-          v-model="searchKeyword"
-          class="search-input"
-          placeholder="搜索模板..."
-          prefix-icon="Search"
-          clearable
-        />
-        <div class="view-switcher">
-          <el-tooltip content="网格视图" placement="top">
-            <button
-              :class="['view-btn', { active: viewMode === 'grid' }]"
-              @click="viewMode = 'grid'"
-            >
-              <el-icon><Grid /></el-icon>
-            </button>
-          </el-tooltip>
-          <el-tooltip content="列表视图" placement="top">
-            <button
-              :class="['view-btn', { active: viewMode === 'list' }]"
-              @click="viewMode = 'list'"
-            >
-              <el-icon><Menu /></el-icon>
-            </button>
-          </el-tooltip>
-          <el-tooltip content="详情视图" placement="top">
-            <button
-              :class="['view-btn', { active: viewMode === 'detail' }]"
-              @click="viewMode = 'detail'"
-            >
-              <el-icon><List /></el-icon>
-            </button>
-          </el-tooltip>
-        </div>
-      </div>
-    </div>
+    <FilterBar
+      v-model="activeFilter"
+      :filters="filters"
+      :search-value="searchKeyword"
+      search-placeholder="搜索模板..."
+      :view-modes="viewModes"
+      :current-view="viewMode"
+      @search="searchKeyword = $event"
+      @view-change="viewMode = $event"
+    />
 
     <!-- 网格视图 -->
     <div v-if="viewMode === 'grid'" class="template-grid-view">
@@ -357,6 +309,31 @@ const publishDialogVisible = ref(false)
 const allTemplates = ref([])
 const loading = ref(false)
 
+// 处理导入模板
+const handleImportTemplate = () => {
+  ElMessage.info('导入模板功能开发中...')
+}
+
+// 处理发布模板
+const handlePublishTemplate = () => {
+  publishDialogVisible.value = true
+}
+
+// 头部操作按钮配置
+const headerActions = [
+  {
+    text: '导入模板包',
+    icon: 'Upload',
+    handler: handleImportTemplate
+  },
+  {
+    text: '发布我的模板',
+    icon: 'Plus',
+    type: 'primary',
+    handler: handlePublishTemplate
+  }
+]
+
 // 加载模板列表
 const loadTemplates = async () => {
   try {
@@ -445,16 +422,6 @@ const hasNoTemplates = computed(() => {
 onMounted(() => {
   loadTemplates()
 })
-
-// 处理导入模板
-const handleImportTemplate = () => {
-  ElMessage.info('导入模板功能开发中...')
-}
-
-// 处理发布模板
-const handlePublishTemplate = () => {
-  publishDialogVisible.value = true
-}
 
 // 发布成功回调
 const handlePublishSuccess = (template) => {
