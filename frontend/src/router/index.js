@@ -119,7 +119,7 @@ const routes = [
         path: 'datasource-monitor',
         name: 'DatasourceMonitor',
         component: DatasourceMonitor,
-        meta: { title: '数据源监控' }
+        meta: { title: '数据源监控', hideLayoutHeader: true }
       },
       {
         path: 'integration',
@@ -141,12 +141,12 @@ const routes = [
         component: () => import('@/views/settings/IPWhitelist'),
         meta: { title: 'IP 白名单', hideLayoutHeader: true }
       },
-      {
-        path: 'backup',
-        name: 'BackupRestore',
-        component: () => import('@/views/settings/BackupRestore'),
-        meta: { title: '备份恢复', hideLayoutHeader: true }
-      },
+      // {
+      //   path: 'backup',
+      //   name: 'BackupRestore',
+      //   component: () => import('@/views/settings/BackupRestore'),
+      //   meta: { title: '备份恢复', hideLayoutHeader: true }
+      // },
       {
         path: 'recycle',
         name: 'Recycle',

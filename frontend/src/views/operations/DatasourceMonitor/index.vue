@@ -1,21 +1,14 @@
 <template>
-  <div class="datasource-monitor">
+  <div class="page-container datasource-monitor">
     <!-- 页面头部 -->
-    <header class="page-header">
-      <div class="page-title">
-        <h2>数据源监控</h2>
-        <p>实时监控所有外部数据库连接池状态及响应延迟</p>
-      </div>
-      <div class="header-actions">
-        <button class="btn">近 1 小时</button>
-        <button class="btn btn-refresh" @click="refreshAll">
-          <svg style="width:14px;height:14px" viewBox="0 0 24 24">
-            <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-8 3.58-8 8s3.58 8 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/>
-          </svg>
-          立即刷新
-        </button>
-      </div>
-    </header>
+    <PageHeader
+      title="数据源监控"
+      description="实时监控所有外部数据库连接池状态及响应延迟"
+      :actions="[
+        { text: '近 1 小时', handler: handleTimeRange },
+        { text: '立即刷新', icon: 'Refresh', type: 'primary', handler: refreshAll }
+      ]"
+    />
 
     <!-- 顶部统计卡片 -->
     <div class="stats-grid">
@@ -191,6 +184,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Refresh } from '@element-plus/icons-vue'
+import PageHeader from '@/components/PageHeader.vue'
 
 // 筛选类型
 const filterTypes = ['全部', 'MySQL', 'Oracle', 'API']
@@ -343,6 +338,10 @@ const refreshAll = () => {
   ElMessage.success('正在刷新数据源状态...')
 }
 
+const handleTimeRange = () => {
+  ElMessage.info('时间范围选择功能开发中...')
+}
+
 const viewLog = (id) => {
   ElMessage.info(`查看数据源 #${id} 日志`)
 }
@@ -362,62 +361,8 @@ const reconnect = (id) => {
 
 <style scoped>
 .datasource-monitor {
-  padding: 0;
-}
-
-/* ========== 页面头部 ========== */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.page-title h2 {
-  font-size: 24px;
-  margin-bottom: 4px;
-  color: #ffffff;
-}
-
-.page-title p {
-  font-size: 13px;
-  color: #9ca3af;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.btn {
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: 1px solid #2d2e33;
-  background: #1c1d21;
-  color: #9ca3af;
-  cursor: pointer;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: 0.2s;
-}
-
-.btn:hover {
-  border-color: #9ca3af;
-  color: #fff;
-}
-
-.btn-refresh {
-  color: #3b82f6;
-  border-color: rgba(59, 130, 246, 0.3);
-  background: rgba(59, 130, 246, 0.1);
-}
-
-.btn-refresh:hover {
-  background: #3b82f6;
-  color: #fff;
-  border-color: #3b82f6;
+  padding: 24px;
+  /* 移除 padding: 0，使用 page-container 的默认 padding */
 }
 
 /* ========== 统计卡片 ========== */
@@ -425,19 +370,26 @@ const reconnect = (id) => {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
+  margin-top: 20px;
 }
 
 .stat-card {
-  background: #1c1d21;
-  border: 1px solid #2d2e33;
-  border-radius: 12px;
+  background: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
   padding: 20px;
+  transition: all 0.2s;
+}
+
+.stat-card:hover {
+  border-color: var(--el-border-color-hover);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .stat-label {
-  font-size: 12px;
-  color: #9ca3af;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
   margin-bottom: 8px;
 }
 
@@ -448,16 +400,16 @@ const reconnect = (id) => {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  color: #ffffff;
+  color: var(--el-text-color-primary);
 }
 
 .stat-value.slow-query {
-  color: #f59e0b;
+  color: var(--el-color-warning);
 }
 
 .stat-unit {
   font-size: 14px;
-  color: #9ca3af;
+  color: var(--el-text-color-secondary);
   font-weight: 400;
 }
 
@@ -469,42 +421,42 @@ const reconnect = (id) => {
 }
 
 .stat-trend.up {
-  color: #ef4444;
+  color: var(--el-color-danger);
 }
 
 .stat-trend.down {
-  color: #10b981;
+  color: var(--el-color-success);
 }
 
 .stat-trend.healthy {
-  color: #10b981;
+  color: var(--el-color-success);
 }
 
 .stat-trend.warning {
-  color: #f59e0b;
+  color: var(--el-color-warning);
 }
 
 .trend-meta {
-  color: #666;
+  color: var(--el-text-color-placeholder);
   margin-left: 4px;
 }
 
 .error-text {
-  color: #ef4444;
+  color: var(--el-color-danger);
 }
 
 /* ========== 监控面板 ========== */
 .monitor-panel {
-  background: #1c1d21;
-  border: 1px solid #2d2e33;
-  border-radius: 12px;
+  background: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
   overflow: hidden;
 }
 
 /* 工具栏 */
 .panel-toolbar {
   padding: 16px 20px;
-  border-bottom: 1px solid #2d2e33;
+  border-bottom: 1px solid var(--el-border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -512,26 +464,49 @@ const reconnect = (id) => {
 
 .filter-group {
   display: flex;
-  gap: 12px;
+  gap: 8px;
+}
+
+.filter-group .btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--el-border-color);
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.filter-group .btn:hover {
+  background: var(--el-fill-color);
+  color: var(--el-text-color-primary);
 }
 
 .filter-group .btn.active {
-  background: #26272c;
+  background: var(--el-color-primary);
   color: #fff;
+  border-color: var(--el-color-primary);
 }
 
 .search-input {
-  background: #000;
-  border: 1px solid #2d2e33;
-  color: #fff;
+  background: var(--el-fill-color-blank);
+  border: 1px solid var(--el-border-color);
+  color: var(--el-text-color-primary);
   padding: 6px 12px;
   border-radius: 6px;
   font-size: 13px;
   width: 240px;
+  transition: all 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--el-color-primary);
 }
 
 .search-input::placeholder {
-  color: #6b7280;
+  color: var(--el-text-color-placeholder);
 }
 
 /* 列表头 */
@@ -539,9 +514,9 @@ const reconnect = (id) => {
   display: grid;
   grid-template-columns: 2fr 1.5fr 2fr 1.5fr 1fr 1fr;
   padding: 12px 24px;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(59, 130, 246, 0.05);
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--el-text-color-secondary);
   font-weight: 600;
 }
 
@@ -550,13 +525,13 @@ const reconnect = (id) => {
   display: grid;
   grid-template-columns: 2fr 1.5fr 2fr 1.5fr 1fr 1fr;
   padding: 20px 24px;
-  border-bottom: 1px solid #2d2e33;
+  border-bottom: 1px solid var(--el-border-color);
   align-items: center;
-  transition: 0.2s;
+  transition: all 0.2s;
 }
 
 .list-item:hover {
-  background: #26272c;
+  background: var(--el-fill-color-light);
 }
 
 .list-item:last-child {
@@ -574,31 +549,50 @@ const reconnect = (id) => {
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--el-fill-color);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 10px;
   font-weight: bold;
-  color: #9ca3af;
-  border: 1px solid #2d2e33;
+  color: var(--el-text-color-secondary);
+  border: 1px solid var(--el-border-color);
+}
+
+.db-icon.mysql {
+  color: var(--el-color-primary);
+  border-color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
 }
 
 .db-icon.oracle {
-  color: #f59e0b;
-  border-color: #f59e0b;
+  color: var(--el-color-warning);
+  border-color: var(--el-color-warning);
+  background: var(--el-color-warning-light-9);
+}
+
+.db-icon.api {
+  color: var(--el-color-success);
+  border-color: var(--el-color-success);
+  background: var(--el-color-success-light-9);
+}
+
+.db-icon.redis {
+  color: var(--el-color-danger);
+  border-color: var(--el-color-danger);
+  background: var(--el-color-danger-light-9);
 }
 
 .db-info h4 {
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 4px;
-  color: #fff;
+  color: var(--el-text-color-primary);
 }
 
 .db-info p {
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--el-text-color-secondary);
 }
 
 /* 列2: 状态徽章 */
@@ -606,25 +600,25 @@ const reconnect = (id) => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
 }
 
 .status-badge.healthy {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  background: var(--el-color-success-light-9);
+  color: var(--el-color-success);
 }
 
 .status-badge.warning {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  background: var(--el-color-warning-light-9);
+  color: var(--el-color-warning);
 }
 
 .status-badge.error {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background: var(--el-color-danger-light-9);
+  color: var(--el-color-danger);
 }
 
 .dot {
@@ -647,21 +641,21 @@ const reconnect = (id) => {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--el-text-color-secondary);
   margin-bottom: 6px;
 }
 
 .pool-meta .pool-danger {
-  color: #ef4444;
+  color: var(--el-color-danger);
 }
 
 .pool-meta .pool-warning {
-  color: #f59e0b;
+  color: var(--el-color-warning);
 }
 
 .progress-track {
   height: 6px;
-  background: #333;
+  background: var(--el-fill-color);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -691,38 +685,37 @@ const reconnect = (id) => {
 }
 
 .mini-btn {
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 4px;
-  border: 1px solid #2d2e33;
+  border: 1px solid var(--el-border-color);
   background: transparent;
-  color: #9ca3af;
+  color: var(--el-text-color-secondary);
   cursor: pointer;
   font-size: 12px;
-  transition: 0.2s;
+  transition: all 0.2s;
 }
 
 .mini-btn:hover {
-  border-color: #3b82f6;
-  color: #3b82f6;
+  border-color: var(--el-color-primary);
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
 }
 
 .mini-btn.warning {
-  border-color: #f59e0b;
-  color: #f59e0b;
+  border-color: var(--el-color-warning);
+  color: var(--el-color-warning);
 }
 
 .mini-btn.warning:hover {
-  background: #f59e0b;
-  color: #fff;
+  background: var(--el-color-warning-light-9);
 }
 
 .mini-btn.error {
-  background: #ef4444;
-  color: white;
-  border: none;
+  border-color: var(--el-color-danger);
+  color: var(--el-color-danger);
 }
 
 .mini-btn.error:hover {
-  background: #dc2626;
+  background: var(--el-color-danger-light-9);
 }
 </style>

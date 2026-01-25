@@ -318,7 +318,7 @@ import { User, Message, Phone, Lock } from '@element-plus/icons-vue'
 
 // 组件导入
 import CrudTable from '@/components/business/CrudTable.vue'
-import PageHeader from '@/components/common/PageHeader/index.vue'
+import PageHeader from '@/components/PageHeader.vue'
 
 // API导入
 import {

@@ -3,7 +3,7 @@
  * 统一配置、请求拦截、响应拦截、错误处理
  */
 import axios from 'axios'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/store/modules/user'
 
 // 创建 axios 实例
@@ -18,6 +18,9 @@ const request = axios.create({
 // 请求队列（用于 Token 刷新时暂存请求）
 let isRefreshing = false
 let requestQueue = []
+
+// 401 确认对话框状态（防止重复弹窗）
+let is401ConfirmShowing = false
 
 /**
  * 请求拦截器
@@ -88,7 +91,7 @@ request.interceptors.response.use(
       isRefreshing = true
 
       try {
-        await userStore.refreshToken()
+        await userStore.refreshAccessToken()
 
         // Token 刷新成功，重试所有队列中的请求
         requestQueue.forEach((callback) => callback())
@@ -97,19 +100,42 @@ request.interceptors.response.use(
         // 重试当前请求
         return request(config)
       } catch (refreshError) {
-        // Token 刷新失败，清除本地状态（不发送请求）
-        userStore.accessToken = ''
-        userStore.refreshToken = ''
-        userStore.userInfo = null
-        userStore.isLoggedIn = false
-        sessionStorage.removeItem('access_token')
-        sessionStorage.removeItem('refresh_token')
+        // Token 刷新失败，显示二次确认对话框
+        if (!is401ConfirmShowing) {
+          is401ConfirmShowing = true
 
-        ElMessage.error('登录已过期，请重新登录')
+          try {
+            await ElMessageBox.confirm(
+              '您的登录状态已过期，需要重新登录才能继续操作。',
+              '登录已过期',
+              {
+                confirmButtonText: '重新登录',
+                cancelButtonText: '取消',
+                type: 'warning',
+                closeOnClickModal: false,
+                closeOnPressEscape: false,
+                showClose: false
+              }
+            )
 
-        // 跳转到登录页
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login'
+            // 用户确认后，清除本地状态并跳转到登录页
+            userStore.accessToken = ''
+            userStore.refreshToken = ''
+            userStore.userInfo = null
+            userStore.isLoggedIn = false
+            sessionStorage.removeItem('access_token')
+            sessionStorage.removeItem('refresh_token')
+
+            // 跳转到登录页
+            if (window.location.pathname !== '/login') {
+              window.location.href = '/login'
+            }
+          } catch (cancelError) {
+            // 用户点击取消，不做任何操作
+            console.log('用户取消重新登录')
+          } finally {
+            is401ConfirmShowing = false
+          }
         }
 
         return Promise.reject(refreshError)

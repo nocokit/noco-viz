@@ -1,281 +1,300 @@
 <template>
-  <div class="recycle-bin-page">
-    <!-- Header -->
-    <header class="page-header">
-      <h2>回收站</h2>
-      <el-button type="danger" plain @click="openEmptyModal">
-        <el-icon><Delete /></el-icon>
-        清空回收站
-      </el-button>
-    </header>
-
-    <!-- Policy Alert -->
-    <div class="banner-alert">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
-      </svg>
-      <span>系统保留策略：所有放入回收站的项目将在 <strong>30 天</strong> 后自动永久删除。</span>
-    </div>
+  <div class="page-container recycle-bin">
+    <PageHeader
+      title="回收站"
+      description="所有放入回收站的项目将在 30 天后自动永久删除。"
+      :actions="[
+        { text: '清空回收站', icon: 'Delete', type: 'danger', handler: () => openDeleteModal(true) }
+      ]"
+    />
 
     <div class="content-body">
-      <!-- Filter Tabs -->
-      <div class="tabs-container">
-        <div
+      <!-- 筛选标签 -->
+      <div class="filter-tabs">
+        <button
           v-for="tab in tabs"
           :key="tab.id"
-          class="tab-item"
+          class="filter-tab"
           :class="{ active: currentTab === tab.id }"
           @click="currentTab = tab.id"
         >
           {{ tab.label }}
-          <span class="count-badge">{{ getTabCount(tab.id) }}</span>
-        </div>
+          <span class="tab-count">{{ getTabCount(tab.id) }}</span>
+        </button>
       </div>
 
-      <!-- List Toolbar -->
-      <div class="list-toolbar">
-        <div style="font-size:14px; color:var(--text-secondary)">
-          {{ currentTab === 'project' ? '大屏项目' : currentTab === 'datasource' ? '数据源' : currentTab === 'media' ? '媒体资源' : '组件包' }}
-          <span style="margin-left: 8px">共 {{ filteredItems.length }} 项</span>
+      <!-- 列表工具栏 -->
+      <div class="toolbar">
+        <div style="font-size:14px; color:var(--el-text-color-secondary)">
+          {{ currentTabLabel }} ({{ filteredItems.length }})
         </div>
-        <div v-if="selectedIds.length > 0" style="display: flex; gap: 12px">
-          <el-button size="small" @click="batchRestore">
-            <el-icon><RefreshRight /></el-icon>
-            批量还原 ({{ selectedIds.length }})
-          </el-button>
-          <el-button size="small" type="danger" @click="openDeleteModal">
-            <el-icon><Delete /></el-icon>
+        <div style="display:flex; gap:12px">
+          <button
+            v-if="selectedRowKeys.length > 0"
+            class="btn"
+            @click="batchRestore"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+            </svg>
+            批量还原 ({{ selectedRowKeys.length }})
+          </button>
+          <button
+            v-if="selectedRowKeys.length > 0"
+            class="btn btn-danger"
+            @click="openDeleteModal(false)"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+            </svg>
             彻底删除
-          </el-button>
+          </button>
         </div>
       </div>
 
-      <!-- 备份列表 -->
-      <div v-if="filteredItems.length > 0">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th width="5%">
-                <label class="checkbox-wrapper">
-                  <input type="checkbox" :checked="isAllSelected" @click="toggleSelectAll">
-                  <span class="checkbox-box"></span>
-                </label>
-              </th>
-              <th width="35%">名称 / 原位置</th>
-              <th width="20%">删除人</th>
-              <th width="20%">删除时间</th>
-              <th width="10%">剩余天数</th>
-              <th width="10%">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in filteredItems" :key="item.id">
-              <td>
-                <label class="checkbox-wrapper">
-                  <input type="checkbox" class="row-checkbox" v-model="selectedIds" :value="item.id">
-                  <span class="checkbox-box"></span>
-                </label>
-              </td>
-              <td>
-                <div class="item-cell">
-                  <div class="item-icon" :style="item.iconStyle">
-                    <!-- Render SVG icon based on type or just generic -->
-                    <svg v-if="item.type === 'project'" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z" />
-                    </svg>
-                     <svg v-else-if="item.type === 'datasource'" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M5 13h14v-2H5v2zm-2 4h14v-2H3v2zM7 7v2h14V7H7z"/>
-                    </svg>
-                     <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
-                    </svg>
-                  </div>
-                  <div class="item-text">
-                    <div>{{ item.name }}</div>
-                    <div>{{ item.location }}</div>
-                  </div>
+      <!-- 回收站列表 -->
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th width="5%">
+              <input
+                type="checkbox"
+                class="checkbox"
+                :checked="isAllSelected"
+                @change="toggleSelectAll"
+              >
+            </th>
+            <th width="35%">名称 / 原位置</th>
+            <th width="15%">删除人</th>
+            <th width="20%">删除时间</th>
+            <th width="10%">剩余天数</th>
+            <th width="15%">操作</th>
+          </tr>
+        </thead>
+        <tbody v-if="filteredItems.length > 0">
+          <tr v-for="item in filteredItems" :key="item.id">
+            <td>
+              <input
+                type="checkbox"
+                class="checkbox"
+                :checked="selectedRowKeys.includes(item.id)"
+                @change="toggleSelect(item.id)"
+              >
+            </td>
+            <td>
+              <div class="item-cell">
+                <div class="item-icon" :class="`icon-${item.type}`">
+                  <svg v-if="item.type === 'project'" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                  </svg>
+                  <svg v-else-if="item.type === 'datasource'" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"/>
+                  </svg>
+                  <svg v-else-if="item.type === 'media'" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                  </svg>
+                  <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/>
+                  </svg>
                 </div>
-              </td>
-              <td>
-                <div class="item-text">
-                  <div>{{ item.deletedBy }}</div>
-                  <div>{{ item.deletedById }}</div>
+                <div class="item-info">
+                  <div class="item-name">{{ item.name }}</div>
+                  <div class="item-location">{{ item.location }}</div>
                 </div>
-              </td>
-              <td style="color:var(--text-secondary)">{{ item.deletedAt }}</td>
-              <td>
-                <span class="time-badge" :class="{ urgent: item.daysLeft <= 3 }">{{ item.daysLeft }} 天</span>
-              </td>
-              <td>
-                <span class="btn-text" @click="restoreItem(item)">还原</span>
-                <span class="btn-text danger" @click="handleDeleteSingle(item)">删除</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- 空状态 -->
-      <div v-else class="empty-state-container">
-        <div class="empty-state-content">
-          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #4b5563; margin-bottom: 24px;">
-            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-          </svg>
-          <div class="empty-title">回收站为空</div>
-          <div class="empty-desc">暂无已删除的{{ currentTab === 'project' ? '大屏项目' : currentTab === 'datasource' ? '数据源' : currentTab === 'media' ? '媒体资源' : '组件包' }}</div>
-        </div>
-      </div>
+              </div>
+            </td>
+            <td>
+              <div class="user-info">
+                <div class="user-name">{{ item.deletedBy }}</div>
+                <div class="user-id">{{ item.deletedById }}</div>
+              </div>
+            </td>
+            <td>{{ item.deletedAt }}</td>
+            <td>
+              <span class="days-badge" :class="{ 'days-warning': item.daysLeft <= 3 }">
+                {{ item.daysLeft }} 天
+              </span>
+            </td>
+            <td>
+              <span class="action-link" style="color:var(--el-color-success)" @click="restoreItem(item)">还原</span>
+              <span class="action-link danger" @click="handleDeleteSingle(item)">删除</span>
+            </td>
+          </tr>
+        </tbody>
+        <tbody v-else>
+          <tr>
+            <td colspan="6" class="empty-cell">
+              <div class="empty-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="color: #9ca3af; margin-bottom: 12px;">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+                <div class="empty-text">暂无数据</div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- Modal: Delete/Empty Confirmation -->
-    <div class="modal-overlay" :class="{ open: showDeleteModal }" @click.self="closeDeleteModal">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>{{ isEmptying ? '清空回收站' : '彻底删除' }}</h3>
-          <div class="close-btn" @click="closeDeleteModal">✕</div>
-        </div>
-        <div class="modal-body">
-          <div style="text-align: center; padding: 20px 0">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"
-              style="color:var(--danger); margin-bottom:16px">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-            </svg>
-            <h3 style="margin-bottom:8px; color: var(--text-main)">{{ isEmptying ? '确定要清空回收站吗？' : '确定要彻底删除吗？' }}</h3>
-            <p style="color:var(--text-secondary); font-size:13px; line-height:1.5">
-              此操作将无法撤销。<br>{{ isEmptying ? '回收站中所有项目' : '选中的项目' }}将被永久清除，无法找回。
-            </p>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-cancel" @click="closeDeleteModal">取消</button>
-          <button class="btn-primary" style="background: var(--danger)" @click="confirmDelete">确认删除</button>
+    <CommonModal
+      v-model:visible="showDeleteModal"
+      :title="isEmptying ? '⚠️ 清空回收站' : '⚠️ 彻底删除'"
+      width="480px"
+      :show-footer="true"
+      @close="closeDeleteModal"
+    >
+      <div class="warning-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0">
+          <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+        </svg>
+        <div>
+          <strong>警告：这是一个破坏性操作！</strong><br>
+          此操作将无法撤销。{{ isEmptying ? '回收站中所有项目' : '选中的项目' }}将被永久清除，无法找回。
         </div>
       </div>
-    </div>
+
+      <template #footer>
+        <button class="btn" @click="closeDeleteModal">取消</button>
+        <button class="btn btn-danger" @click="confirmDelete">确认删除</button>
+      </template>
+    </CommonModal>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { Delete, RefreshRight } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, computed, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import PageHeader from '@/components/PageHeader.vue'
+import CommonModal from '@/components/CommonModal.vue'
 import {
   getRecycleList,
   getRecycleStats,
   restoreItem as restoreItemApi,
-  batchRestore as batchRestoreApi,
   deleteItem as deleteItemApi,
-  batchDelete as batchDeleteApi,
-  emptyRecycleBin
+  emptyRecycleBin as emptyRecycleBinApi
 } from '@/api/recycle'
 
-// --- Tabs Data ---
+// 标签页配置
 const tabs = [
   { id: 'project', label: '大屏项目' },
   { id: 'datasource', label: '数据源' },
   { id: 'media', label: '媒体资源' },
   { id: 'component', label: '组件包' }
 ]
+
+// 状态
 const currentTab = ref('project')
-
-// --- Mock Data ---
-const items = ref([])
-const stats = ref({
-  project: 0,
-  datasource: 0,
-  media: 0,
-  component: 0,
-  total: 0
-})
-
-// 加载回收站列表
-const loadRecycleList = async () => {
-  try {
-    const list = await getRecycleList(currentTab.value)
-    items.value = list
-  } catch (error) {
-    console.error('加载回收站列表失败:', error)
-    ElMessage.error('加载回收站列表失败')
-  }
-}
-
-// 加载统计信息
-const loadStats = async () => {
-  try {
-    const data = await getRecycleStats()
-    stats.value = data
-  } catch (error) {
-    console.error('加载统计信息失败:', error)
-  }
-}
-
-// 组件挂载时加载数据
-onMounted(() => {
-  loadRecycleList()
-  loadStats()
-})
-
-// 监听 tab 切换
-watch(currentTab, () => {
-  loadRecycleList()
-  selectedIds.value = []
-})
-
-// --- State ---
-const selectedIds = ref([])
+const recycleItems = ref([])
+const stats = ref({})
+const selectedRowKeys = ref([])
 const showDeleteModal = ref(false)
-const isEmptying = ref(false) // Distinguish between delete selection vs empty all
+const isEmptying = ref(false)
 
-// --- Computed ---
+// 计算属性
+const currentTabLabel = computed(() => {
+  const tab = tabs.find(t => t.id === currentTab.value)
+  return tab ? tab.label : ''
+})
+
 const filteredItems = computed(() => {
-  return items.value.filter(item => item.type === currentTab.value)
+  return recycleItems.value.filter(item => item.type === currentTab.value)
 })
 
 const isAllSelected = computed(() => {
-  return filteredItems.value.length > 0 && selectedIds.value.length === filteredItems.value.length
+  return filteredItems.value.length > 0 &&
+         filteredItems.value.every(item => selectedRowKeys.value.includes(item.id))
 })
 
-// --- Methods ---
-function getTabCount(type) {
-  return stats.value[type] || 0
+// 获取标签数量
+const getTabCount = (tabId) => {
+  return stats.value[tabId] || 0
 }
 
-function toggleSelectAll() {
-  if (isAllSelected.value) {
-    selectedIds.value = []
-  } else {
-    selectedIds.value = filteredItems.value.map(i => i.id)
+// 加载数据
+const loadData = async () => {
+  try {
+    const [items, statistics] = await Promise.all([
+      getRecycleList(),
+      getRecycleStats()
+    ])
+    recycleItems.value = items
+    stats.value = statistics
+  } catch (error) {
+    console.error('加载回收站数据失败:', error)
+    ElMessage.error('加载回收站数据失败')
   }
 }
 
-function openDeleteModal() {
-  isEmptying.value = false
+// 选择操作
+const toggleSelect = (id) => {
+  const index = selectedRowKeys.value.indexOf(id)
+  if (index > -1) {
+    selectedRowKeys.value.splice(index, 1)
+  } else {
+    selectedRowKeys.value.push(id)
+  }
+}
+
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    selectedRowKeys.value = []
+  } else {
+    selectedRowKeys.value = filteredItems.value.map(item => item.id)
+  }
+}
+
+// 还原操作
+const restoreItem = async (item) => {
+  try {
+    await restoreItemApi(item.id)
+    ElMessage.success(`已还原 "${item.name}"`)
+    await loadData()
+    selectedRowKeys.value = []
+  } catch (error) {
+    console.error('还原失败:', error)
+    ElMessage.error('还原失败')
+  }
+}
+
+const batchRestore = async () => {
+  try {
+    await Promise.all(selectedRowKeys.value.map(id => restoreItemApi(id)))
+    ElMessage.success(`已还原 ${selectedRowKeys.value.length} 项`)
+    await loadData()
+    selectedRowKeys.value = []
+  } catch (error) {
+    console.error('批量还原失败:', error)
+    ElMessage.error('批量还原失败')
+  }
+}
+
+// 删除操作
+const openDeleteModal = (empty) => {
+  isEmptying.value = empty
   showDeleteModal.value = true
 }
 
-function openEmptyModal() {
-  isEmptying.value = true
-  showDeleteModal.value = true
-}
-
-function closeDeleteModal() {
+const closeDeleteModal = () => {
   showDeleteModal.value = false
 }
 
-async function confirmDelete() {
+const handleDeleteSingle = (item) => {
+  selectedRowKeys.value = [item.id]
+  openDeleteModal(false)
+}
+
+const confirmDelete = async () => {
   try {
     if (isEmptying.value) {
-      // Empty everything
-      await emptyRecycleBin(currentTab.value)
+      await emptyRecycleBinApi()
       ElMessage.success('回收站已清空')
     } else {
-      // Delete selected
-      await batchDeleteApi(selectedIds.value)
-      ElMessage.success(`已彻底删除 ${selectedIds.value.length} 个项目`)
+      await Promise.all(selectedRowKeys.value.map(id => deleteItemApi(id)))
+      ElMessage.success(`已删除 ${selectedRowKeys.value.length} 项`)
     }
-    selectedIds.value = []
-    loadRecycleList()
-    loadStats()
+    await loadData()
+    selectedRowKeys.value = []
     closeDeleteModal()
   } catch (error) {
     console.error('删除失败:', error)
@@ -283,392 +302,291 @@ async function confirmDelete() {
   }
 }
 
-async function restoreItem(item) {
-  try {
-    await restoreItemApi(item.id)
-    ElMessage.success('项目已成功还原')
-    loadRecycleList()
-    loadStats()
-  } catch (error) {
-    console.error('还原失败:', error)
-    ElMessage.error('还原失败')
-  }
-}
-
-async function batchRestore() {
-  try {
-    await batchRestoreApi(selectedIds.value)
-    ElMessage.success(`已成功还原 ${selectedIds.value.length} 个项目`)
-    selectedIds.value = []
-    loadRecycleList()
-    loadStats()
-  } catch (error) {
-    console.error('批量还原失败:', error)
-    ElMessage.error('批量还原失败')
-  }
-}
-
-function handleDeleteSingle(item) {
-  selectedIds.value = [item.id]
-  openDeleteModal()
-}
+// 组件挂载时加载数据
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style scoped>
-/* =========================================
-   全局变量
-   ========================================= */
-.recycle-bin-page {
-  --bg-body: #0a0b0d;
-  --bg-sidebar: #141519;
-  --bg-card: #1c1d21;
-  --bg-input: #0f1012;
-  --bg-hover: #26272c;
-
-  --primary: #3b82f6;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-
-  --text-main: #ffffff;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --border: #2d2e33;
-
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--bg-body);
+.recycle-bin {
+  padding: 24px;
 }
 
-/* Header */
-.page-header {
-  height: 64px;
-  padding: 0 32px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(20, 21, 25, 0.9);
-}
-
-.page-header h2 {
-  font-size: 18px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--text-main);
-}
-
-/* Warning Banner */
-.banner-alert {
-  background: rgba(245, 158, 11, 0.1);
-  border-bottom: 1px solid rgba(245, 158, 11, 0.2);
-  padding: 12px 32px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 13px;
-  color: #fbbf24;
-}
-
-/* Content Body */
 .content-body {
-  padding: 32px;
-  flex: 1;
-  overflow-y: auto;
-  width: 100%;
-  box-sizing: border-box;
+  margin-top: 20px;
 }
 
 /* Filter Tabs */
-.tabs-container {
+.filter-tabs {
   display: flex;
-  gap: 24px;
-  margin-bottom: 24px;
-  border-bottom: 1px solid var(--border);
+  gap: 8px;
+  margin-bottom: 20px;
 }
 
-.tab-item {
-  padding-bottom: 12px;
-  color: var(--text-secondary);
+.filter-tab {
+  padding: 8px 16px;
+  background: var(--el-fill-color-blank);
+  border: 1px solid var(--el-border-color);
+  border-radius: 6px;
+  color: var(--el-text-color-secondary);
   cursor: pointer;
-  font-size: 14px;
-  position: relative;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
-  gap: 6px;
-  transition: color 0.2s;
+  gap: 8px;
+  font-size: 14px;
 }
 
-.tab-item:hover {
-  color: var(--text-main);
+.filter-tab:hover {
+  background: var(--el-fill-color);
+  color: var(--el-text-color-primary);
 }
 
-.tab-item.active {
-  color: var(--text-main);
-  font-weight: 500;
+.filter-tab.active {
+  background: var(--el-color-primary);
+  color: #fff;
+  border-color: var(--el-color-primary);
 }
 
-.tab-item.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--primary);
-}
-
-.count-badge {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text-secondary);
-  font-size: 11px;
-  padding: 2px 6px;
+.tab-count {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
   border-radius: 10px;
+  font-size: 12px;
 }
 
-/* List Toolbar */
-.list-toolbar {
+.filter-tab.active .tab-count {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Toolbar */
+.toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
 }
 
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--el-fill-color-blank);
+  border: 1px solid var(--el-border-color);
+  border-radius: 6px;
+  color: var(--el-text-color-primary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  background: var(--el-fill-color);
+  border-color: var(--el-border-color-hover);
+}
+
+.btn-danger {
+  color: var(--el-color-danger);
+  border-color: var(--el-color-danger);
+}
+
+.btn-danger:hover {
+  background: var(--el-color-danger);
+  color: #fff;
+}
+
 /* Table */
 .data-table {
   width: 100%;
-  min-width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  font-size: 13px;
-  table-layout: fixed;
+  border-collapse: collapse;
+  background: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.data-table thead {
+  background: rgba(59, 130, 246, 0.1);
 }
 
 .data-table th {
+  padding: 14px 16px;
   text-align: left;
-  padding: 12px 20px;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border);
-  font-weight: 500;
-  background: var(--bg-card);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--el-text-color-secondary);
+  border-bottom: 1px solid var(--el-border-color);
 }
 
-.data-table th:first-child {
-  border-top-left-radius: 8px;
+.data-table tbody tr {
+  border-bottom: 1px solid var(--el-border-color);
+  transition: background 0.2s;
 }
 
-.data-table th:last-child {
-  border-top-right-radius: 8px;
+.data-table tbody tr:hover {
+  background: var(--el-fill-color-light);
 }
 
-.data-table td {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-main);
-  background: var(--bg-card);
-  vertical-align: middle;
-}
-
-.data-table tr:last-child td {
+.data-table tbody tr:last-child {
   border-bottom: none;
 }
 
-.data-table tr:hover td {
-  background: var(--bg-hover);
+.data-table td {
+  padding: 14px 16px;
+  font-size: 14px;
+  color: var(--el-text-color-primary);
 }
 
 /* Checkbox */
-.checkbox-wrapper { display: flex; align-items: center; cursor: pointer; }
-.checkbox-wrapper input { display: none; }
-.checkbox-box {
-  width: 16px; height: 16px; border: 1px solid var(--border); border-radius: 3px;
-  display: flex; align-items: center; justify-content: center; background: #000; transition: 0.2s;
-}
-.checkbox-wrapper input:checked + .checkbox-box {
-  background: var(--primary); border-color: var(--primary);
-}
-.checkbox-wrapper input:checked + .checkbox-box::after {
-  content: "✓"; color: #fff; font-size: 12px; font-weight: bold;
+.checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 
-/* Item Info */
-.item-cell { display: flex; align-items: center; gap: 12px; }
+/* Item Cell */
+.item-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .item-icon {
-  width: 36px; height: 36px; border-radius: 6px; background: #2a2d35;
-  display: flex; align-items: center; justify-content: center; color: var(--text-secondary);
-}
-.item-text div:first-child { font-weight: 500; margin-bottom: 2px; }
-.item-text div:last-child { font-size: 12px; color: var(--text-muted); }
-
-/* Time Left Badge */
-.time-badge {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text-secondary);
-}
-
-.time-badge.urgent {
-  color: var(--danger);
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-/* Empty State */
-.empty-state-container {
-  background: var(--bg-card);
+  width: 40px;
+  height: 40px;
   border-radius: 8px;
-  padding: 80px 20px;
-  text-align: center;
-  min-height: 400px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.empty-state-content {
+.item-icon.icon-project {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--el-color-primary);
+}
+
+.item-icon.icon-datasource {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.item-icon.icon-media {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.item-icon.icon-component {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+}
+
+.item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-name {
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+  margin-bottom: 4px;
+}
+
+.item-location {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* User Info */
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-name {
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+}
+
+.user-id {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+/* Days Badge */
+.days-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--el-fill-color);
+  color: var(--el-text-color-secondary);
+}
+
+.days-badge.days-warning {
+  background: rgba(245, 108, 108, 0.1);
+  color: var(--el-color-danger);
+}
+
+/* Action Links */
+.action-link {
+  color: var(--el-color-primary);
+  cursor: pointer;
+  font-size: 13px;
+  margin-right: 16px;
+  transition: opacity 0.2s;
+}
+
+.action-link:hover {
+  opacity: 0.8;
+}
+
+.action-link.danger {
+  color: var(--el-color-danger);
+}
+
+/* Empty Cell */
+.empty-cell {
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* Empty State */
+.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 60px 20px;
+  color: var(--el-text-color-secondary);
 }
 
-.empty-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-main);
-  margin-bottom: 8px;
-}
-
-.empty-desc {
+.empty-text {
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--el-text-color-placeholder);
 }
 
-.btn-text {
-  color: var(--primary);
-  cursor: pointer;
-  margin-right: 12px;
-}
-
-.btn-text:hover {
-  text-decoration: underline;
-}
-
-.btn-text.danger {
-  color: var(--danger);
-}
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
+/* Warning Box */
+.warning-box {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-}
-
-.modal-overlay.open {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.modal {
-  background: #1e1e20;
-  border: 1px solid #303033;
-  border-radius: 12px;
-  width: 480px;
-  transform: scale(0.9);
-  transition: transform 0.3s;
-}
-
-.modal-overlay.open .modal {
-  transform: scale(1);
-}
-
-.modal-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid #303033;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-header h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #e5e5e5;
-  margin: 0;
-}
-
-.close-btn {
-  color: #909399;
-  cursor: pointer;
-  font-size: 24px;
-  line-height: 1;
-  transition: 0.2s;
-  padding: 4px;
-}
-
-.close-btn:hover {
-  color: #e5e5e5;
-}
-
-.modal-body {
-  padding: 24px;
-}
-
-.modal-footer {
-  padding: 16px 24px;
-  border-top: 1px solid #303033;
-  display: flex;
-  justify-content: flex-end;
   gap: 12px;
+  padding: 16px;
+  background: rgba(245, 108, 108, 0.1);
+  border: 1px solid rgba(245, 108, 108, 0.3);
+  border-radius: 8px;
+  color: var(--el-color-danger);
+  margin-bottom: 16px;
 }
 
-.btn-cancel {
-  background-color: #1c1d21;
-  border: 1px solid #2d2e33;
-  color: #9ca3af;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.btn-cancel:hover {
-  border-color: #fff;
-  color: #fff;
-}
-
-.btn-primary {
-  background-color: #3b82f6;
-  border: 1px solid #3b82f6;
-  color: #fff;
-  padding: 8px 20px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.btn-primary:hover {
-  background-color: #2563eb;
-  border-color: #2563eb;
+.warning-box strong {
+  display: block;
+  margin-bottom: 8px;
 }
 </style>

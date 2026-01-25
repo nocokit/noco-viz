@@ -1,72 +1,66 @@
 <template>
   <div class="audit-log-page">
     <!-- Header -->
-    <header class="page-header">
-      <h2>审计日志 <span class="log-count">Total: {{ totalLogs }}</span></h2>
-      <div style="display:flex; gap:12px">
-        <button class="btn" @click="handleExport">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M5 20h14v-2H5v2zm0-10h4v6h6v-6h4l-7-7-7 7z"/>
-          </svg>
-          导出查询结果 ({{ filteredLogs.length }})
-        </button>
-      </div>
-    </header>
+    <PageHeader
+      title="审计日志"
+      description="记录系统所有操作行为，支持按模块、用户、时间等条件筛选和导出。"
+      :stats="[{ label: '总记录数', value: totalLogs }]"
+      :actions="[
+        { text: `导出查询结果 (${filteredLogs.length})`, icon: 'Download', handler: handleExport }
+      ]"
+    />
 
-    <!-- Toolbar & Filters -->
-    <div class="toolbar">
-      <div style="position:relative">
-        <input
-          type="text"
-          class="filter-input"
-          placeholder="搜索操作人 / IP..."
+    <!-- 筛选工具栏 -->
+    <div class="filter-toolbar">
+      <div class="filter-left">
+        <el-input
           v-model="filters.search"
-        >
-        <svg style="position:absolute; right:10px; top:8px; color:#666; width:14px; height:14px" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-        </svg>
+          placeholder="搜索操作人 / IP..."
+          prefix-icon="Search"
+          clearable
+          style="width: 240px"
+        />
+
+        <el-date-picker
+          v-model="filters.dateRange"
+          type="date"
+          placeholder="选择日期"
+          style="width: 180px"
+        />
+
+        <el-select v-model="filters.module" placeholder="所有模块" clearable style="width: 140px">
+          <el-option label="所有模块" value="" />
+          <el-option label="系统登录" value="系统登录" />
+          <el-option label="用户管理" value="用户管理" />
+          <el-option label="角色管理" value="角色管理" />
+          <el-option label="项目管理" value="项目管理" />
+          <el-option label="数据源管理" value="数据源管���" />
+          <el-option label="模板管理" value="模板管理" />
+          <el-option label="系统设置" value="系统设置" />
+          <el-option label="IP白名单" value="IP白名单" />
+          <el-option label="备份管理" value="备份管理" />
+          <el-option label="媒体管理" value="媒体管理" />
+          <el-option label="播放列表" value="播放列表" />
+        </el-select>
+
+        <el-select v-model="filters.status" placeholder="所有状态" clearable style="width: 120px">
+          <el-option label="所有状态" value="" />
+          <el-option label="成功" value="success" />
+          <el-option label="失败" value="fail" />
+        </el-select>
       </div>
 
-      <input
-        type="date"
-        class="filter-input"
-        v-model="filters.dateRange"
-      >
-
-      <select class="filter-select" v-model="filters.module">
-        <option value="">所有模块</option>
-        <option value="系统登录">系统登录</option>
-        <option value="用户管理">用户管理</option>
-        <option value="角色管理">角色管理</option>
-        <option value="项目管理">项目管理</option>
-        <option value="数据源管理">数据源管理</option>
-        <option value="模板管理">模板管理</option>
-        <option value="系统设置">系统设置</option>
-        <option value="IP白名单">IP白名单</option>
-        <option value="备份管理">备份管理</option>
-        <option value="媒体管理">媒体管理</option>
-        <option value="播放列表">播放列表</option>
-      </select>
-
-      <select class="filter-select" v-model="filters.status">
-        <option value="">所有状态</option>
-        <option value="success">成功</option>
-        <option value="fail">失败</option>
-      </select>
-
-      <div style="margin-left:auto; display:flex; gap:12px">
-        <button class="btn" @click="handleReset">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-          </svg>
+      <div class="filter-right">
+        <el-button @click="handleReset">
+          <el-icon><RefreshLeft /></el-icon>
           重置
-        </button>
-        <button class="btn btn-primary" @click="handleQuery">查询</button>
+        </el-button>
+        <el-button type="primary" @click="handleQuery">查询</el-button>
       </div>
     </div>
 
     <!-- Table Area -->
-    <div class="table-wrapper">
+    <div class="content-body">
       <table class="data-table">
         <thead>
           <tr>
@@ -146,6 +140,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Download, RefreshLeft } from '@element-plus/icons-vue'
+import PageHeader from '@/components/PageHeader.vue'
 import { getAuditLogs, getAuditLogDetail, getAuditLogStatistics } from '@/api/auditLog'
 
 const totalLogs = ref(0)
@@ -384,62 +380,13 @@ const handleExport = () => {
 </script>
 
 <style scoped>
-/* =========================================
-   全局变量 (复用深色主题)
-   ========================================= */
 .audit-log-page {
-  --bg-body: #0a0b0d;
-  --bg-sidebar: #141519;
-  --bg-card: #1c1d21;
-  --bg-hover: #26272c;
-  --bg-input: #0f1012;
-
-  --primary: #3b82f6;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --info: #6366f1;
-
-  --text-main: #ffffff;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --border: #2d2e33;
-
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--bg-body);
-}
-
-/* Header */
-.page-header {
-  height: 64px;
-  padding: 0 32px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(20, 21, 25, 0.9);
-  backdrop-filter: blur(5px);
-}
-
-.page-header h2 {
-  font-size: 18px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--text-main);
-}
-
-.log-count {
-  font-size: 12px;
-  color: var(--text-muted);
-  font-weight: 400;
-  background: rgba(255,255,255,0.05);
-  padding: 2px 8px;
-  border-radius: 12px;
+  padding: 24px;
+  background-color: var(--el-bg-color-page);
 }
 
 .btn {
@@ -452,62 +399,57 @@ const handleExport = () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-secondary);
+  border: 1px solid var(--el-border-color);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-regular);
   transition: 0.2s;
 }
 
 .btn:hover {
-  border-color: var(--text-main);
-  color: var(--text-main);
+  border-color: var(--el-color-primary);
+  color: var(--el-color-primary);
 }
 
 .btn-primary {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: var(--el-color-primary);
+  border-color: var(--el-color-primary);
   color: #fff;
 }
 
 .btn-primary:hover {
-  background: #2563eb;
+  background: var(--el-color-primary-light-3);
+  border-color: var(--el-color-primary-light-3);
 }
 
-/* Toolbar & Filters */
-.toolbar {
-  padding: 20px 32px;
-  border-bottom: 1px solid var(--border);
+/* 筛选工具栏 */
+.filter-toolbar {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--el-border-color);
+  margin-bottom: 20px;
   gap: 16px;
+}
+
+.filter-left {
+  display: flex;
+  gap: 12px;
   align-items: center;
   flex-wrap: wrap;
+  flex: 1;
 }
 
-.filter-input {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  width: 200px;
-}
-
-.filter-select {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  color: var(--text-main);
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  width: 140px;
+.filter-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 /* Table Area */
-.table-wrapper {
+.content-body {
   flex: 1;
   overflow-y: auto;
-  padding: 0 32px 32px;
 }
 
 .data-table {
@@ -515,30 +457,35 @@ const handleExport = () => {
   border-collapse: separate;
   border-spacing: 0;
   font-size: 13px;
-  margin-top: 20px;
 }
 
 .data-table th {
   text-align: left;
-  padding: 12px 16px;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  color: var(--el-text-color-secondary);
+  border-bottom: 1px solid var(--el-border-color);
   font-weight: 500;
-  position: sticky;
-  top: 0;
-  background: var(--bg-body);
-  z-index: 2;
+  background: var(--el-bg-color);
+}
+
+.data-table th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.data-table th:last-child {
+  border-top-right-radius: 8px;
 }
 
 .data-table td {
-  padding: 16px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-main);
-  vertical-align: top;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--el-border-color);
+  color: var(--el-text-color-primary);
+  background: var(--el-bg-color);
+  vertical-align: middle;
 }
 
-.data-table tr:hover {
-  background: var(--bg-hover);
+.data-table tr:hover td {
+  background: var(--el-fill-color-light);
 }
 
 /* Column Styles */
@@ -567,7 +514,7 @@ const handleExport = () => {
 
 .user-ip {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--el-text-color-secondary);
   font-family: monospace;
 }
 
@@ -577,33 +524,26 @@ const handleExport = () => {
   border-radius: 4px;
   font-size: 11px;
   font-weight: 500;
-  background: rgba(255,255,255,0.05);
-  color: var(--text-secondary);
-  border: 1px solid rgba(255,255,255,0.1);
 }
 
 .action-login {
-  color: var(--info);
+  color: #6366f1;
   background: rgba(99, 102, 241, 0.1);
-  border-color: rgba(99, 102, 241, 0.2);
 }
 
 .action-create {
-  color: var(--success);
-  background: rgba(16, 185, 129, 0.1);
-  border-color: rgba(16, 185, 129, 0.2);
+  color: var(--el-color-success);
+  background: var(--el-color-success-light-9);
 }
 
 .action-delete {
-  color: var(--danger);
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.2);
+  color: var(--el-color-danger);
+  background: var(--el-color-danger-light-9);
 }
 
 .action-update {
-  color: var(--warning);
-  background: rgba(245, 158, 11, 0.1);
-  border-color: rgba(245, 158, 11, 0.2);
+  color: var(--el-color-warning);
+  background: var(--el-color-warning-light-9);
 }
 
 .status-dot {
@@ -615,28 +555,28 @@ const handleExport = () => {
 }
 
 .status-success {
-  background: var(--success);
+  background: var(--el-color-success);
 }
 
 .status-fail {
-  background: var(--danger);
+  background: var(--el-color-danger);
 }
 
 .time-text {
-  color: var(--text-secondary);
+  color: var(--el-text-color-secondary);
   font-family: monospace;
 }
 
 :deep(.obj-text) {
   font-family: monospace;
-  color: var(--text-secondary);
-  background: rgba(0,0,0,0.3);
+  color: var(--el-text-color-secondary);
+  background: var(--el-fill-color-darker);
   padding: 2px 4px;
   border-radius: 3px;
 }
 
 .btn-link {
-  color: var(--primary);
+  color: var(--el-color-primary);
   cursor: pointer;
   text-decoration: none;
   font-size: 12px;
@@ -666,14 +606,14 @@ const handleExport = () => {
 
 .drawer {
   width: 500px;
-  background: var(--bg-card);
+  background: var(--el-bg-color);
   height: 100%;
   box-shadow: -10px 0 30px rgba(0,0,0,0.5);
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
   transition: transform 0.3s;
-  border-left: 1px solid var(--border);
+  border-left: 1px solid var(--el-border-color);
 }
 
 .drawer-overlay.open .drawer {
@@ -682,7 +622,7 @@ const handleExport = () => {
 
 .drawer-header {
   padding: 20px 24px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--el-border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -691,6 +631,7 @@ const handleExport = () => {
 .drawer-title {
   font-size: 16px;
   font-weight: 600;
+  color: var(--el-text-color-primary);
 }
 
 .drawer-body {
@@ -705,24 +646,24 @@ const handleExport = () => {
 
 .detail-label {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--el-text-color-secondary);
   margin-bottom: 6px;
   display: block;
 }
 
 .detail-value {
   font-size: 14px;
-  color: var(--text-main);
+  color: var(--el-text-color-primary);
 }
 
 .code-block {
-  background: #000;
-  border: 1px solid var(--border);
+  background: var(--el-fill-color-darker);
+  border: 1px solid var(--el-border-color);
   border-radius: 6px;
   padding: 12px;
   font-family: monospace;
   font-size: 12px;
-  color: #a5b3ce;
+  color: var(--el-text-color-regular);
   line-height: 1.5;
   overflow-x: auto;
   white-space: pre;

@@ -10,11 +10,11 @@
     />
 
     <!-- 分类筛选 -->
-    <div class="filter-bar">
+    <div class="datasource-filter">
       <div
         v-for="filter in filters"
         :key="filter.id"
-        :class="['filter-item', { active: activeFilter === filter.id }]"
+        :class="['datasource-filter-item', { active: activeFilter === filter.id }]"
         @click="activeFilter = filter.id"
       >
         {{ filter.label }} ({{ getCount(filter.id) }})
@@ -816,15 +816,16 @@ watch(() => jsonFormData.value.jsonPath, () => {
   line-height: 1.5;
 }
 
-/* Filter Bar */
-.filter-bar {
+/* Datasource Filter */
+.datasource-filter {
   display: flex;
   gap: 30px;
   border-bottom: 1px solid var(--el-border-color-lighter);
   padding-bottom: 2px;
+  margin-bottom: 20px;
 }
 
-.filter-item {
+.datasource-filter-item {
   padding-bottom: 12px;
   font-size: 14px;
   color: var(--el-text-color-secondary);
@@ -833,16 +834,16 @@ watch(() => jsonFormData.value.jsonPath, () => {
   transition: color 0.2s;
 }
 
-.filter-item:hover {
+.datasource-filter-item:hover {
   color: var(--el-text-color-primary);
 }
 
-.filter-item.active {
+.datasource-filter-item.active {
   color: var(--el-color-primary);
   font-weight: 600;
 }
 
-.filter-item.active::after {
+.datasource-filter-item.active::after {
   content: '';
   position: absolute;
   bottom: -3px;
@@ -1029,6 +1030,21 @@ watch(() => jsonFormData.value.jsonPath, () => {
   border-top: 1px solid var(--el-border-color-lighter);
   padding-top: 16px;
   justify-content: flex-end;
+}
+
+.ds-footer :deep(.el-button) {
+  height: 32px;
+  padding: 0 15px;
+  font-size: 13px;
+}
+
+.ds-footer :deep(.el-button--small) {
+  height: 32px;
+  padding: 0 15px;
+}
+
+.ds-footer :deep(.el-button + .el-button) {
+  margin-left: 0;
 }
 
 /* Modal Styles */

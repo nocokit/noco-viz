@@ -1,28 +1,24 @@
 <template>
   <div class="project-list-page">
-    <!-- Header (Moved from Layout to here for full control) -->
-    <header class="header">
-      <div class="view-tabs">
-        <div class="tab-item active">全部项目 (5)</div>
-        <div class="tab-item">我创建的</div>
-        <div class="tab-item">协作项目</div>
-      </div>
-      <div class="header-actions">
-        <div class="search-box">
-          <el-input
-            v-model="searchQuery"
-            class="search-input"
-            placeholder="搜索项目..."
-            prefix-icon="Search"
-          />
-        </div>
-        <el-button type="primary" @click="modalVisible = true">
-          <el-icon><Plus /></el-icon>
-          新建项目
-        </el-button>
-      </div>
-    </header>
+    <!-- 头部区域 -->
+    <PageHeader
+      title="项目管理"
+      description="创建和管理数据可视化大屏与复杂报表项目，支持团队协作与版本控制。"
+      :actions="[
+        { text: '新建项目', icon: 'Plus', type: 'primary', handler: () => modalVisible = true }
+      ]"
+    />
 
+    <!-- 筛选和搜索 -->
+    <FilterBar
+      v-model="activeFilter"
+      :filters="filters"
+      :search-value="searchQuery"
+      search-placeholder="搜索项目..."
+      @search="searchQuery = $event"
+    />
+
+    <!-- 内容区域 -->
     <div class="content-scroll">
       <div class="grid-container">
         <!-- Project Cards -->
@@ -249,6 +245,8 @@ import { ref, h, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Plus, Delete, ZoomIn, Loading, Picture, Upload } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
+import PageHeader from '@/components/PageHeader.vue'
+import FilterBar from '@/components/FilterBar.vue'
 import MediaSelector from '@/components/MediaSelector.vue'
 import {
   getProjectList,
@@ -269,6 +267,14 @@ const projectFormRef = ref(null)
 const loading = ref(false)
 const uploading = ref(false)
 const mediaSelectorVisible = ref(false) // 媒体选择器对话框
+
+// 筛选器配置
+const filters = [
+  { id: 'all', label: '全部项目' },
+  { id: 'mine', label: '我创建的' },
+  { id: 'shared', label: '协作项目' }
+]
+const activeFilter = ref('all')
 
 // 获取上传配置
 const uploadAction = computed(() => {
@@ -581,49 +587,21 @@ const handleDeleteProject = async (project) => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-body);
-  position: relative;
+  background-color: var(--el-bg-color);
+  padding: 24px;
+  overflow: hidden;
 }
-
-/* Header */
-.header {
-  height: 64px;
-  padding: 0 32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--el-border-color);
-  background: rgba(20, 21, 25, 0.8);
-  backdrop-filter: blur(10px);
-  z-index: 10;
-  flex-shrink: 0;
-}
-
-.view-tabs { display: flex; gap: 24px; height: 100%; }
-.tab-item {
-  display: flex; align-items: center; height: 100%; font-size: 14px; color: var(--el-text-color-regular); cursor: pointer; position: relative;
-}
-.tab-item:hover { color: #fff; }
-.tab-item.active { color: #fff; font-weight: 500; }
-.tab-item.active::after {
-  content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background: var(--el-color-primary);
-}
-
-/* Actions */
-.header-actions { display: flex; gap: 16px; align-items: center; }
-.search-box { width: 240px; }
-
-.btn-create {
-  background: var(--el-color-primary); color: #fff; border: none; height: 32px; padding: 0 20px;
-  border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px;
-  transition: 0.2s; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-.btn-create:hover { background: var(--el-color-primary-dark-2); transform: translateY(-1px); }
 
 /* Content */
-.content-scroll { flex: 1; padding: 32px; overflow-y: auto; }
+.content-scroll {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 0;
+}
 .grid-container {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
 }
 
 /* Project Card */

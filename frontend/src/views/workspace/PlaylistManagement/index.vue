@@ -10,238 +10,88 @@
     />
 
     <!-- 筛选和搜索 -->
-    <div class="filter-header">
-      <div class="filter-tabs">
-        <div
-          v-for="filter in filters"
-          :key="filter.id"
-          :class="['filter-tab', { active: activeFilter === filter.id }]"
-          @click="activeFilter = filter.id"
-        >
-          {{ filter.label }}
-        </div>
-      </div>
-      <div class="view-controls">
-        <el-input
-          v-model="searchKeyword"
-          class="search-input"
-          placeholder="搜索轮播组..."
-          prefix-icon="Search"
-          clearable
-        />
-        <div class="view-switcher">
-          <el-tooltip content="网格视图" placement="top">
-            <button
-              :class="['view-btn', { active: viewMode === 'grid' }]"
-              @click="viewMode = 'grid'"
-            >
-              <el-icon><Grid /></el-icon>
-            </button>
-          </el-tooltip>
-          <el-tooltip content="分栏视图" placement="top">
-            <button
-              :class="['view-btn', { active: viewMode === 'split' }]"
-              @click="viewMode = 'split'"
-            >
-              <el-icon><Menu /></el-icon>
-            </button>
-          </el-tooltip>
-        </div>
-      </div>
-    </div>
+    <FilterBar
+      v-model="activeFilter"
+      :filters="filters"
+      :search-value="searchKeyword"
+      search-placeholder="搜索轮播组..."
+      @search="searchKeyword = $event"
+    />
 
     <!-- 内容区域 -->
-    <div class="content-area">
-      <!-- 空状态 -->
-      <div v-if="filteredPlaylists.length === 0" class="empty-state">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" style="color: #6b7280; margin-bottom: 16px;">
-          <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/>
-        </svg>
-        <div class="empty-title">暂无轮播组</div>
-        <div class="empty-desc">暂时没有找到符合条件的轮播组</div>
-      </div>
-
-      <!-- 网格视图 -->
-      <div v-else-if="viewMode === 'grid'" class="playlist-grid">
+    <div class="content-scroll">
+      <div class="grid-container">
+        <!-- Playlist Cards -->
         <div
           v-for="playlist in filteredPlaylists"
           :key="playlist.id"
           class="playlist-card"
-          @click="handleConfigPlaylist(playlist)"
+          :class="{ 'status-playing': playlist.status === 'playing' }"
         >
-          <div class="card-header">
-            <div class="card-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+          <div class="card-image-header">
+            <img
+              v-if="playlist.coverImage"
+              :src="playlist.coverImage"
+              class="header-img"
+              :alt="playlist.name"
+            >
+            <div v-else class="header-img-default">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" class="default-icon">
                 <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/>
               </svg>
+              <div class="default-text">轮播列表</div>
             </div>
-            <div class="card-status" :class="{ playing: playlist.status === 'playing' }">
-              {{ playlist.status === 'playing' ? '● 播放中' : '闲置' }}
-            </div>
-          </div>
-          <div class="card-body">
-            <h3 class="card-title">{{ playlist.name }}</h3>
-            <div class="card-meta">
-              <span>{{ playlist.slides.length }} 个页面</span>
-              <span>·</span>
-              <span>{{ playlist.resolution }}</span>
-            </div>
-            <div class="card-info">
-              <span>过渡: {{ getTransitionLabel(playlist.transition) }}</span>
+            <div class="card-overlay">
+              <button class="overlay-btn btn-edit" @click="handleConfigPlaylist(playlist)">
+                配置轮播
+              </button>
+              <button class="overlay-btn btn-preview" @click.stop="copyPlaylistUrl(playlist)">
+                复制链接
+              </button>
             </div>
           </div>
-          <div class="card-footer">
-            <el-button size="small" @click.stop="handleConfigPlaylist(playlist)">
-              配置轮播
-            </el-button>
-            <el-dropdown @command="handleCommand($event, playlist)" @click.stop>
-              <el-button size="small" text>
-                <el-icon><MoreFilled /></el-icon>
-              </el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="edit">编辑信息</el-dropdown-item>
-                  <el-dropdown-item command="toggle">
-                    {{ playlist.status === 'playing' ? '设为闲置' : '设为播放中' }}
-                  </el-dropdown-item>
-                  <el-dropdown-item command="copy">复制链接</el-dropdown-item>
-                  <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
-        </div>
-      </div>
-
-      <!-- 分栏视图 -->
-      <div v-else-if="viewMode === 'split'" class="split-view">
-        <!-- 左侧：轮播组列表 -->
-        <div class="playlist-list">
-          <div
-            v-for="playlist in filteredPlaylists"
-            :key="playlist.id"
-            class="playlist-item"
-            :class="{ selected: selectedPlaylist?.id === playlist.id }"
-            @click="selectPlaylist(playlist)"
-          >
-            <div class="item-content">
-              <div class="item-title">
+          <div class="card-content">
+            <div class="card-header-row">
+              <div class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="type-icon">
+                  <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/>
+                </svg>
                 {{ playlist.name }}
+              </div>
+              <div class="card-actions-menu">
+                <el-dropdown @command="handleCommand($event, playlist)">
+                  <span class="el-dropdown-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                    </svg>
+                  </span>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item command="edit">编辑信息</el-dropdown-item>
+                      <el-dropdown-item command="toggle">
+                        {{ playlist.status === 'playing' ? '设为闲置' : '设为播放中' }}
+                      </el-dropdown-item>
+                      <el-dropdown-item command="copy">复制链接</el-dropdown-item>
+                      <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
                 <span
-                  :class="['status-dot', { playing: playlist.status === 'playing' }]"
-                  @click.stop="togglePlaylistStatus(playlist)"
-                  :title="playlist.status === 'playing' ? '点击设为闲置' : '点击设为播放中'"
+                  class="status-badge"
+                  :class="{ playing: playlist.status === 'playing' }"
                 >
-                  ● {{ playlist.status === 'playing' ? '播放中' : '闲置' }}
+                  {{ playlist.status === 'playing' ? '● 播放中' : '闲置' }}
                 </span>
               </div>
-              <div class="item-meta">
-                <span>{{ playlist.slides.length }} 个页面</span>
-                <span>{{ playlist.resolution }}</span>
-              </div>
             </div>
-            <div class="item-actions" @click.stop>
-              <el-button size="small" text @click="openEditModal(playlist)" title="编辑">
-                <el-icon><Edit /></el-icon>
-              </el-button>
-              <el-button size="small" text type="danger" @click="handleDelete(playlist)" title="删除">
-                <el-icon><Delete /></el-icon>
-              </el-button>
+            <div class="card-desc">
+              {{ playlist.slides.length }} 个页面 · {{ playlist.resolution }} · {{ getTransitionLabel(playlist.transition) }}
+            </div>
+            <div class="card-footer">
+              <span>Playlist Carousel</span>
+              <span>{{ playlist.updatedAt }}</span>
             </div>
           </div>
-        </div>
-
-        <!-- 右侧：配置区 -->
-        <div class="config-panel" v-if="selectedPlaylist">
-          <div class="panel-toolbar">
-            <div class="toolbar-title">
-              {{ selectedPlaylist.name }}
-              <span class="toolbar-subtitle">
-                总时长: {{ totalDuration }}
-              </span>
-            </div>
-            <div class="toolbar-actions">
-              <el-button size="small" @click="copyPlaylistUrl">
-                <el-icon><Link /></el-icon>
-                复制链接
-              </el-button>
-              <el-button type="primary" size="small" @click="saveConfig">
-                保存配置
-              </el-button>
-            </div>
-          </div>
-
-          <div class="slides-container">
-            <!-- 轮播项 -->
-            <div
-              v-for="(slide, index) in selectedPlaylist.slides"
-              :key="slide.id"
-              class="slide-card"
-            >
-              <div class="slide-drag">
-                <el-icon><Rank /></el-icon>
-              </div>
-              <div class="slide-thumb">
-                <img :src="slide.thumbnail" />
-              </div>
-              <div class="slide-info">
-                <div class="slide-name">{{ slide.name }}</div>
-                <div class="slide-version">{{ slide.version }} • 已发布</div>
-              </div>
-              <div class="slide-duration">
-                <el-input-number
-                  v-model="slide.duration"
-                  :min="1"
-                  :max="3600"
-                  size="small"
-                />
-                <span class="duration-unit">秒</span>
-              </div>
-              <el-button
-                type="danger"
-                text
-                size="small"
-                @click="removeSlide(index)"
-              >
-                <el-icon><Delete /></el-icon>
-              </el-button>
-            </div>
-
-            <!-- 添加按钮 -->
-            <el-button class="add-slide-btn" @click="addSlide">
-              <el-icon><Plus /></el-icon>
-              添加大屏页面
-            </el-button>
-          </div>
-
-          <!-- 底部信息栏 -->
-          <div class="panel-footer">
-            <div class="footer-info">
-              <el-icon><Monitor /></el-icon>
-              分辨率: {{ selectedPlaylist.resolution }}
-            </div>
-            <div class="footer-info">
-              过渡效果:
-              <el-select
-                v-model="selectedPlaylist.transition"
-                size="small"
-                style="width: 140px; margin-left: 8px"
-              >
-                <el-option label="淡入淡出" value="fade" />
-                <el-option label="直接切换" value="none" />
-                <el-option label="滑动" value="slide" />
-              </el-select>
-            </div>
-          </div>
-        </div>
-
-        <!-- 右侧空状态 -->
-        <div v-else class="config-panel-empty">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" style="color: #6b7280; margin-bottom: 16px;">
-            <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/>
-          </svg>
-          <div class="empty-title">请选择轮播组</div>
-          <div class="empty-desc">从左侧列表选择一个轮播组进行配置</div>
         </div>
       </div>
     </div>
@@ -372,8 +222,9 @@
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, MoreFilled, Link, Rank, Delete, Edit, Grid, Menu, Monitor } from '@element-plus/icons-vue'
+import { Plus, Link, Rank, Delete } from '@element-plus/icons-vue'
 import PageHeader from '@/components/PageHeader.vue'
+import FilterBar from '@/components/FilterBar.vue'
 import CommonModal from '@/components/CommonModal.vue'
 import {
   getPlaylists,
@@ -395,7 +246,6 @@ const formRef = ref(null)
 const editingPlaylistId = ref(null)
 const loading = ref(false)
 const activeFilter = ref('all')
-const viewMode = ref('grid') // 'grid' 或 'split'
 
 // 筛选选项
 const filters = [
@@ -403,6 +253,23 @@ const filters = [
   { id: 'playing', label: '播放中' },
   { id: 'idle', label: '闲置' }
 ]
+
+// 格式化时间
+const formatTime = (dateStr) => {
+  if (!dateStr) return '-'
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diff = now - date
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+
+  if (minutes < 1) return 'Just now'
+  if (minutes < 60) return `${minutes}m ago`
+  if (hours < 24) return `${hours}h ago`
+  if (days < 7) return `${days}d ago`
+  return date.toLocaleDateString()
+}
 
 // 表单数据
 const formData = reactive({
@@ -435,7 +302,8 @@ const loadPlaylists = async () => {
     const data = await getPlaylists()
     playlists.value = data.map(playlist => ({
       ...playlist,
-      slides: playlist.slides || []
+      slides: playlist.slides || [],
+      updatedAt: formatTime(playlist.updatedAt)
     }))
   } catch (error) {
     console.error('加载轮播列表失败:', error)
@@ -492,11 +360,6 @@ const getTransitionLabel = (transition) => {
   return labels[transition] || transition
 }
 
-// 选择播放列表（分栏视图）
-const selectPlaylist = (playlist) => {
-  selectedPlaylist.value = playlist
-}
-
 // 打开配置轮播（网格视图）
 const handleConfigPlaylist = (playlist) => {
   selectedPlaylist.value = playlist
@@ -504,8 +367,8 @@ const handleConfigPlaylist = (playlist) => {
 }
 
 // 复制链接
-const copyPlaylistUrl = () => {
-  const url = selectedPlaylist.value?.url || `http://localhost:8000/playlist/${selectedPlaylist.value?.id}`
+const copyPlaylistUrl = (playlist) => {
+  const url = playlist.url || `http://localhost:8000/playlist/${playlist.id}`
   navigator.clipboard.writeText(url)
   ElMessage.success('播放链接已复制到剪贴板')
 }
@@ -702,233 +565,130 @@ const togglePlaylistStatus = async (playlist) => {
 </script>
 
 <style scoped>
+/* Global Vars from root (implied) */
 .playlist-management {
   height: 100%;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  background: var(--el-bg-color);
+  background-color: var(--el-bg-color);
   padding: 24px;
+  overflow: hidden;
 }
 
-/* ========== 头部区域 ========== */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--el-border-color);
-}
-
-.header h2 {
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--el-text-color-primary);
-}
-
-.header p {
-  color: var(--el-text-color-secondary);
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-/* ========== 筛选头部 ========== */
-.filter-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  gap: 20px;
-}
-
-.filter-tabs {
-  display: flex;
-  gap: 8px;
-}
-
-.filter-tab {
-  padding: 8px 16px;
-  font-size: 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--el-text-color-secondary);
-  transition: all 0.2s;
-  white-space: nowrap;
-  border: 1px solid transparent;
-}
-
-.filter-tab:hover {
-  background: var(--el-fill-color);
-  color: var(--el-text-color-primary);
-}
-
-.filter-tab.active {
-  background: var(--el-color-primary);
-  color: #fff;
-  border-color: var(--el-color-primary);
-}
-
-.view-controls {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.search-input {
-  width: 240px;
-}
-
-.view-switcher {
-  display: flex;
-  gap: 4px;
-  border: 1px solid var(--el-border-color);
-  border-radius: 6px;
-  padding: 4px;
-  background: var(--el-fill-color-lighter);
-}
-
-.view-btn {
-  padding: 6px 10px;
-  border: none;
-  background: transparent;
-  color: var(--el-text-color-secondary);
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.view-btn:hover {
-  background: var(--el-fill-color);
-  color: var(--el-text-color-primary);
-}
-
-.view-btn.active {
-  background: var(--el-color-primary);
-  color: #fff;
-}
-
-/* ========== 内容区域 ========== */
-.content-area {
+/* Content */
+.content-scroll {
   flex: 1;
   overflow-y: auto;
-  padding-top: 4px;
+  margin-top: 0px;
 }
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-  color: var(--el-text-color-secondary);
-}
-
-.empty-title {
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: var(--el-text-color-primary);
-}
-
-.empty-desc {
-  font-size: 14px;
-  color: var(--el-text-color-secondary);
-}
-
-/* ========== 轮播网格 ========== */
-.playlist-grid {
+.grid-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+  gap: 24px;
 }
 
+/* Playlist Card */
 .playlist-card {
-  background: var(--el-bg-color-overlay);
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.3s;
+  background: var(--el-bg-color); border: 1px solid var(--el-border-color); border-radius: 12px;
+  overflow: hidden; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative; display: flex; flex-direction: column;
 }
-
 .playlist-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  border-color: var(--el-color-primary);
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+  border-color: var(--el-text-color-secondary);
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+/* Image Header */
+.card-image-header {
+  height: 200px; width: 100%; position: relative; overflow: hidden;
 }
 
-.card-icon {
-  width: 48px;
-  height: 48px;
-  background: var(--el-color-primary-light-9);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--el-color-primary);
+.header-img {
+  width: 100%; height: 100%; object-fit: cover; transition: 0.4s;
+  filter: brightness(0.85);
+}
+.playlist-card:hover .header-img { transform: scale(1.05); filter: brightness(0.6); }
+
+/* Default Image */
+.header-img-default {
+  width: 100%; height: 100%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px;
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(109, 40, 217, 0.25) 100%);
 }
 
-.card-status {
-  font-size: 12px;
-  padding: 4px 12px;
-  border-radius: 12px;
-  background: var(--el-fill-color);
+.header-img-default::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.default-icon {
+  width: 64px;
+  height: 64px;
+  opacity: 0.6;
+  position: relative;
+  z-index: 1;
+  color: #a78bfa;
+}
+
+.default-text {
+  font-size: 14px;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
+  position: relative;
+  z-index: 1;
+  letter-spacing: 0.5px;
 }
 
-.card-status.playing {
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+/* Overlay */
+.card-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px;
+  opacity: 0; transition: 0.3s; transform: translateY(10px);
 }
+.playlist-card:hover .card-overlay { opacity: 1; transform: translateY(0); }
 
-.card-body {
-  margin-bottom: 16px;
+.overlay-btn {
+  padding: 8px 24px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+  border: none; display: flex; align-items: center; gap: 6px; transition: 0.2s;
 }
+.btn-edit { background: #a78bfa; color: #fff; }
+.btn-edit:hover { filter: brightness(1.1); transform: scale(1.05); }
 
+.btn-preview { background: rgba(255,255,255,0.1); color: #fff; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); }
+.btn-preview:hover { background: rgba(255,255,255,0.2); }
+
+/* Card Body */
+.card-content { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+.card-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.card-actions-menu { display: flex; align-items: center; gap: 12px; }
+.el-dropdown-link { cursor: pointer; color: var(--el-text-color-secondary); display: flex; align-items: center; }
+.el-dropdown-link:hover { color: var(--el-text-color-primary); }
 .card-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--el-text-color-primary);
+  font-size: 15px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 6px;
 }
+.type-icon { width: 16px; height: 16px; color: #a78bfa; }
 
-.card-meta {
-  font-size: 13px;
-  color: var(--el-text-color-secondary);
-  margin-bottom: 8px;
-  display: flex;
-  gap: 8px;
-}
+.status-badge { font-size: 10px; padding: 2px 6px; border-radius: 3px; background: rgba(255,255,255,0.1); color: var(--el-text-color-secondary); }
+.status-badge.playing { background: rgba(16, 185, 129, 0.15); color: #10b981; }
 
-.card-info {
-  font-size: 12px;
-  color: var(--el-text-color-placeholder);
-}
+.card-desc { font-size: 12px; color: var(--el-text-color-secondary); margin-bottom: 16px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
 .card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 16px;
-  border-top: 1px solid var(--el-border-color-lighter);
+  margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05);
+  display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--el-text-color-secondary);
 }
 
 /* ========== 配置对话框 ========== */

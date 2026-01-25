@@ -1,6 +1,9 @@
 <template>
   <div class="backup-restore">
-    <PageHeader title="备份与恢复 (Backup & Restore)" />
+    <PageHeader
+      title="备份恢复"
+      description="定期备份系统数据，支持一键恢复，确保数据安全。"
+    />
 
     <div class="content-body">
       <!-- 自动备份策略配置 -->
@@ -36,7 +39,7 @@
 
       <!-- 列表工具栏 -->
       <div class="toolbar">
-        <div style="font-size:14px; color:var(--text-secondary)">备份记录 ({{ backupList.length }})</div>
+        <div style="font-size:14px; color:var(--el-text-color-secondary)">备份记录 ({{ backupList.length }})</div>
         <div style="display:flex; gap:12px">
           <button class="btn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -96,14 +99,14 @@
       :show-footer="true"
       @close="closeBackupModal"
     >
-      <div style="margin-bottom:16px; color:var(--text-secondary); font-size:13px">
+      <div style="margin-bottom:16px; color:var(--el-text-color-secondary); font-size:13px">
         系统将打包当前所有配置、项目文件及数据库记录。备份过程可能持续几分钟。
       </div>
       <div style="margin-bottom:12px">
         <label
-          style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px">备注信息</label>
+          style="display:block; font-size:12px; color:var(--el-text-color-secondary); margin-bottom:6px">备注信息</label>
         <input type="text"
-          style="width:100%; background:var(--bg-input); border:1px solid var(--border); color:#fff; padding:10px; border-radius:6px"
+          style="width:100%; background:var(--el-fill-color-blank); border:1px solid var(--el-border-color); color:var(--el-text-color-primary); padding:10px; border-radius:6px"
           placeholder="例如：升级 v2.5 前备份" v-model="backupNote">
       </div>
 
@@ -144,17 +147,17 @@
       </div>
 
       <div style="margin-bottom:12px">
-        <label style="display:block; font-size:12px; color:var(--text-secondary); margin-bottom:6px">
-          请输入文件名 <span style="color:#fff; font-family:monospace">{{ restoreTargetFile }}</span> 以确认：
+        <label style="display:block; font-size:12px; color:var(--el-text-color-secondary); margin-bottom:6px">
+          请输入文件名 <span style="color:var(--el-text-color-primary); font-family:monospace">{{ restoreTargetFile }}</span> 以确认：
         </label>
         <input type="text"
-          style="width:100%; background:var(--bg-input); border:1px solid var(--border); color:#fff; padding:10px; border-radius:6px"
+          style="width:100%; background:var(--el-fill-color-blank); border:1px solid var(--el-border-color); color:var(--el-text-color-primary); padding:10px; border-radius:6px"
           placeholder="输入文件名确认" v-model="confirmRestoreFilename">
       </div>
 
       <template #footer>
         <button class="btn" @click="closeRestoreModal">取消</button>
-        <button class="btn" style="background:var(--danger); border-color:var(--danger); color:white"
+        <button class="btn" style="background:var(--el-color-danger); border-color:var(--el-color-danger); color:white"
           @click="confirmRestore" :disabled="confirmRestoreFilename !== restoreTargetFile">
           确认恢复
         </button>
@@ -360,66 +363,38 @@ async function handleDelete(backup) {
 </script>
 
 <style scoped>
-/* =========================================
-   全局变量 (模拟 :root)
-   ========================================= */
 .backup-restore {
-  --bg-body: #0a0b0d;
-  --bg-sidebar: #141519;
-  --bg-card: #1c1d21;
-  --bg-input: #0f1012;
-  --bg-hover: #26272c;
-  
-  --primary: #3b82f6;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  
-  --text-main: #ffffff;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --border: #2d2e33;
-  
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: var(--text-main);
-  background-color: var(--bg-body);
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding: 24px;
+  background-color: var(--el-bg-color-page);
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--el-fill-color-darker); border-radius: 3px; }
 
 /* =========================================
    3. 主内容区
    ========================================= */
-.header {
-    height: 64px; padding: 0 32px; border-bottom: 1px solid var(--border);
-    display: flex; justify-content: space-between; align-items: center;
-    background: rgba(20, 21, 25, 0.9);
-    flex-shrink: 0;
-}
-.header h2 { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; margin: 0; color: #fff; }
-
-.content-body { padding: 32px; flex: 1; overflow-y: auto; }
+.content-body { flex: 1; overflow-y: auto; margin-top: 12px; }
 
 /* Config Card (Auto Backup) */
 .config-card {
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 24px;
+    background: var(--el-bg-color); border: 1px solid var(--el-border-color); border-radius: 8px; padding: 24px;
     margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-start;
 }
 .card-left { max-width: 600px; }
-.card-title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
-.card-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5; }
+.card-title { font-size: 16px; font-weight: 600; color: var(--el-text-color-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+.card-desc { font-size: 13px; color: var(--el-text-color-secondary); margin-bottom: 20px; line-height: 1.5; }
 
-.status-tag { font-size: 11px; background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 2px 8px; border-radius: 4px; }
+.status-tag { font-size: 11px; background: var(--el-color-success-light-9); color: var(--el-color-success); padding: 2px 8px; border-radius: 4px; }
 
 .form-inline { display: flex; gap: 20px; align-items: center; }
-.input-group { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary); }
+.input-group { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--el-text-color-secondary); }
 .tiny-input {
-    background: var(--bg-input); border: 1px solid var(--border); color: #fff; padding: 6px 10px; border-radius: 4px; width: 80px; text-align: center;
+    background: var(--el-fill-color-blank); border: 1px solid var(--el-border-color); color: var(--el-text-color-primary); padding: 6px 10px; border-radius: 4px; width: 80px; text-align: center;
 }
 .time-input { width: 120px; }
 
@@ -428,13 +403,13 @@ async function handleDelete(backup) {
 .toggle-switch input { opacity: 0; width: 0; height: 0; }
 .slider {
     position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #333; transition: .4s; border-radius: 24px;
+    background-color: var(--el-fill-color-dark); transition: .4s; border-radius: 24px;
 }
 .slider:before {
     position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
     background-color: white; transition: .4s; border-radius: 50%;
 }
-input:checked + .slider { background-color: var(--success); }
+input:checked + .slider { background-color: var(--el-color-success); }
 input:checked + .slider:before { transform: translateX(20px); }
 
 /* Toolbar */
@@ -449,26 +424,26 @@ input:checked + .slider:before { transform: translateX(20px); }
   display: flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid #2d2e33;
-  background: #1c1d21;
-  color: #9ca3af;
+  border: 1px solid var(--el-border-color);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-regular);
   transition: 0.2s;
 }
 
 .btn:hover {
-  border-color: #fff;
-  color: #fff;
+  border-color: var(--el-color-primary);
+  color: var(--el-color-primary);
 }
 
 .btn-primary {
-  background: #3b82f6;
-  border-color: #3b82f6;
+  background: var(--el-color-primary);
+  border-color: var(--el-color-primary);
   color: #fff;
 }
 
 .btn-primary:hover {
-  background: #2563eb;
-  border-color: #2563eb;
+  background: var(--el-color-primary-light-3);
+  border-color: var(--el-color-primary-light-3);
 }
 
 .btn:disabled {
@@ -479,39 +454,39 @@ input:checked + .slider:before { transform: translateX(20px); }
 /* Table */
 .data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
 .data-table th {
-    text-align: left; padding: 12px 20px; color: var(--text-muted);
-    border-bottom: 1px solid var(--border); font-weight: 500; background: var(--bg-card);
+    text-align: left; padding: 12px 20px; color: var(--el-text-color-secondary);
+    border-bottom: 1px solid var(--el-border-color); font-weight: 500; background: var(--el-bg-color);
 }
 .data-table th:first-child { border-top-left-radius: 8px; }
 .data-table th:last-child { border-top-right-radius: 8px; }
 
 .data-table td {
-    padding: 16px 20px; border-bottom: 1px solid var(--border); color: var(--text-main); background: var(--bg-card); vertical-align: middle;
+    padding: 16px 20px; border-bottom: 1px solid var(--el-border-color); color: var(--el-text-color-primary); background: var(--el-bg-color); vertical-align: middle;
 }
-.data-table tr:hover td { background: var(--bg-hover); }
+.data-table tr:hover td { background: var(--el-fill-color-light); }
 
-.file-name { font-family: monospace; font-size: 13px; color: var(--text-main); display: block; margin-bottom: 4px; }
-.file-ver { font-size: 11px; color: var(--text-muted); }
+.file-name { font-family: monospace; font-size: 13px; color: var(--el-text-color-primary); display: block; margin-bottom: 4px; }
+.file-ver { font-size: 11px; color: var(--el-text-color-secondary); }
 
 .type-badge {
     font-size: 11px; padding: 2px 6px; border-radius: 3px; font-weight: 500;
 }
 .type-auto { color: #a78bfa; background: rgba(139, 92, 246, 0.1); } /* Purple */
-.type-manual { color: #3b82f6; background: rgba(59, 130, 246, 0.1); } /* Blue */
+.type-manual { color: var(--el-color-primary); background: var(--el-color-primary-light-9); } /* Blue */
 
-.size-text { font-family: monospace; color: var(--text-secondary); }
+.size-text { font-family: monospace; color: var(--el-text-color-secondary); }
 
-.action-link { color: var(--primary); cursor: pointer; margin-right: 12px; }
-.action-link.danger { color: var(--danger); }
+.action-link { color: var(--el-color-primary); cursor: pointer; margin-right: 12px; }
+.action-link.danger { color: var(--el-color-danger); }
 .action-link:hover { text-decoration: underline; }
 
 .warning-box {
-    background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);
-    padding: 12px; border-radius: 6px; margin-bottom: 20px; display: flex; gap: 10px; color: #fca5a5; font-size: 13px; line-height: 1.5;
+    background: var(--el-color-danger-light-9); border: 1px solid var(--el-color-danger-light-7);
+    padding: 12px; border-radius: 6px; margin-bottom: 20px; display: flex; gap: 10px; color: var(--el-color-danger-light-3); font-size: 13px; line-height: 1.5;
 }
 
 .progress-container { margin-top: 20px; }
-.progress-bar { height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-bottom: 6px;}
-.progress-fill { height: 100%; width: 0%; background: var(--primary); transition: width 0.3s; }
-.progress-text { font-size: 12px; color: var(--text-secondary); display: flex; justify-content: space-between; margin-bottom: 4px; }
+.progress-bar { height: 6px; background: var(--el-fill-color-dark); border-radius: 3px; overflow: hidden; margin-bottom: 6px;}
+.progress-fill { height: 100%; width: 0%; background: var(--el-color-primary); transition: width 0.3s; }
+.progress-text { font-size: 12px; color: var(--el-text-color-secondary); display: flex; justify-content: space-between; margin-bottom: 4px; }
 </style>

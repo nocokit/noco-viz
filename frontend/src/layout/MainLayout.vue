@@ -62,7 +62,7 @@
       </header>
 
       <!-- 内容区域 -->
-      <div class="content-body" :style="{ padding: route.meta.hideLayoutHeader ? '0' : '32px' }">
+      <div class="content-body" :style="{ padding: route.meta.hideLayoutHeader ? '0' : '16px 16px' }">
         <router-view v-slot="{ Component }">
           <transition name="fade-transform" mode="out-in">
             <component :is="Component" :key="route.path" />

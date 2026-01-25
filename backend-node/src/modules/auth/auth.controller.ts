@@ -72,8 +72,10 @@ export class AuthController {
   @Post('refresh')
   @ApiBearerAuth()
   @ApiOperation({ summary: '刷新 Token' })
-  refreshToken(@Request() req, @Body() refreshTokenDto: RefreshTokenDto) {
-    return this.authService.refreshToken(req.user.id);
+  refreshToken(@Request() req) {
+    // 从 Authorization header 中获取 token
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    return this.authService.refreshToken(token);
   }
 
   @UseGuards(JwtAuthGuard)

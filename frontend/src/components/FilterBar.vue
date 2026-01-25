@@ -113,6 +113,7 @@ const handleViewChange = (viewId) => {
   align-items: center;
   margin-bottom: 24px;
   gap: 20px;
+  padding-top: 16px;
 }
 
 .filter-tabs {

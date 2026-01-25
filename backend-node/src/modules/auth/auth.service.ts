@@ -55,7 +55,11 @@ export class AuthService {
       roleId: user.roleId,
     };
 
-    const accessToken = this.jwtService.sign(payload);
+    // 生成 access token (10天)
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '10d' });
+
+    // 生成 refresh token (30天)
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
 
     // 更新最后登录时间
     user.lastLogin = new Date();
@@ -63,8 +67,9 @@ export class AuthService {
 
     return {
       access_token: accessToken,
+      refresh_token: refreshToken,
       token_type: 'Bearer',
-      expires_in: 7200, // 2 hours
+      expires_in: 864000, // 10 days in seconds
       user: {
         id: user.id,
         username: user.username,
@@ -93,12 +98,17 @@ export class AuthService {
       roleId: user.roleId,
     };
 
-    const accessToken = this.jwtService.sign(payload);
+    // 生成 access token (10天)
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '10d' });
+
+    // 生成 refresh token (30天)
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
 
     return {
       access_token: accessToken,
+      refresh_token: refreshToken,
       token_type: 'Bearer',
-      expires_in: 7200,
+      expires_in: 864000, // 10 days in seconds
       user: {
         id: user.id,
         username: user.username,
@@ -135,27 +145,40 @@ export class AuthService {
     return { message: '密码修改成功' };
   }
 
-  async refreshToken(userId: number) {
-    const user = await this.usersService.findOne(userId);
+  async refreshToken(refreshToken: string) {
+    try {
+      // 验证 refresh token
+      const payload = this.jwtService.verify(refreshToken);
 
-    if (!user || !user.isActive) {
-      throw new UnauthorizedException('用户不存在或已被禁用');
+      // 获取用户信息
+      const user = await this.usersService.findOne(payload.sub);
+
+      if (!user || !user.isActive) {
+        throw new UnauthorizedException('用户不存在或已被禁用');
+      }
+
+      // 生成新的 access token (10天)
+      const newPayload = {
+        sub: user.id,
+        username: user.username,
+        email: user.email,
+        roleId: user.roleId,
+      };
+
+      const accessToken = this.jwtService.sign(newPayload, { expiresIn: '10d' });
+
+      // 生成新的 refresh token (30天)
+      const newRefreshToken = this.jwtService.sign(newPayload, { expiresIn: '30d' });
+
+      return {
+        access_token: accessToken,
+        refresh_token: newRefreshToken,
+        token_type: 'Bearer',
+        expires_in: 864000, // 10 days in seconds
+      };
+    } catch (error) {
+      throw new UnauthorizedException('无效的 refresh token');
     }
-
-    const payload = {
-      sub: user.id,
-      username: user.username,
-      email: user.email,
-      roleId: user.roleId,
-    };
-
-    const accessToken = this.jwtService.sign(payload);
-
-    return {
-      access_token: accessToken,
-      token_type: 'Bearer',
-      expires_in: 7200,
-    };
   }
 
   async logout(userId: number) {

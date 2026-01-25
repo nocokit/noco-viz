@@ -1,84 +1,42 @@
 <template>
-  <div class="role-list-page">
+  <div class="page-container role-list-page">
     <!-- Header -->
-    <header class="page-header">
-      <div class="header-left">
-        <h1 class="page-title">角色管理</h1>
-        <span class="page-subtitle">管理系统角色及权限分配</span>
-      </div>
-      <div class="header-actions">
-        <button class="btn btn-secondary" @click="handleExportRoles">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-            <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z"/>
-          </svg>
-          导出角色
-        </button>
-        <button class="btn btn-primary" @click="handleCreateRole">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-          </svg>
-          新建角色
-        </button>
-      </div>
-    </header>
+    <PageHeader
+      title="角色管理"
+      description="管理系统角色及权限分配"
+      :actions="[
+        { text: '导出角色', icon: 'Download', handler: handleExportRoles },
+        { text: '新建角色', icon: 'Plus', type: 'primary', handler: handleCreateRole }
+      ]"
+    />
 
     <!-- Toolbar -->
-    <div class="toolbar">
-      <div class="search-box">
-        <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-          <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-        </svg>
-        <input
-          type="text"
-          class="search-input"
-          placeholder="搜索角色名称或描述..."
-          v-model="searchKeyword"
-        />
-      </div>
-      <div class="toolbar-actions">
-        <div class="view-toggle">
-          <button
-            :class="['toggle-btn', { active: viewMode === 'card' }]"
-            @click="viewMode = 'card'"
-            title="卡片视图"
-          >
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-              <path d="M4 11h6V5H4v6zm0 8h6v-6H4v6zm8 0h6v-6h-6v6zm0-8h6V5h-6v6z"/>
-            </svg>
-          </button>
-          <button
-            :class="['toggle-btn', { active: viewMode === 'list' }]"
-            @click="viewMode = 'list'"
-            title="列表视图"
-          >
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-              <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
-            </svg>
-          </button>
-        </div>
-        <button class="btn btn-secondary" @click="handleRefresh" :disabled="loading">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-          </svg>
-          刷新
-        </button>
-      </div>
-    </div>
+    <Toolbar
+      v-model:search-value="searchKeyword"
+      search-placeholder="搜索角色名称或描述..."
+      :show-view-toggle="true"
+      v-model:view-mode="viewMode"
+      :refresh-loading="loading"
+      @refresh="handleRefresh"
+    />
 
     <!-- Card Grid / List View -->
     <div class="content-area">
+      <!-- Loading State -->
       <div v-if="loading" class="loading-state">
-        <svg class="loading-icon" viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-        </svg>
+        <el-icon class="loading-icon" :size="32">
+          <Loading />
+        </el-icon>
         <span>加载中...</span>
       </div>
 
+      <!-- Empty State -->
       <div v-else-if="filteredRoles.length === 0" class="empty-state">
-        <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor">
+        <svg viewBox="0 0 24 24" width="64" height="64" fill="currentColor" style="color: var(--el-text-color-placeholder);">
           <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
         </svg>
-        <p>暂无角色数据</p>
+        <div class="empty-title">暂无角色数据</div>
+        <div class="empty-desc">点击右上角"新建角色"按钮创建第一个角色</div>
       </div>
 
       <!-- Card View -->
@@ -87,9 +45,9 @@
         <div
           v-for="role in filteredRoles"
           :key="role.id"
-          :class="['role-card', { 'role-system': role.isSystem }]"
+          class="role-card"
         >
-          <div class="card-head">
+          <div class="card-header">
             <div class="role-icon" :style="{ background: getRoleColor(role) }">
               {{ getRoleIcon(role) }}
             </div>
@@ -101,120 +59,111 @@
             </span>
           </div>
 
-          <div class="card-info">
-            <h3>{{ role.name }}</h3>
+          <div class="card-body">
+            <h3 class="role-name">{{ role.name }}</h3>
             <p class="role-desc">{{ role.description }}</p>
           </div>
 
           <div class="card-meta">
             <div class="meta-item">
-              <span class="meta-label">数据权限:</span>
-              <span :class="['meta-badge', getScopeClass(role.scope)]">
+              <span class="meta-label">数据权限</span>
+              <el-tag :type="getScopeTagType(role.scope)" size="small">
                 {{ getScopeText(role.scope) }}
-              </span>
+              </el-tag>
             </div>
             <div class="meta-item">
-              <span class="meta-label">关联用户:</span>
+              <span class="meta-label">关联用户</span>
               <span class="meta-value">{{ role.userCount || 0 }} 人</span>
             </div>
           </div>
 
-          <div class="card-actions">
-            <button class="btn btn-secondary" @click="handleViewPermissions(role)">
+          <div class="card-footer">
+            <el-button size="small" @click="handleViewPermissions(role)">
               查看权限
-            </button>
-            <button
-              class="btn btn-secondary"
-              @click="handleEdit(role)"
-              :disabled="role.isSystem"
-            >
+            </el-button>
+            <el-button size="small" @click="handleEdit(role)" :disabled="role.isSystem">
               编辑
-            </button>
-            <button class="btn btn-secondary" @click="handleDuplicate(role)">
+            </el-button>
+            <el-button size="small" @click="handleDuplicate(role)">
               复制
-            </button>
-            <button
-              class="btn btn-danger"
-              @click="handleDelete(role)"
-              :disabled="role.isSystem"
-            >
+            </el-button>
+            <el-button size="small" type="danger" @click="handleDelete(role)" :disabled="role.isSystem">
               删除
-            </button>
+            </el-button>
           </div>
         </div>
 
         <!-- New Role Card -->
         <div class="role-card role-card-new" @click="handleCreateRole">
-          <div class="new-icon">+</div>
+          <div class="new-icon">
+            <el-icon :size="32">
+              <Plus />
+            </el-icon>
+          </div>
           <div class="new-text">新建角色</div>
         </div>
       </div>
 
       <!-- List View -->
-      <div v-else class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th width="25%">角色名称</th>
-              <th width="15%">数据权限范围</th>
-              <th width="12%" class="text-center">关联用户数</th>
-              <th width="15%">创建时间</th>
-              <th width="15%">最后修改</th>
-              <th width="18%" class="text-center">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="role in filteredRoles" :key="role.id">
-              <td>
-                <div class="role-name-cell">
-                  <div class="role-name">
-                    {{ role.name }}
-                    <span v-if="role.isSystem" class="system-tag">系统内置</span>
-                  </div>
-                  <div class="role-desc-list">{{ role.description }}</div>
-                </div>
-              </td>
-              <td>
-                <span :class="['meta-badge', getScopeClass(role.scope)]">
-                  {{ getScopeText(role.scope) }}
-                </span>
-              </td>
-              <td class="text-center">
-                <span class="user-count">{{ role.userCount || 0 }}</span>
-              </td>
-              <td>
-                <span class="time-text">{{ role.createdAt }}</span>
-              </td>
-              <td>
-                <span class="time-text">{{ role.updatedAt }}</span>
-              </td>
-              <td class="text-center">
-                <div class="action-buttons">
-                  <button class="btn-link" @click="handleViewPermissions(role)">
-                    查看权限
-                  </button>
-                  <button
-                    class="btn-link"
-                    @click="handleEdit(role)"
-                    :disabled="role.isSystem"
-                  >
-                    编辑
-                  </button>
-                  <button class="btn-link" @click="handleDuplicate(role)">
-                    复制
-                  </button>
-                  <button
-                    class="btn-link btn-link-danger"
-                    @click="handleDelete(role)"
-                    :disabled="role.isSystem"
-                  >
-                    删除
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div v-else>
+        <DataTable
+          :data="filteredRoles"
+          :columns="tableColumns"
+          :loading="loading"
+          variant="default"
+          empty-text="暂无角色数据"
+        >
+          <!-- 角色名称列 -->
+          <template #name="{ row }">
+            <div class="role-name-cell">
+              <div class="role-name-text">
+                {{ row.name }}
+                <el-tag v-if="row.isSystem" size="small" type="info">系统内置</el-tag>
+              </div>
+              <div class="role-desc-text">{{ row.description }}</div>
+            </div>
+          </template>
+
+          <!-- 数据权限范围列 -->
+          <template #scope="{ row }">
+            <el-tag :type="getScopeTagType(row.scope)" size="small">
+              {{ getScopeText(row.scope) }}
+            </el-tag>
+          </template>
+
+          <!-- 关联用户数列 -->
+          <template #userCount="{ row }">
+            <span class="user-count">{{ row.userCount || 0 }}</span>
+          </template>
+
+          <!-- 创建时间列 -->
+          <template #createdAt="{ row }">
+            <span class="time-text">{{ row.createdAt }}</span>
+          </template>
+
+          <!-- 最后修改列 -->
+          <template #updatedAt="{ row }">
+            <span class="time-text">{{ row.updatedAt }}</span>
+          </template>
+
+          <!-- 操作列 -->
+          <template #actions="{ row }">
+            <div class="action-buttons">
+              <el-button link type="primary" size="small" @click="handleViewPermissions(row)">
+                查看权限
+              </el-button>
+              <el-button link type="primary" size="small" @click="handleEdit(row)" :disabled="row.isSystem">
+                编辑
+              </el-button>
+              <el-button link type="primary" size="small" @click="handleDuplicate(row)">
+                复制
+              </el-button>
+              <el-button link type="danger" size="small" @click="handleDelete(row)" :disabled="row.isSystem">
+                删除
+              </el-button>
+            </div>
+          </template>
+        </DataTable>
       </div>
     </div>
 
@@ -264,7 +213,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Loading, Plus } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
+import PageHeader from '@/components/PageHeader.vue'
+import Toolbar from '@/components/Toolbar.vue'
+import DataTable from '@/components/DataTable.vue'
 
 // API导入
 import {
@@ -287,6 +240,16 @@ const submitting = ref(false)
 const formRef = ref(null)
 const editingId = ref(null)
 const viewMode = ref('list') // 'card' or 'list'
+
+// 表格列配置
+const tableColumns = [
+  { label: '角色名称', prop: 'name', width: '25%', slot: 'name' },
+  { label: '数据权限范围', prop: 'scope', width: '15%', slot: 'scope' },
+  { label: '关联用户数', prop: 'userCount', width: '12%', align: 'center', slot: 'userCount' },
+  { label: '创建时间', prop: 'createdAt', width: '15%', slot: 'createdAt' },
+  { label: '最后修改', prop: 'updatedAt', width: '15%', slot: 'updatedAt' },
+  { label: '操作', prop: 'actions', width: '18%', align: 'center', slot: 'actions' }
+]
 
 // 表单数据
 const formData = ref({
@@ -376,12 +339,12 @@ const getScopeText = (scope) => {
   return map[scope] || scope
 }
 
-const getScopeClass = (scope) => {
+const getScopeTagType = (scope) => {
   const map = {
-    all: 'scope-all',
-    dept: 'scope-dept',
-    self: 'scope-self',
-    custom: 'scope-custom'
+    all: 'danger',
+    dept: 'primary',
+    self: 'success',
+    custom: 'warning'
   }
   return map[scope] || ''
 }
@@ -543,158 +506,14 @@ const handleExportRoles = async () => {
 </script>
 
 <style scoped>
-.role-list-page {
-  min-height: 100vh;
-  background: #0f1014;
-  color: #e5e5e5;
+.page-container {
+  padding: 24px;
 }
 
 /* 页面头部 */
-.page-header {
-  height: 80px;
-  border-bottom: 1px solid #303033;
-  background: #18181c;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 32px;
-}
-
-.header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.page-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 0;
-  color: #e5e5e5;
-}
-
-.page-subtitle {
-  font-size: 13px;
-  color: #909399;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: 0.2s;
-}
-
-.btn svg {
-  flex-shrink: 0;
-}
-
-.btn-primary {
-  background: #409eff;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #66b1ff;
-}
-
-.btn-secondary {
-  background: transparent;
-  border: 1px solid #444;
-  color: #ccc;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  border-color: #666;
-  color: white;
-}
-
-.btn-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-danger {
-  background: transparent;
-  border: 1px solid #ef4444;
-  color: #ef4444;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: #ef4444;
-  color: white;
-}
-
-.btn-danger:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Toolbar */
-.toolbar {
-  padding: 20px 32px;
-  border-bottom: 1px solid #303033;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #18181c;
-}
-
-.search-box {
-  position: relative;
-  width: 400px;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #666;
-  pointer-events: none;
-}
-
-.search-input {
-  width: 100%;
-  height: 40px;
-  padding: 0 16px 0 40px;
-  background: #0f1014;
-  border: 1px solid #303033;
-  border-radius: 8px;
-  color: #e5e5e5;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #409eff;
-  background: #1e1e20;
-}
-
-.search-input::placeholder {
-  color: #666;
-}
-
-.toolbar-actions {
-  display: flex;
-  gap: 12px;
-}
-
 /* Content Area */
 .content-area {
-  padding: 32px;
+  padding: 12px 0px;
   overflow-y: auto;
 }
 
@@ -829,37 +648,6 @@ const handleExportRoles = async () => {
   font-weight: 500;
 }
 
-.meta-badge {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.scope-all {
-  background: rgba(245, 108, 108, 0.1);
-  color: #f56c6c;
-  border: 1px solid rgba(245, 108, 108, 0.2);
-}
-
-.scope-dept {
-  background: rgba(230, 162, 60, 0.1);
-  color: #e6a23c;
-  border: 1px solid rgba(230, 162, 60, 0.2);
-}
-
-.scope-self {
-  background: rgba(103, 194, 58, 0.1);
-  color: #67c23a;
-  border: 1px solid rgba(103, 194, 58, 0.2);
-}
-
-.scope-custom {
-  background: rgba(144, 147, 153, 0.1);
-  color: #909399;
-  border: 1px solid rgba(144, 147, 153, 0.2);
-}
-
 .card-actions {
   margin-top: 16px;
   display: grid;
@@ -955,60 +743,7 @@ const handleExportRoles = async () => {
   color: #e5e5e5;
 }
 
-/* Table Styles */
-.table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  background: #1e1e20;
-  border: 1px solid #303033;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.data-table thead {
-  background: #18181c;
-}
-
-.data-table th {
-  padding: 16px 20px;
-  text-align: left;
-  font-size: 13px;
-  font-weight: 600;
-  color: #888;
-  border-bottom: 1px solid #303033;
-}
-
-.data-table th.text-center {
-  text-align: center;
-}
-
-.data-table tbody tr {
-  transition: background 0.2s;
-}
-
-.data-table tbody tr:hover {
-  background: rgba(64, 158, 255, 0.05);
-}
-
-.data-table tbody tr:not(:last-child) td {
-  border-bottom: 1px solid #303033;
-}
-
-.data-table td {
-  padding: 16px 20px;
-  font-size: 13px;
-  color: #ccc;
-}
-
-.data-table td.text-center {
-  text-align: center;
-}
+/* Table Cell Styles - 保留自定义单元格样式 */
 
 .role-name-cell {
   display: flex;
@@ -1094,40 +829,5 @@ const handleExportRoles = async () => {
 
 .btn-link-danger:hover:not(:disabled) {
   color: #f87171;
-}
-
-/* View Toggle */
-.view-toggle {
-  display: flex;
-  gap: 0;
-  background: #0f1014;
-  border: 1px solid #303033;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.toggle-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 12px;
-  background: transparent;
-  border: none;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.toggle-btn:hover {
-  color: #999;
-}
-
-.toggle-btn.active {
-  background: #409eff;
-  color: white;
-}
-
-.toggle-btn:not(:last-child) {
-  border-right: 1px solid #303033;
 }
 </style>

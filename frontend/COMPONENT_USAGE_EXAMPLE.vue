@@ -208,7 +208,7 @@ import {
 
 // 导入公共组件
 import PageLayout from '@/components/common/PageLayout'
-import PageHeader from '@/components/common/PageHeader'
+import PageHeader from '@/components/PageHeader.vue'
 import TabFilter from '@/components/common/TabFilter'
 import ActionDropdown from '@/components/common/ActionDropdown'
 import StepModal from '@/components/common/StepModal'

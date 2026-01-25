@@ -1,6 +1,6 @@
 <template>
   <div class="ip-whitelist">
-    <PageHeader title="IP 白名单 (IP Whitelist)" />
+    <PageHeader title="IP白名单" />
 
     <div class="content-body">
       <!-- IP 白名单配置 -->
@@ -32,7 +32,7 @@
 
       <!-- 列表工具栏 -->
       <div class="toolbar">
-        <div style="font-size:14px; color:var(--text-secondary)">白名单规则 ({{ ipList.length }})</div>
+        <div style="font-size:14px; color:var(--el-text-color-secondary)">白名单规则 ({{ ipList.length }})</div>
         <div style="display:flex; gap:12px">
           <input
             type="text"
@@ -81,7 +81,7 @@
             </td>
           </tr>
           <tr v-if="filteredIpList.length === 0">
-            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 40px;">
+            <td colspan="5" style="text-align: center; color: var(--el-text-color-secondary); padding: 40px;">
               暂无数据
             </td>
           </tr>
@@ -99,30 +99,30 @@
       @close="closeModal"
     >
       <div style="margin-bottom:16px">
-        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px">
-          IP 地址或网段 <span style="color:var(--danger)">*</span>
+        <label style="display:block; font-size:12px; color:var(--el-text-color-secondary); margin-bottom:6px">
+          IP 地址或网段 <span style="color:var(--el-color-danger)">*</span>
         </label>
         <input
           type="text"
-          style="width:100%; background:var(--bg-input); border:1px solid var(--border); color:#fff; padding:10px; border-radius:6px"
+          style="width:100%; background:var(--el-fill-color-blank); border:1px solid var(--el-border-color); color:var(--el-text-color-primary); padding:10px; border-radius:6px"
           placeholder="例如：192.168.1.1 或 192.168.1.0/24"
           v-model="formData.ip"
           :class="{ 'input-error': formErrors.ip }"
         >
         <div v-if="formErrors.ip" class="error-text">{{ formErrors.ip }}</div>
         <div class="form-tip">
-          <a href="javascript:void(0)" @click="fillCurrentIP" style="color:var(--primary); font-size:12px">
+          <a href="javascript:void(0)" @click="fillCurrentIP" style="color:var(--el-color-primary); font-size:12px">
             填入本机 IP ({{ currentIP }})
           </a>
         </div>
       </div>
 
       <div style="margin-bottom:12px">
-        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px">
+        <label style="display:block; font-size:12px; color:var(--el-text-color-secondary); margin-bottom:6px">
           备注说明
         </label>
         <textarea
-          style="width:100%; background:var(--bg-input); border:1px solid var(--border); color:#fff; padding:10px; border-radius:6px; resize: vertical; min-height: 80px"
+          style="width:100%; background:var(--el-fill-color-blank); border:1px solid var(--el-border-color); color:var(--el-text-color-primary); padding:10px; border-radius:6px; resize: vertical; min-height: 80px"
           placeholder="例如：研发部办公室 Wi-Fi"
           v-model="formData.description"
           maxlength="200"
@@ -421,72 +421,28 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* =========================================
-   全局变量
-   ========================================= */
 .ip-whitelist {
-  --bg-body: #0a0b0d;
-  --bg-sidebar: #141519;
-  --bg-card: #1c1d21;
-  --bg-input: #0f1012;
-  --bg-hover: #26272c;
-
-  --primary: #3b82f6;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-
-  --text-main: #ffffff;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --border: #2d2e33;
-
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: var(--text-main);
-  background-color: var(--bg-body);
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding: 24px;
+  background-color: var(--el-bg-color-page);
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-
-/* =========================================
-   Header
-   ========================================= */
-.header {
-  height: 64px;
-  padding: 0 32px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(20, 21, 25, 0.9);
-  flex-shrink: 0;
-}
-
-.header h2 {
-  font-size: 18px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0;
-  color: #fff;
-}
+::-webkit-scrollbar-thumb { background: var(--el-fill-color-darker); border-radius: 3px; }
 
 .content-body {
-  padding: 32px;
   flex: 1;
   overflow-y: auto;
+  margin-top: 12px;
 }
 
 /* Config Card */
 .config-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
   border-radius: 8px;
   padding: 24px;
   margin-bottom: 32px;
@@ -502,7 +458,7 @@ onMounted(() => {
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #fff;
+  color: var(--el-text-color-primary);
   margin-bottom: 8px;
   display: flex;
   align-items: center;
@@ -511,23 +467,23 @@ onMounted(() => {
 
 .card-desc {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--el-text-color-secondary);
   margin-bottom: 20px;
   line-height: 1.5;
 }
 
 .status-tag {
   font-size: 11px;
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--success);
+  background: var(--el-color-success-light-9);
+  color: var(--el-color-success);
   padding: 2px 8px;
   border-radius: 4px;
 }
 
 .status-tag-disabled {
   font-size: 11px;
-  background: rgba(107, 114, 128, 0.1);
-  color: var(--text-muted);
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-secondary);
   padding: 2px 8px;
   border-radius: 4px;
 }
@@ -543,14 +499,14 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--el-text-color-secondary);
 }
 
 .current-ip {
   font-family: 'Monaco', 'Courier New', monospace;
   font-size: 13px;
-  color: var(--primary);
-  background: rgba(59, 130, 246, 0.1);
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
   padding: 4px 10px;
   border-radius: 4px;
 }
@@ -576,7 +532,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #333;
+  background-color: var(--el-fill-color-dark);
   transition: .4s;
   border-radius: 24px;
 }
@@ -594,7 +550,7 @@ onMounted(() => {
 }
 
 input:checked + .slider {
-  background-color: var(--success);
+  background-color: var(--el-color-success);
 }
 
 input:checked + .slider:before {
@@ -613,20 +569,20 @@ input:checked + .slider:before {
   width: 240px;
   height: 36px;
   padding: 0 12px;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
+  background: var(--el-fill-color-blank);
+  border: 1px solid var(--el-border-color);
   border-radius: 6px;
-  color: #fff;
+  color: var(--el-text-color-primary);
   font-size: 13px;
 }
 
 .search-input::placeholder {
-  color: var(--text-muted);
+  color: var(--el-text-color-placeholder);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: var(--primary);
+  border-color: var(--el-color-primary);
 }
 
 .btn {
@@ -639,26 +595,26 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid #2d2e33;
-  background: #1c1d21;
-  color: #9ca3af;
+  border: 1px solid var(--el-border-color);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-regular);
   transition: 0.2s;
 }
 
 .btn:hover {
-  border-color: #fff;
-  color: #fff;
+  border-color: var(--el-color-primary);
+  color: var(--el-color-primary);
 }
 
 .btn-primary {
-  background: #3b82f6;
-  border-color: #3b82f6;
+  background: var(--el-color-primary);
+  border-color: var(--el-color-primary);
   color: #fff;
 }
 
 .btn-primary:hover {
-  background: #2563eb;
-  border-color: #2563eb;
+  background: var(--el-color-primary-light-3);
+  border-color: var(--el-color-primary-light-3);
 }
 
 .btn:disabled {
@@ -677,10 +633,10 @@ input:checked + .slider:before {
 .data-table th {
   text-align: left;
   padding: 12px 20px;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border);
+  color: var(--el-text-color-secondary);
+  border-bottom: 1px solid var(--el-border-color);
   font-weight: 500;
-  background: var(--bg-card);
+  background: var(--el-bg-color);
 }
 
 .data-table th:first-child {
@@ -693,14 +649,14 @@ input:checked + .slider:before {
 
 .data-table td {
   padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-main);
-  background: var(--bg-card);
+  border-bottom: 1px solid var(--el-border-color);
+  color: var(--el-text-color-primary);
+  background: var(--el-bg-color);
   vertical-align: middle;
 }
 
 .data-table tr:hover td {
-  background: var(--bg-hover);
+  background: var(--el-fill-color-light);
 }
 
 .ip-cell {
@@ -712,11 +668,11 @@ input:checked + .slider:before {
 .ip-badge {
   display: inline-block;
   padding: 4px 10px;
-  background: #26272c;
+  background: var(--el-fill-color);
   border-radius: 4px;
   font-family: 'Monaco', 'Courier New', monospace;
   font-size: 12px;
-  color: #e5e5e5;
+  color: var(--el-text-color-primary);
 }
 
 .type-badge {
@@ -727,28 +683,28 @@ input:checked + .slider:before {
 }
 
 .type-cidr {
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.1);
+  color: var(--el-color-success);
+  background: var(--el-color-success-light-9);
 }
 
 .type-single {
-  color: #3b82f6;
-  background: rgba(59, 130, 246, 0.1);
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
 }
 
 .description-text {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--el-text-color-secondary);
 }
 
 .action-link {
-  color: var(--primary);
+  color: var(--el-color-primary);
   cursor: pointer;
   margin-right: 12px;
 }
 
 .action-link.danger {
-  color: var(--danger);
+  color: var(--el-color-danger);
 }
 
 .action-link:hover {
@@ -757,11 +713,11 @@ input:checked + .slider:before {
 
 /* Form */
 .input-error {
-  border-color: var(--danger) !important;
+  border-color: var(--el-color-danger) !important;
 }
 
 .error-text {
-  color: var(--danger);
+  color: var(--el-color-danger);
   font-size: 12px;
   margin-top: 4px;
 }

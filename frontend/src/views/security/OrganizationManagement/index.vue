@@ -1,25 +1,14 @@
 <template>
-  <div class="organization-management">
+  <div class="page-container organization-management">
     <!-- Header -->
-    <header class="page-header">
-      <div class="header-left">
-        <h2>组织架构 (Organization)</h2>
-      </div>
-      <div class="header-right">
-        <div class="sync-status">
-          <el-icon><Refresh /></el-icon>
-          数据来源: LDAP 同步
-        </div>
-        <el-button class="header-btn">
-          <el-icon><Sort /></el-icon>
-          导入/导出
-        </el-button>
-        <el-button type="primary" class="header-btn">
-          <el-icon><RefreshRight /></el-icon>
-          立即同步
-        </el-button>
-      </div>
-    </header>
+    <PageHeader
+      title="组织架构"
+      description="管理企业组织架构和部门成员，支持LDAP同步。"
+      :actions="[
+        { text: '导入/导出', icon: 'Sort', handler: handleImportExport },
+        { text: '立即同步', icon: 'RefreshRight', type: 'primary', handler: handleSync }
+      ]"
+    />
 
     <div class="content-body">
       <!-- Left: Org Tree -->
@@ -252,6 +241,7 @@
 import { ref, watch, reactive, onMounted } from 'vue'
 import { Search, Refresh, RefreshRight, Sort, Plus, OfficeBuilding, Folder, Edit, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import PageHeader from '@/components/PageHeader.vue'
 import {
   getDepartmentTree,
   createDepartment,
@@ -264,6 +254,15 @@ const filterText = ref('')
 const treeRef = ref(null)
 const currentDept = ref({ label: '集团总部', count: 1204 })
 const loading = ref(false)
+
+// Header 操作函数
+const handleImportExport = () => {
+  ElMessage.info('导入/导出功能开发中...')
+}
+
+const handleSync = () => {
+  ElMessage.info('正在同步 LDAP 数据...')
+}
 
 const defaultProps = {
   children: 'children',
@@ -649,40 +648,12 @@ const handleDelete = (row) => {
   background-color: #0a0b0d; /* var(--bg-body) */
   color: #ffffff; /* var(--text-main) */
   overflow: hidden;
-}
-
-/* =========================================
-   Header
-   ========================================= */
-.page-header {
-  height: 64px;
-  padding: 0 32px;
-  border-bottom: 1px solid #2d2e33; /* var(--border) */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(20, 21, 25, 0.9);
-  flex-shrink: 0;
-}
-
-.header-left h2 {
-  font-size: 18px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0;
-}
-
-.header-right {
-  display: flex;
-  gap: 12px;
-  align-items: center;
+  padding: 24px;
 }
 
 .sync-status {
   font-size: 12px;
-  color: #9ca3af; /* var(--text-secondary) */
+  color: #9ca3af;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -692,12 +663,6 @@ const handleDelete = (row) => {
   border: 1px solid #2d2e33;
 }
 
-.header-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
 /* =========================================
    Content Body
    ========================================= */
@@ -705,7 +670,7 @@ const handleDelete = (row) => {
   flex: 1;
   display: flex;
   overflow: hidden;
-  padding: 24px;
+  padding: 12px 0px;
   gap: 24px;
 }
 

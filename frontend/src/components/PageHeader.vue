@@ -1,8 +1,10 @@
 <template>
   <header class="page-header">
     <div class="page-header-content">
-      <h2 v-if="title">{{ title }}</h2>
-      <p v-if="description || subtitle">{{ description || subtitle }}</p>
+      <div class="header-title-row">
+        <h2 v-if="title">{{ title }}</h2>
+        <p v-if="description || subtitle" class="header-description">{{ description || subtitle }}</p>
+      </div>
       <slot name="content"></slot>
     </div>
     <div v-if="$slots.actions || actions.length > 0 || stats.length > 0" class="page-header-actions">
@@ -20,7 +22,6 @@
           v-for="action in actions"
           :key="action.key || action.text"
           :type="action.type || 'default'"
-          :icon="action.icon"
           :disabled="action.disabled"
           @click="handleAction(action)"
         >
@@ -52,37 +53,27 @@ const handleAction = (action) => {
 </script>
 
 <style scoped>
-.page-header {
+/* 页面头部基础样式在 page-layout.css 中定义 */
+
+/* 组件特有样式 */
+.header-title-row {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--el-border-color);
+  align-items: baseline;
+  gap: 12px;
 }
 
-.page-header-content {
-  flex: 1;
-}
-
-.page-header h2 {
+.header-title-row h2 {
+  margin: 0;
   font-size: 24px;
   font-weight: 600;
-  margin: 0 0 8px 0;
   color: var(--el-text-color-primary);
 }
 
-.page-header p {
-  font-size: 14px;
-  line-height: 1.6;
+.header-description {
   margin: 0;
+  font-size: 14px;
   color: var(--el-text-color-secondary);
-}
-
-.page-header-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
+  line-height: 1.6;
 }
 
 .header-stats {

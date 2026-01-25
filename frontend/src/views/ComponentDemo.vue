@@ -138,7 +138,7 @@ import {
 
 // 导入所有组件
 import PageLayout from '@/components/common/PageLayout'
-import PageHeader from '@/components/common/PageHeader'
+import PageHeader from '@/components/PageHeader.vue'
 import FilterBar from '@/components/common/FilterBar'
 import SearchBar from '@/components/common/SearchBar'
 import StepModal from '@/components/common/StepModal'

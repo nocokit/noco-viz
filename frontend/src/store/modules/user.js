@@ -123,7 +123,7 @@ export const useUserStore = defineStore('user', () => {
     // Actions
     login,
     register,
-    refreshToken: refreshAccessToken,
+    refreshAccessToken,
     fetchUserInfo,
     updateUserInfo,
     changePassword,

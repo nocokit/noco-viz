@@ -1,26 +1,14 @@
 <template>
   <div class="connection-management">
     <!-- 顶部工具栏 -->
-    <div class="page-header">
-      <div class="header-left">
-        <h1 class="page-title">连接配置</h1>
-        <span class="page-subtitle">管理数据库和API连接</span>
-      </div>
-      <div class="header-actions">
-        <button class="btn btn-secondary">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-          </svg>
-          帮助文档
-        </button>
-        <button class="btn btn-primary" @click="handleCreateConnection">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-          </svg>
-          新建连接
-        </button>
-      </div>
-    </div>
+    <PageHeader
+      title="连接配置"
+      description="管理数据库和API连接"
+      :actions="[
+        { text: '帮助文档', icon: 'QuestionFilled', handler: handleHelp },
+        { text: '新建连接', icon: 'Plus', type: 'primary', handler: handleCreateConnection }
+      ]"
+    />
 
     <!-- 连接卡片网格 -->
     <div class="content-area">
@@ -176,6 +164,8 @@
 <script setup>
 import { ref, reactive, watch, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus, QuestionFilled } from '@element-plus/icons-vue'
+import PageHeader from '@/components/PageHeader.vue'
 import CommonModal from '@/components/CommonModal.vue'
 import {
   getConnections,
@@ -311,6 +301,11 @@ const handleCreateConnection = () => {
   editingConnectionId.value = null
   resetForm()
   modalVisible.value = true
+}
+
+// 帮助文档
+const handleHelp = () => {
+  ElMessage.info('帮助文档功能开发中...')
 }
 
 // 打开编辑连接模态框
@@ -480,96 +475,19 @@ const deleteConnection = async (conn) => {
 
 <style scoped>
 .connection-management {
-  min-height: 100vh;
-  background: #0f1014;
-  color: #e5e5e5;
-}
-
-/* 页面头部 */
-.page-header {
-  height: 80px;
-  border-bottom: 1px solid #303033;
-  background: #18181c;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 32px;
-}
-
-.header-left {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.page-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 0;
-  color: #e5e5e5;
-}
-
-.page-subtitle {
-  font-size: 13px;
-  color: #909399;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: 0.2s;
-}
-
-.btn svg {
-  flex-shrink: 0;
-}
-
-.btn-primary {
-  background: #409eff;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #66b1ff;
-}
-
-.btn-secondary {
-  background: transparent;
-  border: 1px solid #444;
-  color: #ccc;
-}
-
-.btn-secondary:hover {
-  border-color: #666;
-  color: white;
-}
-
-.btn-danger {
-  background: transparent;
-  border: 1px solid #ef4444;
-  color: #ef4444;
-}
-
-.btn-danger:hover {
-  background: #ef4444;
-  color: white;
+  overflow: hidden;
+  padding: 24px;
+  background: var(--el-bg-color);
 }
 
 /* 内容区域 */
 .content-area {
-  padding: 32px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 0;
 }
 
 /* 连接卡片网格 */
@@ -580,121 +498,162 @@ const deleteConnection = async (conn) => {
 }
 
 .conn-card {
-  background: #1e1e20;
-  border: 1px solid #303033;
+  background: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 8px;
-  padding: 24px;
+  padding: 20px;
   transition: all 0.2s;
   position: relative;
 }
 
 .conn-card:hover {
-  border-color: #555;
+  border-color: var(--el-color-primary-light-7);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .conn-card.conn-error {
-  border-color: rgba(245, 108, 108, 0.3);
+  border-color: var(--el-color-warning-light-7);
+  background: var(--el-color-warning-light-9);
 }
 
 .card-head {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .db-logo {
   width: 48px;
   height: 48px;
-  background: #2c2c30;
+  background: var(--el-fill-color-light);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  color: #ccc;
+  font-weight: 700;
   font-size: 16px;
+  letter-spacing: 0.5px;
 }
 
 .status-badge {
-  font-size: 12px;
-  padding: 4px 10px;
+  font-size: 11px;
+  padding: 3px 8px;
   border-radius: 12px;
-  background: rgba(103, 194, 58, 0.1);
-  color: #67c23a;
-  border: 1px solid rgba(103, 194, 58, 0.2);
+  background: var(--el-color-success-light-9);
+  color: var(--el-color-success);
+  border: 1px solid var(--el-color-success-light-7);
   height: fit-content;
+  font-weight: 500;
 }
 
 .status-badge.error {
-  background: rgba(245, 108, 108, 0.1);
-  color: #f56c6c;
-  border-color: rgba(245, 108, 108, 0.2);
+  background: var(--el-color-danger-light-9);
+  color: var(--el-color-danger);
+  border-color: var(--el-color-danger-light-7);
 }
 
 .card-info h3 {
-  margin: 0 0 6px 0;
+  margin: 0 0 8px 0;
   font-size: 16px;
-  color: white;
+  color: var(--el-text-color-primary);
   font-weight: 600;
 }
 
 .card-info p {
   margin: 0;
   font-size: 13px;
-  color: #666;
+  color: var(--el-text-color-secondary);
   font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
 }
 
 .card-meta {
-  margin-top: 20px;
+  margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--el-border-color-lighter);
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #888;
+  color: var(--el-text-color-secondary);
 }
 
 .card-actions {
   margin-top: 16px;
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 
 .card-actions .btn {
   flex: 1;
-  padding: 8px 12px;
+  padding: 0 12px;
   font-size: 13px;
+  display: flex;
+  align-items: center;
   justify-content: center;
+  height: 32px;
+  line-height: 1;
+  border-radius: 6px;
+  border: 1px solid var(--el-border-color);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-regular);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.card-actions .btn:hover {
+  border-color: var(--el-color-primary);
+  color: var(--el-color-primary);
+}
+
+.card-actions .btn-danger {
+  color: var(--el-color-danger);
+}
+
+.card-actions .btn-danger:hover {
+  border-color: var(--el-color-danger);
+  background: var(--el-color-danger-light-9);
 }
 
 /* 新建连接卡片 */
 .conn-card-new {
   border-style: dashed;
+  border-color: var(--el-border-color);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  min-height: 220px;
+  min-height: 240px;
+  background: transparent;
 }
 
 .conn-card-new:hover {
-  border-color: #409eff;
-  background: rgba(64, 158, 255, 0.05);
+  border-color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+  transform: translateY(-2px);
 }
 
 .new-icon {
-  font-size: 32px;
-  color: #666;
+  font-size: 48px;
+  color: var(--el-text-color-placeholder);
   margin-bottom: 12px;
+  transition: all 0.2s;
+}
+
+.conn-card-new:hover .new-icon {
+  color: var(--el-color-primary);
+  transform: scale(1.1);
 }
 
 .new-text {
   font-size: 14px;
-  color: #888;
+  color: var(--el-text-color-secondary);
+  font-weight: 500;
+}
+
+.conn-card-new:hover .new-text {
+  color: var(--el-color-primary);
 }
 </style>

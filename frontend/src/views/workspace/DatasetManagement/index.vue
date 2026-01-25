@@ -1,21 +1,14 @@
 <template>
   <div class="dataset-management">
     <!-- Header -->
-    <header class="page-header">
-      <div class="header-left">
-        <h2>数据资源管理</h2>
-      </div>
-      <div class="header-right">
-        <el-button class="header-btn" @click="showExcelImportDialog">
-          <el-icon><Download /></el-icon>
-          导入Excel
-        </el-button>
-        <el-button type="primary" class="header-btn">
-          <el-icon><Plus /></el-icon>
-          新建数据集
-        </el-button>
-      </div>
-    </header>
+    <PageHeader
+      title="数据资源管理"
+      description="管理和配置数据集资源"
+      :actions="[
+        { text: '导入Excel', icon: 'Download', handler: showExcelImportDialog },
+        { text: '新建数据集', icon: 'Plus', type: 'primary', handler: handleCreateDataset }
+      ]"
+    />
 
     <div class="content-body">
       <!-- Left: Organization Tree -->
@@ -76,9 +69,6 @@
               prefix-icon="Search"
               style="width: 200px"
             />
-            <el-button type="primary" icon="Plus" @click="handleCreateDataset">
-              新建数据集
-            </el-button>
           </div>
         </div>
 
@@ -248,6 +238,7 @@ import {
   OfficeBuilding, Folder, FolderOpened,
   Monitor, TrendCharts, DataAnalysis, UploadFilled
 } from '@element-plus/icons-vue'
+import PageHeader from '@/components/PageHeader.vue'
 import { getDatasets, deleteDataset as deleteDatasetApi, getConnections, previewDataset, uploadExcel, validateSQL, testApiDataSource } from '@/api/dataset'
 
 // ==================== 数据加载 ====================
@@ -550,44 +541,10 @@ const handlePreview = async (dataset) => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #0a0b0d;
-  color: #ffffff;
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
   overflow: hidden;
-}
-
-/* =========================================
-   Header
-   ========================================= */
-.page-header {
-  height: 64px;
-  padding: 0 32px;
-  border-bottom: 1px solid #2d2e33;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(20, 21, 25, 0.9);
-  flex-shrink: 0;
-}
-
-.header-left h2 {
-  font-size: 18px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0;
-}
-
-.header-right {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.header-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  padding: 24px;
 }
 
 /* =========================================
@@ -597,16 +554,16 @@ const handlePreview = async (dataset) => {
   flex: 1;
   display: flex;
   overflow: hidden;
-  padding: 24px;
+  padding-top: 20px;
   gap: 24px;
 }
 
 /* --- Left: Org Tree Panel --- */
 .org-tree-panel {
   width: 300px;
-  background: #1c1d21;
-  border: 1px solid #2d2e33;
-  border-radius: 12px;
+  background: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -614,16 +571,16 @@ const handlePreview = async (dataset) => {
 
 .tree-header {
   padding: 16px;
-  border-bottom: 1px solid #2d2e33;
+  border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
 .tree-search :deep(.el-input__wrapper) {
-  background-color: #000;
-  box-shadow: 0 0 0 1px #2d2e33 inset;
+  background-color: var(--el-fill-color-blank);
+  box-shadow: 0 0 0 1px var(--el-border-color) inset;
 }
 
 .tree-search :deep(.el-input__inner) {
-  color: #fff;
+  color: var(--el-text-color-primary);
 }
 
 .tree-content {
@@ -634,17 +591,17 @@ const handlePreview = async (dataset) => {
 
 .tree-content :deep(.el-tree) {
   background: transparent;
-  color: #9ca3af;
+  color: var(--el-text-color-secondary);
 }
 
 .tree-content :deep(.el-tree-node__content:hover) {
-  background-color: #26272c;
-  color: #fff;
+  background-color: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
 }
 
 .tree-content :deep(.el-tree-node.is-current > .el-tree-node__content) {
-  background-color: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  background-color: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
 }
 
 .custom-tree-node {
@@ -668,18 +625,18 @@ const handlePreview = async (dataset) => {
 
 .node-count {
   font-size: 11px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--el-fill-color);
   padding: 1px 6px;
   border-radius: 10px;
-  color: #9ca3af;
+  color: var(--el-text-color-secondary);
 }
 
 /* --- Right: Dataset Panel --- */
 .dataset-panel {
   flex: 1;
-  background: #1c1d21;
-  border: 1px solid #2d2e33;
-  border-radius: 12px;
+  background: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -687,7 +644,7 @@ const handlePreview = async (dataset) => {
 
 .panel-toolbar {
   padding: 16px 24px;
-  border-bottom: 1px solid #2d2e33;
+  border-bottom: 1px solid var(--el-border-color-lighter);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -696,27 +653,27 @@ const handlePreview = async (dataset) => {
 .breadcrumb {
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--el-text-color-primary);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .crumb-item {
-  color: #9ca3af;
+  color: var(--el-text-color-secondary);
 }
 
 .crumb-item:last-of-type {
-  color: #fff;
+  color: var(--el-text-color-primary);
 }
 
 .separator {
-  color: #555;
+  color: var(--el-text-color-placeholder);
   font-weight: 300;
 }
 
 .crumb-meta {
-  color: #9ca3af;
+  color: var(--el-text-color-secondary);
   font-weight: 400;
   font-size: 12px;
 }
@@ -727,12 +684,12 @@ const handlePreview = async (dataset) => {
 }
 
 .toolbar-actions :deep(.el-input__wrapper) {
-  background-color: #000;
-  box-shadow: 0 0 0 1px #2d2e33 inset;
+  background-color: var(--el-fill-color-blank);
+  box-shadow: 0 0 0 1px var(--el-border-color) inset;
 }
 
 .toolbar-actions :deep(.el-input__inner) {
-  color: #fff;
+  color: var(--el-text-color-primary);
 }
 
 /* Table Container */
@@ -743,13 +700,26 @@ const handlePreview = async (dataset) => {
 
 .table-container :deep(.el-table) {
   background-color: transparent;
-  --el-table-border-color: #2d2e33;
-  --el-table-bg-color: transparent;
-  --el-table-tr-bg-color: transparent;
-  --el-table-header-bg-color: rgba(0, 0, 0, 0.2);
-  --el-table-row-hover-bg-color: #26272c;
-  --el-table-text-color: #fff;
-  --el-table-header-text-color: #9ca3af;
+  font-size: 13px;
+}
+
+.table-container :deep(.el-table th.el-table__cell) {
+  background: var(--el-bg-color);
+  color: var(--el-text-color-secondary);
+  font-weight: 500;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+.table-container :deep(.el-table td.el-table__cell) {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background: transparent;
+  color: var(--el-text-color-primary);
+}
+
+.table-container :deep(.el-table tr:hover > td) {
+  background: var(--el-fill-color-light) !important;
 }
 
 /* Dataset Cell */
@@ -762,12 +732,12 @@ const handlePreview = async (dataset) => {
 .dataset-name {
   font-weight: 600;
   font-size: 13px;
-  color: #fff;
+  color: var(--el-text-color-primary);
 }
 
 .dataset-key {
   font-size: 11px;
-  color: #666;
+  color: var(--el-text-color-placeholder);
   font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
 }
 

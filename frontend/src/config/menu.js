@@ -155,12 +155,12 @@ export const menuConfig = [
         icon: 'Lock',
         path: '/whitelist'
       },
-      {
-        id: 'backup',
-        title: '备份恢复',
-        icon: 'FolderOpened',
-        path: '/backup'
-      },
+      // {
+      //   id: 'backup',
+      //   title: '备份恢复',
+      //   icon: 'FolderOpened',
+      //   path: '/backup'
+      // },
       {
         id: 'recycle',
         title: '回收站',

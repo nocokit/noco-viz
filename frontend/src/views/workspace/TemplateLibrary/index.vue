@@ -19,16 +19,16 @@
       @view-change="viewMode = $event"
     />
 
-    <!-- 网格视图 -->
-    <div v-if="viewMode === 'grid'" class="template-grid-view">
-      <div v-if="filteredTemplates.length === 0" class="empty-state">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" style="color: #6b7280; margin-bottom: 16px;">
-          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-        </svg>
-        <div class="empty-title">暂无模板</div>
-        <div class="empty-desc">暂时没有找到符合条件的模板</div>
-      </div>
-      <div v-else class="template-grid">
+    <!-- 内容区域 -->
+    <div class="template-content">
+      <!-- 网格视图 -->
+      <div v-if="viewMode === 'grid'" class="template-grid-view">
+        <EmptyState
+          v-if="filteredTemplates.length === 0"
+          title="暂无模板"
+          description="暂时没有找到符合条件的模板"
+        />
+        <div v-else class="template-grid">
         <TemplateCard
           v-for="template in filteredTemplates"
           :key="template.id"
@@ -45,13 +45,11 @@
 
     <!-- 列表视图 -->
     <div v-else-if="viewMode === 'list'" class="template-list-view">
-      <div v-if="filteredTemplates.length === 0" class="empty-state">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" style="color: #6b7280; margin-bottom: 16px;">
-          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-        </svg>
-        <div class="empty-title">暂无模板</div>
-        <div class="empty-desc">暂时没有找到符合条件的模板</div>
-      </div>
+      <EmptyState
+        v-if="filteredTemplates.length === 0"
+        title="暂无模板"
+        description="暂时没有找到符合条件的模板"
+      />
       <div
         v-for="template in filteredTemplates"
         :key="template.id"
@@ -64,53 +62,22 @@
           <div class="list-item-header">
             <div class="list-item-title">
               {{ template.title || template.name }}
-              <span :class="['item-badge', template.category === 'official' ? 'badge-official' : 'badge-shared']">
-                {{ template.category === 'official' ? '官方' : '共享' }}
-              </span>
+              <TemplateBadge :category="template.category" />
             </div>
-            <div class="list-item-actions">
-              <el-button size="small" @click="handleUseTemplate(template)">
-                <el-icon><Check /></el-icon>
-                使用
-              </el-button>
-              <el-button size="small" @click="handlePreviewTemplate(template)">
-                <el-icon><View /></el-icon>
-                预览
-              </el-button>
-              <el-dropdown v-if="!template.isSystem" trigger="click" @command="(cmd) => handleDropdownCommand(cmd, template)">
-                <el-button size="small">
-                  <el-icon><MoreFilled /></el-icon>
-                </el-button>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item command="edit">
-                      <el-icon><Edit /></el-icon>
-                      编辑
-                    </el-dropdown-item>
-                    <el-dropdown-item command="delete" divided>
-                      <el-icon><Delete /></el-icon>
-                      删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
+            <TemplateActions
+              :is-system="template.isSystem"
+              @use="handleUseTemplate(template)"
+              @preview="handlePreviewTemplate(template)"
+              @edit="handleEditTemplate(template)"
+              @delete="handleDeleteTemplate(template)"
+            />
           </div>
           <div class="list-item-desc">{{ template.description || '暂无描述' }}</div>
-          <div class="list-item-meta">
-            <span class="meta-item">
-              <el-icon><Monitor /></el-icon>
-              {{ template.metadata?.resolution || '1920 x 1080' }}
-            </span>
-            <span class="meta-item">
-              <el-icon><View /></el-icon>
-              {{ template.usageCount || 0 }} 次使用
-            </span>
-            <span v-if="template.metadata?.department" class="meta-item">
-              <el-icon><OfficeBuilding /></el-icon>
-              {{ template.metadata.department }}
-            </span>
-          </div>
+          <TemplateMetadata
+            :resolution="template.metadata?.resolution"
+            :usage-count="template.usageCount"
+            :department="template.metadata?.department"
+          />
         </div>
       </div>
     </div>
@@ -155,9 +122,7 @@
             <div class="item-content">
               <div class="item-title">
                 {{ template.title || template.name }}
-                <span :class="['item-badge', template.category === 'official' ? 'badge-official' : 'badge-shared']">
-                  {{ template.category === 'official' ? '官方' : '共享' }}
-                </span>
+                <TemplateBadge :category="template.category" />
               </div>
               <div class="item-meta">
                 <span>{{ template.usageCount || 0 }} 次使用</span>
@@ -166,12 +131,11 @@
           </div>
 
           <!-- 空状态 -->
-          <div v-if="filteredTemplates.length === 0" class="empty-list">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" style="color: #6b7280; margin-bottom: 12px;">
-              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-            </svg>
-            <div>暂无模板</div>
-          </div>
+          <EmptyState
+            v-if="filteredTemplates.length === 0"
+            title="暂无模板"
+            :size="48"
+          />
         </div>
       </div>
 
@@ -180,20 +144,15 @@
         <div v-if="selectedTemplate" class="preview-content">
           <div class="preview-toolbar">
             <div class="toolbar-title">{{ selectedTemplate.title || selectedTemplate.name }}</div>
-            <div class="toolbar-actions">
-              <el-button size="small" @click="handleUseTemplate(selectedTemplate)">
-                <el-icon><Check /></el-icon>
-                使用模板
-              </el-button>
-              <el-button v-if="!selectedTemplate.isSystem" size="small" @click="handleEditTemplate(selectedTemplate)">
-                <el-icon><Edit /></el-icon>
-                编辑
-              </el-button>
-              <el-button v-if="!selectedTemplate.isSystem" size="small" type="danger" @click="handleDeleteTemplate(selectedTemplate)">
-                <el-icon><Delete /></el-icon>
-                删除
-              </el-button>
-            </div>
+            <TemplateActions
+              :is-system="selectedTemplate.isSystem"
+              :show-more="false"
+              :show-edit="true"
+              :show-delete="true"
+              @use="handleUseTemplate(selectedTemplate)"
+              @edit="handleEditTemplate(selectedTemplate)"
+              @delete="handleDeleteTemplate(selectedTemplate)"
+            />
           </div>
 
           <div class="preview-image-container">
@@ -205,30 +164,23 @@
               <div class="detail-label">描述</div>
               <div class="detail-value">{{ selectedTemplate.description || '暂无描述' }}</div>
             </div>
-            <div class="detail-section">
-              <div class="detail-label">分辨率</div>
-              <div class="detail-value">{{ selectedTemplate.metadata?.resolution || '1920 x 1080' }}</div>
-            </div>
-            <div class="detail-section">
-              <div class="detail-label">使用次数</div>
-              <div class="detail-value">{{ selectedTemplate.usageCount || 0 }} 次</div>
-            </div>
-            <div class="detail-section" v-if="selectedTemplate.metadata?.department">
-              <div class="detail-label">所属部门</div>
-              <div class="detail-value">{{ selectedTemplate.metadata.department }}</div>
-            </div>
+            <TemplateMetadata
+              layout="vertical"
+              :resolution="selectedTemplate.metadata?.resolution"
+              :usage-count="selectedTemplate.usageCount"
+              :department="selectedTemplate.metadata?.department"
+            />
           </div>
         </div>
 
         <!-- 未选择状态 -->
-        <div v-else class="preview-empty">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" style="color: #6b7280; margin-bottom: 16px;">
-            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-          </svg>
-          <div class="empty-title">选择一个模板查看详情</div>
-          <div class="empty-desc">点击左侧列表中的模板卡片</div>
-        </div>
+        <EmptyState
+          v-else
+          title="选择一个模板查看详情"
+          description="点击左侧列表中的模板卡片"
+        />
       </div>
+    </div>
     </div>
 
     <!-- 预览对话框 -->
@@ -268,7 +220,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Upload, Check, Edit, Delete, View, Grid, Menu, List, Monitor, OfficeBuilding, MoreFilled } from '@element-plus/icons-vue'
+import { Check, Edit, Delete, View, Monitor, OfficeBuilding, MoreFilled } from '@element-plus/icons-vue'
+import PageHeader from '@/components/PageHeader.vue'
+import FilterBar from '@/components/FilterBar.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import TemplateBadge from '@/components/TemplateBadge.vue'
+import TemplateMetadata from '@/components/TemplateMetadata.vue'
+import TemplateActions from '@/components/TemplateActions.vue'
 import PublishTemplateDialog from '@/components/PublishTemplateDialog.vue'
 import TemplateCard from '@/components/TemplateCard.vue'
 import { getTemplates, deleteTemplate as deleteTemplateApi, incrementUsageCount, reviewTemplate } from '@/api/template'
@@ -280,6 +238,13 @@ const isAdmin = computed(() => userStore.userInfo?.role === 'admin' || userStore
 
 // 视图模式: grid(网格), list(列表), detail(详情分栏)
 const viewMode = ref('grid')
+
+// 视图模式配置
+const viewModes = [
+  { id: 'grid', label: '网格视图', icon: 'Grid', tooltip: '网格视图' },
+  { id: 'list', label: '列表视图', icon: 'Menu', tooltip: '列表视图' },
+  { id: 'detail', label: '详情视图', icon: 'List', tooltip: '详情视图' }
+]
 
 // 筛选器配置
 const filters = [
@@ -348,23 +313,7 @@ const loadTemplates = async () => {
   }
 }
 
-// 筛选后的官方模板
-const filteredOfficialTemplates = computed(() => {
-  if (activeFilter.value === 'all' || activeFilter.value === 'official') {
-    return allTemplates.value.filter(t => t.status === 'published' && t.category !== 'shared')
-  }
-  return []
-})
-
-// 筛选后的共享模板
-const filteredSharedTemplates = computed(() => {
-  if (activeFilter.value === 'all' || activeFilter.value === 'shared') {
-    return allTemplates.value.filter(t => t.status === 'published')
-  }
-  return []
-})
-
-// 统一的筛选模板列表（用于左侧列表显示）
+// 统一的筛选模板列表
 const filteredTemplates = computed(() => {
   let templates = []
 
@@ -412,12 +361,6 @@ const getDefaultThumbnail = () => {
   return '/images/template-placeholder.svg'
 }
 
-// 检查是否没有模板
-const hasNoTemplates = computed(() => {
-  return filteredOfficialTemplates.value.length === 0 &&
-         filteredSharedTemplates.value.length === 0
-})
-
 // 组件挂载时加载数据
 onMounted(() => {
   loadTemplates()
@@ -455,15 +398,6 @@ const handleUseTemplate = async (template) => {
 const handlePreviewTemplate = (template) => {
   previewTemplate.value = template
   previewDialogVisible.value = true
-}
-
-// 处理下拉菜单命令(列表视图使用)
-const handleDropdownCommand = (command, template) => {
-  if (command === 'edit') {
-    handleEditTemplate(template)
-  } else if (command === 'delete') {
-    handleDeleteTemplate(template)
-  }
 }
 
 // 处理编辑模板
@@ -574,6 +508,14 @@ const handleReviewTemplate = async (template) => {
   overflow: hidden;
   background: var(--el-bg-color);
   padding: 24px;
+}
+
+/* 内容区域 */
+.template-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Header Area */

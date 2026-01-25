@@ -1,32 +1,23 @@
 <template>
-  <div class="component-library-page">
+  <div class="page-container component-library-page">
     <!-- Header -->
-    <header class="page-header">
-      <div class="header-left">
-        <h2>组件库</h2>
-        <p class="subtitle">管理和使用自定义组件</p>
-      </div>
-      <div class="header-actions">
-        <el-button @click="handleCreateComponent" type="primary">
-          <el-icon><Plus /></el-icon>
-          新建组件
-        </el-button>
-      </div>
-    </header>
+    <PageHeader
+      title="自定义组件库"
+      description="管理和使用自定义组件"
+      :actions="[
+        { text: '新建组件', icon: 'Plus', type: 'primary', handler: handleCreateComponent }
+      ]"
+    />
 
     <!-- Toolbar -->
-    <div class="toolbar">
-      <div class="search-box">
-        <el-icon class="search-icon"><Search /></el-icon>
-        <input
-          type="text"
-          class="search-input"
-          placeholder="搜索组件名称或描述..."
-          v-model="searchKeyword"
-        />
-      </div>
-      <div class="toolbar-actions">
-        <el-select v-model="filterCategory" placeholder="分类筛选" clearable style="width: 150px; margin-right: 12px;">
+    <Toolbar
+      v-model:search-value="searchKeyword"
+      search-placeholder="搜索组件名称或描述..."
+      :refresh-loading="loading"
+      @refresh="handleRefresh"
+    >
+      <template #filters>
+        <el-select v-model="filterCategory" placeholder="分类筛选" clearable style="width: 150px;">
           <el-option
             v-for="cat in categories"
             :key="cat.category"
@@ -34,97 +25,82 @@
             :value="cat.category"
           />
         </el-select>
-        <el-select v-model="filterPublic" placeholder="可见性" clearable style="width: 120px; margin-right: 12px;">
+        <el-select v-model="filterPublic" placeholder="可见性" clearable style="width: 120px;">
           <el-option label="公开" :value="true" />
           <el-option label="私有" :value="false" />
         </el-select>
-        <el-button @click="handleRefresh" :loading="loading">
-          <el-icon><Refresh /></el-icon>
-          刷新
-        </el-button>
-      </div>
-    </div>
+      </template>
+    </Toolbar>
 
     <!-- Table -->
-    <div class="table-wrapper">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th width="25%">组件名称</th>
-            <th width="12%">分类</th>
-            <th width="10%">类型</th>
-            <th width="10%" class="text-center">可见性</th>
-            <th width="12%">创建者</th>
-            <th width="15%">创建时间</th>
-            <th width="16%" class="text-center">操作</th>
-          </tr>
-        </thead>
-        <tbody v-if="!loading && filteredComponents.length > 0">
-          <tr v-for="component in filteredComponents" :key="component.id">
-            <td>
-              <div class="component-name-cell">
-                <div class="component-name">{{ component.name }}</div>
-                <div class="component-desc">{{ component.description }}</div>
-              </div>
-            </td>
-            <td>
-              <el-tag size="small">{{ component.category }}</el-tag>
-            </td>
-            <td>
-              <span class="type-text">{{ component.type }}</span>
-            </td>
-            <td class="text-center">
-              <el-tag :type="component.isPublic ? 'success' : 'info'" size="small">
-                {{ component.isPublic ? '公开' : '私有' }}
-              </el-tag>
-            </td>
-            <td>
-              <span class="creator-text">{{ component.creatorName || '-' }}</span>
-            </td>
-            <td>
-              <span class="time-text">{{ formatDate(component.createdAt) }}</span>
-            </td>
-            <td class="text-center">
-              <div class="action-buttons">
-                <el-button link type="primary" size="small" @click="handleView(component)">
-                  查看
-                </el-button>
-                <el-button link type="primary" size="small" @click="handleEdit(component)">
-                  编辑
-                </el-button>
-                <el-button link type="primary" size="small" @click="handleDownload(component)">
-                  下载
-                </el-button>
-                <el-button link type="danger" size="small" @click="handleDelete(component)">
-                  删除
-                </el-button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-        <tbody v-else-if="!loading && filteredComponents.length === 0">
-          <tr>
-            <td colspan="7" class="empty-state">
-              <el-empty description="暂无组件数据" />
-            </td>
-          </tr>
-        </tbody>
-        <tbody v-else>
-          <tr>
-            <td colspan="7" class="loading-state">
-              <el-icon class="is-loading"><Loading /></el-icon>
-              <span>加载中...</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      :data="filteredComponents"
+      :columns="tableColumns"
+      :loading="loading"
+      variant="default"
+      empty-text="暂无组件数据"
+    >
+      <!-- 组件名称列 -->
+      <template #name="{ row }">
+        <div class="component-name-cell">
+          <div class="component-name">{{ row.name }}</div>
+          <div class="component-desc">{{ row.description }}</div>
+        </div>
+      </template>
+
+      <!-- 分类列 -->
+      <template #category="{ row }">
+        <el-tag size="small">{{ row.category }}</el-tag>
+      </template>
+
+      <!-- 类型列 -->
+      <template #type="{ row }">
+        <span class="type-text">{{ row.type }}</span>
+      </template>
+
+      <!-- 可见性列 -->
+      <template #isPublic="{ row }">
+        <el-tag :type="row.isPublic ? 'success' : 'info'" size="small">
+          {{ row.isPublic ? '公开' : '私有' }}
+        </el-tag>
+      </template>
+
+      <!-- 创建者列 -->
+      <template #creatorName="{ row }">
+        <span class="creator-text">{{ row.creatorName || '-' }}</span>
+      </template>
+
+      <!-- 创建时间列 -->
+      <template #createdAt="{ row }">
+        <span class="time-text">{{ formatDate(row.createdAt) }}</span>
+      </template>
+
+      <!-- 操作列 -->
+      <template #actions="{ row }">
+        <div class="action-buttons">
+          <el-button link type="primary" size="small" @click="handleView(row)">
+            查看
+          </el-button>
+          <el-button link type="primary" size="small" @click="handleEdit(row)">
+            编辑
+          </el-button>
+          <el-button link type="primary" size="small" @click="handleDownload(row)">
+            下载
+          </el-button>
+          <el-button link type="danger" size="small" @click="handleDelete(row)">
+            删除
+          </el-button>
+        </div>
+      </template>
+    </DataTable>
 
     <!-- Create/Edit Dialog -->
-    <el-dialog
-      v-model="dialogVisible"
+    <CommonModal
+      v-model:visible="dialogVisible"
       :title="dialogTitle"
       width="600px"
+      :loading="submitting"
+      @confirm="handleSubmit"
       @close="handleDialogClose"
     >
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
@@ -167,13 +143,7 @@
           <el-input v-model="formData.version" placeholder="如：1.0.0" />
         </el-form-item>
       </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitting">
-          确定
-        </el-button>
-      </template>
-    </el-dialog>
+    </CommonModal>
 
     <!-- View Dialog -->
     <el-dialog
@@ -230,6 +200,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Refresh, Download, Loading, Star } from '@element-plus/icons-vue'
+import PageHeader from '@/components/PageHeader.vue'
+import Toolbar from '@/components/Toolbar.vue'
+import DataTable from '@/components/DataTable.vue'
+import CommonModal from '@/components/CommonModal.vue'
 import {
   getComponents,
   createComponent,
@@ -241,6 +215,17 @@ import {
   getCategories,
   getStatistics
 } from '@/api/component'
+
+// 表格列配置
+const tableColumns = [
+  { label: '组件名称', prop: 'name', width: '25%', slot: 'name' },
+  { label: '分类', prop: 'category', width: '12%', slot: 'category' },
+  { label: '类型', prop: 'type', width: '10%', slot: 'type' },
+  { label: '可见性', prop: 'isPublic', width: '10%', align: 'center', slot: 'isPublic' },
+  { label: '创建者', prop: 'creatorName', width: '12%', slot: 'creatorName' },
+  { label: '创建时间', prop: 'createdAt', width: '15%', slot: 'createdAt' },
+  { label: '操作', prop: 'actions', width: '16%', align: 'center', slot: 'actions' }
+]
 
 // 数据
 const components = ref([])
@@ -514,191 +499,10 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.component-library-page {
-  --bg-body: #0a0b0d;
-  --bg-card: #1c1d21;
-  --bg-hover: #25262b;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --text-main: #ffffff;
-  --text-secondary: #9ca3af;
-  --text-tertiary: #6b7280;
-  --border: #2d2e33;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --info: #6b7280;
-
-  min-height: 100vh;
-  background: var(--bg-body);
-  color: var(--text-main);
+.page-container  {
   padding: 24px;
 }
-
-/* Header */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.header-left h2 {
-  font-size: 24px;
-  font-weight: 600;
-  margin: 0 0 4px 0;
-  color: var(--text-main);
-}
-
-.subtitle {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-/* Stats Bar */
-.stats-bar {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.stat-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 20px;
-  transition: all 0.2s;
-}
-
-.stat-card:hover {
-  border-color: var(--primary);
-  transform: translateY(-2px);
-}
-
-.stat-label {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
-}
-
-.stat-value {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--primary);
-}
-
-/* Toolbar */
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  gap: 16px;
-}
-
-.search-box {
-  flex: 1;
-  max-width: 400px;
-  position: relative;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-tertiary);
-  font-size: 16px;
-}
-
-.search-input {
-  width: 100%;
-  height: 36px;
-  padding: 0 12px 0 36px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text-main);
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--primary);
-}
-
-.search-input::placeholder {
-  color: var(--text-tertiary);
-}
-
-.toolbar-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-/* Table */
-.table-wrapper {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.data-table thead {
-  background: rgba(59, 130, 246, 0.1);
-}
-
-.data-table th {
-  padding: 14px 16px;
-  text-align: left;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-}
-
-.data-table th.text-center {
-  text-align: center;
-}
-
-.data-table tbody tr {
-  border-bottom: 1px solid var(--border);
-  transition: background 0.2s;
-}
-
-.data-table tbody tr:hover {
-  background: var(--bg-hover);
-}
-
-.data-table tbody tr:last-child {
-  border-bottom: none;
-}
-
-.data-table td {
-  padding: 14px 16px;
-  font-size: 14px;
-  color: var(--text-main);
-}
-
-.data-table td.text-center {
-  text-align: center;
-}
-
+/* Table Cell Styles - 保留自定义单元格样式 */
 .component-name-cell {
   display: flex;
   flex-direction: column;
@@ -707,26 +511,25 @@ onMounted(async () => {
 
 .component-name {
   font-weight: 500;
-  color: var(--text-main);
+  color: var(--el-text-color-primary);
 }
 
 .component-desc {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--el-text-color-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .type-text,
-.creator-text,
-.count-text {
-  color: var(--text-secondary);
+.creator-text {
+  color: var(--el-text-color-secondary);
 }
 
 .time-text {
   font-size: 13px;
-  color: var(--text-tertiary);
+  color: var(--el-text-color-placeholder);
 }
 
 .action-buttons {
@@ -734,20 +537,6 @@ onMounted(async () => {
   gap: 8px;
   justify-content: center;
   flex-wrap: wrap;
-}
-
-.empty-state,
-.loading-state {
-  text-align: center;
-  padding: 60px 20px !important;
-  color: var(--text-secondary);
-}
-
-.loading-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
 }
 
 /* Component Detail */
