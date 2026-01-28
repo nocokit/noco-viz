@@ -214,6 +214,38 @@
       v-model="publishDialogVisible"
       @success="handlePublishSuccess"
     />
+
+    <!-- 编辑模板对话框 -->
+    <el-dialog
+      v-model="editDialogVisible"
+      title="编辑模板"
+      width="600px"
+    >
+      <el-form v-if="editingTemplate" label-width="80px">
+        <el-form-item label="模板名称">
+          <el-input v-model="editingTemplate.title" placeholder="请输入模板名称" />
+        </el-form-item>
+        <el-form-item label="模板描述">
+          <el-input
+            v-model="editingTemplate.description"
+            type="textarea"
+            :rows="4"
+            placeholder="请输入模板描述"
+          />
+        </el-form-item>
+        <el-form-item label="模板分类">
+          <el-select v-model="editingTemplate.category" placeholder="请选择分类">
+            <el-option label="官方预置" value="official" />
+            <el-option label="部门共享" value="shared" />
+            <el-option label="其他" value="other" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSaveEdit">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -229,11 +261,14 @@ import TemplateMetadata from '@/components/TemplateMetadata.vue'
 import TemplateActions from '@/components/TemplateActions.vue'
 import PublishTemplateDialog from '@/components/PublishTemplateDialog.vue'
 import TemplateCard from '@/components/TemplateCard.vue'
-import { getTemplates, deleteTemplate as deleteTemplateApi, incrementUsageCount, reviewTemplate } from '@/api/template'
+import { getTemplates, deleteTemplate as deleteTemplateApi, incrementUsageCount, reviewTemplate, importTemplate, updateTemplate } from '@/api/template'
+import { createProjectFromTemplate } from '@/api/project'
 import { useUserStore } from '@/store/modules/user'
+import { useRouter } from 'vue-router'
 
 // 获取用户信息
 const userStore = useUserStore()
+const router = useRouter()
 const isAdmin = computed(() => userStore.userInfo?.role === 'admin' || userStore.userInfo?.isAdmin)
 
 // 视图模式: grid(网格), list(列表), detail(详情分栏)
@@ -276,7 +311,38 @@ const loading = ref(false)
 
 // 处理导入模板
 const handleImportTemplate = () => {
-  ElMessage.info('导入模板功能开发中...')
+  // 创建文件输入元素
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.zip,.json'
+
+  input.onchange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    const loading = ElMessage({
+      message: '正在导入模板...',
+      type: 'info',
+      duration: 0
+    })
+
+    try {
+      await importTemplate(file, (progress) => {
+        loading.message = `正在导入模板... ${progress}%`
+      })
+
+      loading.close()
+      ElMessage.success('模板导入成功！')
+      // 重新加载模板列表
+      loadTemplates()
+    } catch (error) {
+      loading.close()
+      console.error('导入模板失败:', error)
+      ElMessage.error(error.response?.data?.message || '导入模板失败')
+    }
+  }
+
+  input.click()
 }
 
 // 处理发布模板
@@ -376,21 +442,67 @@ const handlePublishSuccess = (template) => {
 // 处理使用模板
 const handleUseTemplate = async (template) => {
   try {
-    // 增加使用次数统计
-    await incrementUsageCount(template.id)
+    // 弹出对话框让用户输入项目名称
+    const { value: projectName } = await ElMessageBox.prompt(
+      '请输入新项目的名称',
+      '创建项目',
+      {
+        confirmButtonText: '创建',
+        cancelButtonText: '取消',
+        inputPlaceholder: '项目名称',
+        inputValue: `${template.title || template.name} - 副本`,
+        inputValidator: (value) => {
+          if (!value || value.trim() === '') {
+            return '请输入项目名称'
+          }
+          if (value.length > 100) {
+            return '项目名称不能超过100个字符'
+          }
+          if (!/^[\u4e00-\u9fa5a-zA-Z0-9_\-\s]+$/.test(value)) {
+            return '项目名称只能包含中文、字母、数字、下划线、连字符和空格'
+          }
+          return true
+        }
+      }
+    )
 
-    // 更新本地数据
-    const templateInList = allTemplates.value.find(t => t.id === template.id)
-    if (templateInList) {
-      templateInList.usageCount = (templateInList.usageCount || 0) + 1
+    const loading = ElMessage({
+      message: '正在创建项目...',
+      type: 'info',
+      duration: 0
+    })
+
+    try {
+      // 从模板创建项目
+      const project = await createProjectFromTemplate(template.id, {
+        name: projectName,
+        description: `基于模板"${template.title || template.name}"创建`
+      })
+
+      // 增加使用次数统计
+      await incrementUsageCount(template.id)
+
+      // 更新本地数据
+      const templateInList = allTemplates.value.find(t => t.id === template.id)
+      if (templateInList) {
+        templateInList.usageCount = (templateInList.usageCount || 0) + 1
+      }
+
+      loading.close()
+      ElMessage.success('项目创建成功！')
+
+      // 跳转到项目编辑页面
+      router.push(`/screen-editor/${project.id}`)
+    } catch (error) {
+      loading.close()
+      console.error('创建项目失败:', error)
+      ElMessage.error(error.response?.data?.message || '创建项目失败')
     }
-
-    ElMessage.success(`正在基于模板"${template.title || template.name}"创建项目...`)
-    // TODO: 实现创建项目逻辑
   } catch (error) {
-    console.error('使用模板失败:', error)
-    // 仍然允许用户使用模板，只是统计失败
-    ElMessage.success(`正在基于模板"${template.title || template.name}"创建项目...`)
+    // 用户取消操作
+    if (error !== 'cancel') {
+      console.error('操作失败:', error)
+    }
   }
 }
 
@@ -400,10 +512,33 @@ const handlePreviewTemplate = (template) => {
   previewDialogVisible.value = true
 }
 
+// 编辑模板对话框
+const editDialogVisible = ref(false)
+const editingTemplate = ref(null)
+
 // 处理编辑模板
 const handleEditTemplate = (template) => {
-  ElMessage.info(`编辑模板: ${template.title || template.name}`)
-  // TODO: 打开编辑对话框
+  editingTemplate.value = { ...template }
+  editDialogVisible.value = true
+}
+
+// 保存编辑的模板
+const handleSaveEdit = async () => {
+  try {
+    await updateTemplate(editingTemplate.value.id, {
+      title: editingTemplate.value.title,
+      description: editingTemplate.value.description,
+      category: editingTemplate.value.category
+    })
+
+    ElMessage.success('模板更新成功！')
+    editDialogVisible.value = false
+    // 重新加载模板列表
+    loadTemplates()
+  } catch (error) {
+    console.error('更新模板失败:', error)
+    ElMessage.error('更新模板失败')
+  }
 }
 
 // 处理删除模板

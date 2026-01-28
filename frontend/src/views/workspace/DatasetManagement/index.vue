@@ -407,7 +407,13 @@ const getTypeLabel = (type) => {
 }
 
 const handleCreateDataset = () => {
-  ElMessage.info('新建数据集功能开发中...')
+  createDialogVisible.value = true
+  currentDataset.value = {
+    name: '',
+    type: 'sql',
+    description: '',
+    config: {}
+  }
 }
 
 const editDataset = (dataset) => {

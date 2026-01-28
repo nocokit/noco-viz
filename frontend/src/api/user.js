@@ -2,6 +2,7 @@
  * 用户管理相关 API
  */
 import { createApiService } from './base'
+import request from './http'
 
 const userApi = createApiService('users')
 
@@ -70,4 +71,56 @@ export function resetUserPassword(id, newPassword) {
  */
 export function toggleUserStatus(id, isActive) {
   return request.patch(`/users/${id}/status`, { isActive })
+}
+
+/**
+ * 获取当前用户资料
+ */
+export function getUserProfile() {
+  return request.get('/users/profile')
+}
+
+/**
+ * 更新当前用户资料
+ * @param {Object} data - { email, phone, realName, avatar }
+ */
+export function updateUserProfile(data) {
+  return request.patch('/users/profile', data)
+}
+
+/**
+ * 上传用户头像
+ * @param {File} file
+ * @param {Function} onProgress
+ */
+export function uploadAvatar(file, onProgress) {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  return request({
+    url: '/users/profile/avatar',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    onUploadProgress: progressEvent => {
+      if (onProgress) {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        onProgress(percentCompleted)
+      }
+    }
+  })
+}
+
+/**
+ * 修改密码
+ * @param {string} oldPassword
+ * @param {string} newPassword
+ */
+export function changePassword(oldPassword, newPassword) {
+  return request.post('/users/profile/change-password', {
+    oldPassword,
+    newPassword
+  })
 }

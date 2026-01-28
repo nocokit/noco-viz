@@ -102,4 +102,12 @@ export class TemplatesController {
   incrementUsageCount(@Param('id') id: string) {
     return this.templatesService.incrementUsageCount(+id);
   }
+
+  @Post('import')
+  @ApiOperation({ summary: '导入模板包' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file'))
+  importTemplate(@UploadedFile() file: Express.Multer.File, @Request() req) {
+    return this.templatesService.importTemplate(file, req.user?.id || 1);
+  }
 }

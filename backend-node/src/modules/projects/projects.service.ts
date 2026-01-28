@@ -1,16 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BaseService } from '../../common/base/base.service';
 import { Project, ProjectStatus, ProjectType } from './entities/project.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { TemplatesService } from '../templates/templates.service';
 
 @Injectable()
 export class ProjectsService extends BaseService<Project> {
   constructor(
     @InjectRepository(Project)
     private projectsRepository: Repository<Project>,
+    @Inject(forwardRef(() => TemplatesService))
+    private templatesService: TemplatesService,
   ) {
     super(projectsRepository);
   }
@@ -101,5 +104,26 @@ export class ProjectsService extends BaseService<Project> {
         report: reportCount,
       },
     };
+  }
+
+  async createFromTemplate(
+    templateId: number,
+    data: { name: string; description?: string },
+    userId: number,
+  ): Promise<Project> {
+    // 获取模板信息
+    const template = await this.templatesService.findOne(templateId);
+
+    // 从模板创建项目
+    const project = this.projectsRepository.create({
+      title: data.name,
+      description: data.description || template.description || '',
+      type: ProjectType.SCREEN,
+      status: ProjectStatus.DRAFT,
+      createdById: userId,
+      config: template.config || {}, // 从模板复制配置
+    });
+
+    return this.projectsRepository.save(project);
   }
 }

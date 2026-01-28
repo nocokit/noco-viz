@@ -28,11 +28,21 @@ coverage
 /cypress/videos/
 /cypress/screenshots/
 
+
 # Vitest
 __screenshots__/
 
+# Root workspace (pnpm)
+/node_modules/
+/packages/
+pnpm-lock.yaml
+pnpm-workspace.yaml
+.pnpm-workspace-state-v1.json
+.modules.yaml
+
 # Frontend
 frontend/node_modules/
+
 frontend/dist/
 frontend/dist-ssr/
 frontend/.env.local
@@ -46,6 +56,7 @@ backend/.venv/
 backend/staticfiles/
 backend/media/
 backend/logs/
+
 *.pyc
 
 # Backend (Node.js)
@@ -57,3 +68,4 @@ backend-node/uploads/
 
 # Claude
 .claude/
+node_modules/

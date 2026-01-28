@@ -173,7 +173,7 @@ const activeMenu = computed(() => {
 const handleUserCommand = async (command) => {
   switch (command) {
     case 'profile':
-      ElMessage.info('个人资料功能开发中')
+      router.push('/user/profile')
       break
     case 'settings':
       router.push('/settings')

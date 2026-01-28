@@ -9,8 +9,11 @@ import {
   UseGuards,
   ClassSerializerInterceptor,
   UseInterceptors,
+  Request,
+  UploadedFile,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -34,6 +37,35 @@ export class UsersController {
   @ApiOperation({ summary: '获取所有用户' })
   findAll() {
     return this.usersService.findAll();
+  }
+
+  @Get('profile')
+  @ApiOperation({ summary: '获取当前用户资料' })
+  getProfile(@Request() req) {
+    return this.usersService.findOne(req.user?.id || 1);
+  }
+
+  @Patch('profile')
+  @ApiOperation({ summary: '更新当前用户资料' })
+  updateProfile(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.updateProfile(req.user?.id || 1, updateUserDto);
+  }
+
+  @Post('profile/avatar')
+  @ApiOperation({ summary: '上传用户头像' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadAvatar(@Request() req, @UploadedFile() file: Express.Multer.File) {
+    return this.usersService.uploadAvatar(req.user?.id || 1, file);
+  }
+
+  @Post('profile/change-password')
+  @ApiOperation({ summary: '修改密码' })
+  changePassword(
+    @Request() req,
+    @Body() body: { oldPassword: string; newPassword: string },
+  ) {
+    return this.usersService.changePassword(req.user?.id || 1, body.oldPassword, body.newPassword);
   }
 
   @Get(':id')

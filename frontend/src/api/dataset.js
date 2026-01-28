@@ -160,3 +160,16 @@ export function testConnectionConfig(config) {
     data: config
   })
 }
+
+// 导出数据集数据
+export function exportDataset(id, format = 'csv', params = {}) {
+  return request({
+    url: `/datasets/${id}/export`,
+    method: 'get',
+    params: {
+      format,
+      ...params
+    },
+    responseType: 'blob'
+  })
+}

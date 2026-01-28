@@ -102,3 +102,24 @@ export function incrementUsageCount(id) {
     method: 'post'
   })
 }
+
+// 导入模板包
+export function importTemplate(file, onProgress) {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  return request({
+    url: '/templates/import',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    onUploadProgress: progressEvent => {
+      if (onProgress) {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        onProgress(percentCompleted)
+      }
+    }
+  })
+}

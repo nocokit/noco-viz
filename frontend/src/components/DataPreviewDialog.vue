@@ -180,9 +180,59 @@ const refreshData = () => {
 }
 
 // 导出数据
-const exportData = () => {
-  ElMessage.info('导出功能开发中...')
-  // TODO: 实现数据导出功能
+const exportData = async () => {
+  try {
+    const { value: format } = await ElMessageBox.prompt(
+      '请选择导出格式',
+      '导出数据',
+      {
+        confirmButtonText: '导出',
+        cancelButtonText: '取消',
+        inputType: 'select',
+        inputOptions: [
+          { label: 'CSV', value: 'csv' },
+          { label: 'Excel', value: 'xlsx' },
+          { label: 'JSON', value: 'json' }
+        ],
+        inputValue: 'csv'
+      }
+    )
+
+    const loading = ElMessage({
+      message: '正在导出数据...',
+      type: 'info',
+      duration: 0
+    })
+
+    try {
+      // 导入导出API
+      const { exportDataset } = await import('@/api/dataset')
+
+      const blob = await exportDataset(props.datasetId, format || 'csv')
+
+      // 创建下载链接
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `dataset_${props.datasetId}_${Date.now()}.${format || 'csv'}`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+
+      loading.close()
+      ElMessage.success('数据导出成功！')
+    } catch (error) {
+      loading.close()
+      console.error('导出数据失败:', error)
+      ElMessage.error('导出数据失败')
+    }
+  } catch (error) {
+    // 用户取消操作
+    if (error !== 'cancel') {
+      console.error('操作失败:', error)
+    }
+  }
 }
 
 // 处理页码变化

@@ -10,9 +10,11 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  Res,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 import { DatasetsService } from './datasets.service';
 import { CreateDatasetDto } from './dto/create-dataset.dto';
 import { UpdateDatasetDto } from './dto/update-dataset.dto';
@@ -89,6 +91,23 @@ export class DatasetsController {
   @ApiOperation({ summary: '测试API数据源' })
   testApiDataSource(@Body() body: { url: string; method: string; headers: any }) {
     return this.datasetsService.testApiDataSource(body.url, body.method, body.headers);
+  }
+
+  @Get(':id/export')
+  @ApiOperation({ summary: '导出数据集数据' })
+  async exportDataset(
+    @Param('id') id: string,
+    @Query('format') format: string = 'csv',
+    @Res() res: Response,
+  ) {
+    const result = await this.datasetsService.exportDataset(+id, format);
+
+    // 设置响应头
+    res.setHeader('Content-Type', result.contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
+
+    // 发送数据
+    res.send(result.data);
   }
 
   // Connection endpoints

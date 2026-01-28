@@ -1,38 +1,54 @@
 <template>
   <div class="login-container">
-    <div class="login-bg">
-      <!-- 背景装饰 -->
-      <div class="bg-decoration">
-        <div class="decoration-circle circle-1"></div>
-        <div class="decoration-circle circle-2"></div>
-        <div class="decoration-circle circle-3"></div>
+    <!-- 左侧展示区 -->
+    <div class="login-banner">
+      <div class="banner-inner">
+        <div class="logo-section">
+          <div class="logo">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <rect width="48" height="48" rx="12" fill="url(#gradient)" />
+              <path d="M24 12L32 18V30L24 36L16 30V18L24 12Z" stroke="white" stroke-width="2" fill="none"/>
+              <defs>
+                <linearGradient id="gradient" x1="0" y1="0" x2="48" y2="48">
+                  <stop offset="0%" stop-color="#667eea" />
+                  <stop offset="100%" stop-color="#764ba2" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <span class="logo-text">NocoViz</span>
+          </div>
+        </div>
+
+        <!-- 轮播内容 -->
+        <div class="carousel-wrapper">
+          <el-carousel
+            :interval="5000"
+            arrow="never"
+            indicator-position="outside"
+            height="400px"
+          >
+            <el-carousel-item v-for="item in carouselItems" :key="item.id">
+              <div class="carousel-content">
+                <div class="carousel-image">
+                  <div class="image-placeholder">
+                    <el-icon :size="120"><DataAnalysis /></el-icon>
+                  </div>
+                </div>
+                <h3 class="carousel-title">{{ item.title }}</h3>
+                <p class="carousel-desc">{{ item.description }}</p>
+              </div>
+            </el-carousel-item>
+          </el-carousel>
+        </div>
       </div>
     </div>
 
-    <div class="login-content">
-      <!-- Logo 和标题 -->
-      <div class="login-header">
-        <div class="logo">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <rect width="48" height="48" rx="12" fill="url(#gradient)" />
-            <path d="M24 12L32 18V30L24 36L16 30V18L24 12Z" stroke="white" stroke-width="2" fill="none"/>
-            <defs>
-              <linearGradient id="gradient" x1="0" y1="0" x2="48" y2="48">
-                <stop offset="0%" stop-color="#667eea" />
-                <stop offset="100%" stop-color="#764ba2" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-        <h1 class="title">NocoViz</h1>
-        <p class="subtitle">企业级数据可视化平台</p>
-      </div>
-
-      <!-- 登录表单 -->
-      <div class="login-card">
-        <div class="card-header">
-          <h2>{{ isLoginMode ? '登录' : '注册' }}</h2>
-          <p>{{ isLoginMode ? '欢迎回来，请登录您的账户' : '创建新账户，开始使用' }}</p>
+    <!-- 右侧登录区 -->
+    <div class="login-panel">
+      <div class="login-panel-inner">
+        <div class="login-header">
+          <h2 class="login-title">{{ isLoginMode ? '登录 NocoViz' : '注册 NocoViz' }}</h2>
+          <p class="login-subtitle">{{ isLoginMode ? '登录 NocoViz' : '注册 NocoViz' }}</p>
         </div>
 
         <el-form
@@ -46,7 +62,7 @@
           <el-form-item prop="username">
             <el-input
               v-model="formData.username"
-              :placeholder="isLoginMode ? '用户名 / 手机号 / 邮箱' : '用户名'"
+              :placeholder="isLoginMode ? 'admin' : '用户名'"
               size="large"
               clearable
             >
@@ -56,26 +72,11 @@
             </el-input>
           </el-form-item>
 
-          <!-- 注册时的手机号 -->
-          <el-form-item v-if="!isLoginMode" prop="phone">
-            <el-input
-              v-model="formData.phone"
-              placeholder="手机号"
-              size="large"
-              maxlength="11"
-              clearable
-            >
-              <template #prefix>
-                <el-icon><Phone /></el-icon>
-              </template>
-            </el-input>
-          </el-form-item>
-
           <!-- 注册时的邮箱 -->
           <el-form-item v-if="!isLoginMode" prop="email">
             <el-input
               v-model="formData.email"
-              placeholder="邮箱 (可选)"
+              placeholder="邮箱"
               size="large"
               clearable
             >
@@ -90,7 +91,7 @@
             <el-input
               v-model="formData.password"
               type="password"
-              placeholder="密码"
+              :placeholder="isLoginMode ? '······' : '密码'"
               size="large"
               show-password
               clearable
@@ -119,8 +120,8 @@
 
           <!-- 登录选项 -->
           <div v-if="isLoginMode" class="login-options">
-            <el-checkbox v-model="rememberMe" size="small">记住我</el-checkbox>
-            <el-link type="primary" :underline="false" class="forgot-link">忘记密码？</el-link>
+            <el-checkbox v-model="rememberMe">记住密码</el-checkbox>
+            <el-link type="primary" :underline="false">忘记密码</el-link>
           </div>
 
           <!-- 提交按钮 -->
@@ -136,17 +137,16 @@
 
           <!-- 切换登录/注册 -->
           <div class="toggle-mode">
-            <span>{{ isLoginMode ? '还没有账户？' : '已有账户？' }}</span>
             <el-link type="primary" :underline="false" @click="toggleMode">
-              {{ isLoginMode ? '立即注册' : '立即登录' }}
+              {{ isLoginMode ? '注册账号' : '使用已有账号登录' }}
             </el-link>
           </div>
         </el-form>
-      </div>
 
-      <!-- 页脚 -->
-      <div class="login-footer">
-        <p>&copy; 2024 NocoViz. All rights reserved.</p>
+        <!-- 页脚 -->
+        <div class="login-footer">
+          <span>Arco Pro</span>
+        </div>
       </div>
     </div>
   </div>
@@ -156,11 +156,30 @@
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { User, Lock, Phone, Message } from '@element-plus/icons-vue'
+import { User, Lock, Message, DataAnalysis } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store'
 
 const router = useRouter()
 const userStore = useUserStore()
+
+// 轮播数据
+const carouselItems = [
+  {
+    id: 1,
+    title: '开箱即用的高质量模板',
+    description: '丰富的页面模板，覆盖大多数典型业务场景'
+  },
+  {
+    id: 2,
+    title: '内置了常见问题的解决方案',
+    description: '国际化、路由配置、状态管理应有尽有'
+  },
+  {
+    id: 3,
+    title: '接入可视化增强工具',
+    description: '实现灵活的区块式开发'
+  }
+]
 
 // 模式切换：true=登录，false=注册
 const isLoginMode = ref(true)
@@ -171,7 +190,6 @@ const formRef = ref(null)
 // 表单数据
 const formData = reactive({
   username: '',
-  phone: '',
   email: '',
   password: '',
   password_confirm: ''
@@ -180,7 +198,7 @@ const formData = reactive({
 // 验证规则
 const loginRules = {
   username: [
-    { required: true, message: '请输入用户名/手机号/邮箱', trigger: 'blur' }
+    { required: true, message: '请输入用户名', trigger: 'blur' }
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
@@ -194,11 +212,8 @@ const registerRules = {
     { min: 3, max: 150, message: '用户名长度3-150位', trigger: 'blur' },
     { pattern: /^[a-zA-Z0-9_]+$/, message: '用户名只能包含字母、数字和下划线', trigger: 'blur' }
   ],
-  phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
-  ],
   email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
     { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
   ],
   password: [
@@ -255,8 +270,7 @@ const handleSubmit = async () => {
       // 注册
       await userStore.register({
         username: formData.username,
-        phone: formData.phone,
-        email: formData.email || undefined,
+        email: formData.email,
         password: formData.password,
         password_confirm: formData.password_confirm
       })
@@ -269,7 +283,6 @@ const handleSubmit = async () => {
   } catch (error) {
     console.error('提交失败:', error)
     ElMessage.error(error.message || '提交失败')
-    // 错误信息已在 http 拦截器中处理
   } finally {
     loading.value = false
   }
@@ -278,170 +291,163 @@ const handleSubmit = async () => {
 
 <style scoped>
 .login-container {
-  position: relative;
+  display: flex;
   min-height: 100vh;
+  background: #f7f8fa;
+}
+
+/* 左侧展示区 */
+.login-banner {
+  flex: 1;
+  background: linear-gradient(163.85deg, #1d2129 0%, #00308f 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-primary);
+  padding: 40px;
+  position: relative;
   overflow: hidden;
 }
 
-/* 背景装饰 */
-.login-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.bg-decoration {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.decoration-circle {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
-  animation: float 20s infinite ease-in-out;
-}
-
-.circle-1 {
-  width: 400px;
-  height: 400px;
-  top: -100px;
-  left: -100px;
-  animation-delay: 0s;
-}
-
-.circle-2 {
-  width: 300px;
-  height: 300px;
-  bottom: -50px;
-  right: -50px;
-  animation-delay: -7s;
-}
-
-.circle-3 {
-  width: 200px;
-  height: 200px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  animation-delay: -14s;
-}
-
-@keyframes float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -30px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
-}
-
-/* 主内容区 */
-.login-content {
-  position: relative;
-  z-index: 1;
+.banner-inner {
   width: 100%;
   max-width: 440px;
-  padding: 24px;
+  color: white;
 }
 
-/* 头部 Logo */
-.login-header {
-  text-align: center;
-  margin-bottom: 40px;
+.logo-section {
+  margin-bottom: 60px;
 }
 
 .logo {
-  display: inline-block;
-  margin-bottom: 16px;
-  animation: logoFloat 3s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-@keyframes logoFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+.logo-text {
+  font-size: 24px;
+  font-weight: 600;
+  color: white;
 }
 
-.title {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 8px 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.carousel-wrapper {
+  margin-top: 40px;
 }
 
-.subtitle {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin: 0;
+.carousel-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
 }
 
-/* 登录卡片 */
-.login-card {
-  background: rgba(26, 27, 30, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-2xl);
-  padding: 40px 32px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+.carousel-image {
+  margin-bottom: 32px;
+}
+
+.image-placeholder {
+  width: 280px;
+  height: 280px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   backdrop-filter: blur(10px);
 }
 
-.card-header {
-  margin-bottom: 32px;
-  text-align: center;
+.image-placeholder .el-icon {
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.card-header h2 {
+.carousel-title {
   font-size: 24px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: white;
+  margin: 0 0 16px 0;
+}
+
+.carousel-desc {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* 轮播指示器样式 */
+.carousel-wrapper :deep(.el-carousel__indicator) {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.carousel-wrapper :deep(.el-carousel__indicator.is-active) {
+  background: white;
+}
+
+/* 右侧登录区 */
+.login-panel {
+  width: 40%;
+  min-width: 600px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
+}
+
+.login-panel-inner {
+  width: 100%;
+  max-width: 440px;
+}
+
+.login-header {
+  margin-bottom: 32px;
+}
+
+.login-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1d2129;
   margin: 0 0 8px 0;
 }
 
-.card-header p {
+.login-subtitle {
   font-size: 14px;
-  color: var(--text-secondary);
+  color: #86909c;
   margin: 0;
 }
 
 /* 表单 */
-.login-form {
-  margin-top: 24px;
-}
-
 .login-form :deep(.el-form-item) {
   margin-bottom: 20px;
 }
 
-.login-form :deep(.el-input__inner) {
-  background: #1a1b1e !important;
-  border-color: var(--border);
-  color: var(--text-primary);
-  height: 44px;
-  border-radius: var(--radius-lg);
-  transition: all var(--transition-base);
+.login-form :deep(.el-input__wrapper) {
+  background: #f7f8fa;
+  box-shadow: none;
+  border-radius: 4px;
+  padding: 0 12px;
 }
 
-.login-form :deep(.el-input__inner:focus) {
-  border-color: var(--color-primary);
-  background: #1a1b1e !important;
+.login-form :deep(.el-input__wrapper:hover),
+.login-form :deep(.el-input__wrapper.is-focus) {
+  background: #f7f8fa;
+  box-shadow: 0 0 0 1px #165dff;
+}
+
+.login-form :deep(.el-input__inner) {
+  background: transparent;
+  color: #1d2129;
+  height: 40px;
 }
 
 .login-form :deep(.el-input__inner::placeholder) {
-  color: var(--text-tertiary);
+  color: #c9cdd4;
 }
 
 .login-form :deep(.el-input__prefix) {
-  color: var(--text-secondary);
+  color: #86909c;
 }
 
 /* 登录选项 */
@@ -453,71 +459,70 @@ const handleSubmit = async () => {
 }
 
 .login-options :deep(.el-checkbox__label) {
-  color: var(--text-secondary);
+  color: #4e5969;
   font-size: 14px;
 }
 
-.forgot-link {
+.login-options :deep(.el-link) {
   font-size: 14px;
 }
 
 /* 提交按钮 */
 .submit-btn {
   width: 100%;
-  height: 44px;
-  font-size: 16px;
+  height: 40px;
+  font-size: 14px;
   font-weight: 500;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+  background: #165dff;
   border: none;
-  transition: all var(--transition-base);
+  margin-bottom: 16px;
 }
 
 .submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+  background: #4080ff;
 }
 
 .submit-btn:active {
-  transform: translateY(0);
+  background: #0e42d2;
 }
 
 /* 模式切换 */
 .toggle-mode {
-  margin-top: 24px;
   text-align: center;
-  font-size: 14px;
-  color: var(--text-secondary);
+  margin-bottom: 24px;
 }
 
-.toggle-mode span {
-  margin-right: 8px;
+.toggle-mode :deep(.el-link) {
+  font-size: 14px;
 }
 
 /* 页脚 */
 .login-footer {
-  margin-top: 32px;
   text-align: center;
   font-size: 12px;
-  color: var(--text-tertiary);
+  color: #c9cdd4;
+  margin-top: 40px;
 }
 
 /* 响应式 */
+@media (max-width: 1024px) {
+  .login-banner {
+    display: none;
+  }
+
+  .login-panel {
+    width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
-  .login-content {
-    padding: 16px;
+  .login-panel {
+    padding: 24px;
   }
 
-  .login-card {
-    padding: 32px 24px;
-  }
-
-  .title {
-    font-size: 28px;
-  }
-
-  .decoration-circle {
-    opacity: 0.5;
+  .login-panel-inner {
+    max-width: 100%;
   }
 }
 </style>

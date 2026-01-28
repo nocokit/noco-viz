@@ -981,12 +981,120 @@
         </div>
 
         <!-- Tab 3: 交互事件 -->
-        <div v-show="configTab === 'event'" class="empty-state">
-          <svg viewBox="0 0 1024 1024" width="40" height="40" fill="rgba(255,255,255,0.2)">
-            <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z"/>
-            <path d="M464 336a48 48 0 1 0 96 0 48 48 0 1 0-96 0zm72 112h-48c-4.4 0-8 3.6-8 8v272c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V456c0-4.4-3.6-8-8-8z"/>
-          </svg>
-          <div style="margin-top: 16px; color: #666;">交互事件配置开发中...</div>
+        <div v-show="configTab === 'event'" class="event-config-container">
+          <!-- 事件列表 -->
+          <div class="event-list-section">
+            <div class="section-header">
+              <span class="section-title">事件列表</span>
+              <button class="btn-add-event" @click="addEvent">
+                <svg viewBox="0 0 1024 1024" width="12" height="12" fill="currentColor">
+                  <path d="M482 152h60q8 0 8 8v704q0 8-8 8h-60q-8 0-8-8V160q0-8 8-8z"/>
+                  <path d="M176 474h672q8 0 8 8v60q0 8-8 8H176q-8 0-8-8v-60q0-8 8-8z"/>
+                </svg>
+                添加事件
+              </button>
+            </div>
+
+            <div v-if="componentEvents.length === 0" class="empty-events">
+              <svg viewBox="0 0 1024 1024" width="32" height="32" fill="currentColor" style="opacity: 0.3;">
+                <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z"/>
+              </svg>
+              <p style="margin-top: 8px; color: #666; font-size: 12px;">暂无事件，点击上方按钮添加</p>
+            </div>
+
+            <div v-else class="event-items">
+              <div
+                v-for="(event, index) in componentEvents"
+                :key="index"
+                :class="['event-item', { active: currentEventIndex === index }]"
+                @click="selectEvent(index)"
+              >
+                <div class="event-item-header">
+                  <span class="event-trigger">{{ getEventTriggerLabel(event.trigger) }}</span>
+                  <button class="btn-delete-event" @click.stop="deleteEvent(index)" title="删除事件">
+                    <svg viewBox="0 0 1024 1024" width="12" height="12" fill="currentColor">
+                      <path d="M360 184h-8c4.4 0 8-3.6 8-8v8h304v-8c0 4.4 3.6 8 8 8h-8v72h72v-80c0-35.3-28.7-64-64-64H352c-35.3 0-64 28.7-64 64v80h72v-72zm504 72H160c-17.7 0-32 14.3-32 32v32c0 4.4 3.6 8 8 8h60.4l24.7 523c1.6 34.1 29.8 61 63.9 61h454c34.2 0 62.3-26.8 63.9-61l24.7-523H888c4.4 0 8-3.6 8-8v-32c0-17.7-14.3-32-32-32z"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="event-item-body">
+                  <span class="event-action">{{ getEventActionLabel(event.action) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 事件配置面板 -->
+          <div v-if="currentEventIndex !== null && componentEvents[currentEventIndex]" class="event-config-panel">
+            <div class="form-group">
+              <div class="form-label">触发条件</div>
+              <select class="form-input" v-model="componentEvents[currentEventIndex].trigger">
+                <option value="click">点击 (Click)</option>
+                <option value="dblclick">双击 (Double Click)</option>
+                <option value="mouseenter">鼠标移入 (Mouse Enter)</option>
+                <option value="mouseleave">鼠标移出 (Mouse Leave)</option>
+                <option value="dataUpdate">数据更新 (Data Update)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <div class="form-label">执行动作</div>
+              <select class="form-input" v-model="componentEvents[currentEventIndex].action" @change="handleActionChange">
+                <option value="navigate">跳转链接</option>
+                <option value="toggleComponent">显示/隐藏组件</option>
+                <option value="refreshData">刷新数据</option>
+                <option value="showMessage">弹出提示</option>
+                <option value="runScript">执行脚本</option>
+              </select>
+            </div>
+
+            <!-- 动作参数配置 -->
+            <div class="form-group" v-if="componentEvents[currentEventIndex].action === 'navigate'">
+              <div class="form-label">跳转地址</div>
+              <input type="text" class="form-input" v-model="componentEvents[currentEventIndex].params.url" placeholder="https://example.com">
+              <div style="margin-top: 6px;">
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #909399; cursor: pointer;">
+                  <input type="checkbox" v-model="componentEvents[currentEventIndex].params.newWindow">
+                  <span>在新窗口打开</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group" v-if="componentEvents[currentEventIndex].action === 'toggleComponent'">
+              <div class="form-label">目标组件ID</div>
+              <input type="text" class="form-input" v-model="componentEvents[currentEventIndex].params.targetId" placeholder="输入组件ID">
+              <div class="form-label" style="margin-top: 12px;">操作类���</div>
+              <select class="form-input" v-model="componentEvents[currentEventIndex].params.operation">
+                <option value="toggle">切换显示/隐藏</option>
+                <option value="show">显示</option>
+                <option value="hide">隐藏</option>
+              </select>
+            </div>
+
+            <div class="form-group" v-if="componentEvents[currentEventIndex].action === 'showMessage'">
+              <div class="form-label">提示内容</div>
+              <textarea class="form-input" v-model="componentEvents[currentEventIndex].params.message" placeholder="输入提示内容" rows="3" style="resize: vertical;"></textarea>
+              <div class="form-label" style="margin-top: 12px;">提示类型</div>
+              <select class="form-input" v-model="componentEvents[currentEventIndex].params.type">
+                <option value="success">成功</option>
+                <option value="warning">警告</option>
+                <option value="info">信息</option>
+                <option value="error">错误</option>
+              </select>
+            </div>
+
+            <div class="form-group" v-if="componentEvents[currentEventIndex].action === 'runScript'">
+              <div class="form-label">JavaScript 代码</div>
+              <textarea class="code-editor" v-model="componentEvents[currentEventIndex].params.script" placeholder="// 输入 JavaScript 代码&#10;console.log('Hello World');" rows="6"></textarea>
+            </div>
+          </div>
+
+          <div v-else class="event-config-empty">
+            <svg viewBox="0 0 1024 1024" width="32" height="32" fill="currentColor" style="opacity: 0.3;">
+              <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z"/>
+            </svg>
+            <p style="margin-top: 8px; color: #666; font-size: 12px;">请选择或添加事件进行配置</p>
+          </div>
         </div>
       </div>
     </aside>
@@ -1016,6 +1124,7 @@ import { generateMockDataByTemplate, formatJSONString, validateJSON } from '@/ut
 import MockDataEditor from '@/components/data/MockDataEditor.vue'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import * as echarts from 'echarts'
+import * as datasetApi from '@/api/dataset'
 
 const route = useRoute()
 const router = useRouter()
@@ -3168,13 +3277,39 @@ const copyToClipboard = async (text) => {
 
 // Mock 数据源管理方法
 // 数据集模式相关方法
-const handleDatasetChange = () => {
-  if (selectedDatasetId.value) {
-    ElMessage.success('数据集已加载')
-    // TODO: 实际加载数据集数据
-    // 模拟设置字段映射
-    mappingFields.xAxis = 'category_name'
-    mappingFields.yAxis = 'sales_amount'
+const handleDatasetChange = async () => {
+  if (!selectedDatasetId.value) {
+    ElMessage.warning('请先选择数据集')
+    return
+  }
+
+  try {
+    ElMessage.info('正在加载数据集...')
+
+    // Load dataset preview data
+    const response = await datasetApi.previewDataset(selectedDatasetId.value, {
+      page: 1,
+      pageSize: 100
+    })
+
+    if (response && response.data) {
+      // Apply data to selected component
+      if (selectedComponent.value) {
+        selectedComponent.value.data = response.data
+      }
+
+      // Update field mapping if available
+      if (response.fields) {
+        mappingFields.xAxis = response.fields.xAxis || 'category_name'
+        mappingFields.yAxis = response.fields.yAxis || 'sales_amount'
+      }
+
+      // Update row count
+      dataRowCount.value = response.total || response.data.length
+      ElMessage.success(`数据集已加载 (${dataRowCount.value} 行)`)
+    }
+  } catch (error) {
+    ElMessage.error(`加载数据集失败: ${error.message}`)
   }
 }
 
@@ -3183,8 +3318,8 @@ const editCurrentDataset = () => {
     ElMessage.warning('请先选择数据集')
     return
   }
-  ElMessage.info('跳转到数据集编辑页面...')
-  // TODO: 跳转到数据集管理页面
+  // Navigate to dataset edit page
+  router.push(`/datasets/edit/${selectedDatasetId.value}`)
 }
 
 const createDataset = () => {
@@ -3193,8 +3328,12 @@ const createDataset = () => {
 }
 
 const refreshData = () => {
-  ElMessage.success('数据已刷新')
-  // TODO: 实际刷新数据
+  if (!selectedDatasetId.value) {
+    ElMessage.warning('请先选择数据集')
+    return
+  }
+  // Reload current dataset by calling existing method
+  handleDatasetChange()
 }
 
 const openMockEditor = () => {
@@ -3246,11 +3385,20 @@ const testDBConnection = async () => {
     return
   }
 
-  ElMessage.info('测试连接中...')
-  // TODO: 实际数据库连接测试
-  setTimeout(() => {
+  try {
+    ElMessage.info('测试连接中...')
+    const config = {
+      type: dbType.value,
+      host: dbHost.value,
+      database: dbName.value,
+      user: dbUser.value,
+      password: dbPassword.value
+    }
+    await datasetApi.testConnectionConfig(config)
     ElMessage.success('数据库连接成功')
-  }, 1000)
+  } catch (error) {
+    ElMessage.error(`数据库连接失败: ${error.message}`)
+  }
 }
 
 const applyDBData = async () => {
@@ -3259,11 +3407,24 @@ const applyDBData = async () => {
     return
   }
 
-  ElMessage.info('查询数据中...')
-  // TODO: 实际数据库查询
-  setTimeout(() => {
-    ElMessage.success('数据已应用到组件')
-  }, 1000)
+  try {
+    ElMessage.info('查询数据中...')
+    // Note: This requires a connection ID. For now, we'll use a placeholder.
+    // In a real implementation, you'd need to select or create a connection first.
+    const connectionId = 'default' // TODO: Get actual connection ID from UI
+
+    // Validate SQL query
+    const response = await datasetApi.validateSQL(dbQuery.value, connectionId)
+
+    if (response && response.data) {
+      selectedComponent.value.data = response.data
+      ElMessage.success('数据已应用到组件')
+    } else {
+      ElMessage.warning('查询返回空数据')
+    }
+  } catch (error) {
+    ElMessage.error(`数据库查询失败: ${error.message}`)
+  }
 }
 
 // API方法
@@ -3330,8 +3491,18 @@ const applyAPIData = async () => {
 
 // 业务数据集方法
 const editDataset = (id) => {
-  ElMessage.info(`编辑数据集 ${id}`)
-  // TODO: 打开数据集编辑弹窗
+  if (!id) {
+    ElMessage.warning('数据集ID无效')
+    return
+  }
+
+  try {
+    // Navigate to dataset edit page
+    router.push(`/datasets/edit/${id}`)
+    ElMessage.info('正在跳转到数据集编辑页面...')
+  } catch (error) {
+    ElMessage.error(`跳转失败: ${error.message}`)
+  }
 }
 
 const deleteDataset = (id) => {
@@ -3339,15 +3510,33 @@ const deleteDataset = (id) => {
   ElMessage.success('数据集已删除')
 }
 
-const useDataset = (id) => {
+const useDataset = async (id) => {
   if (!selectedComponent.value) {
     ElMessage.warning('请先选择一个组件')
     return
   }
-  const dataset = datasets.value.find(d => d.id === id)
-  if (dataset) {
-    ElMessage.success(`已应用数据集: ${dataset.name}`)
-    // TODO: 实际应用数据集到组件
+
+  try {
+    ElMessage.info('正在加载数据集...')
+
+    // 加载数据集详情和数据
+    const datasetResponse = await datasetApi.getDataset(id)
+
+    if (datasetResponse && datasetResponse.data) {
+      // 应用数据集到选中的组件
+      selectedComponent.value.data = datasetResponse.data
+
+      // 更新数据集引用ID
+      if (!selectedComponent.value.datasetId) {
+        selectedComponent.value.datasetId = id
+      }
+
+      ElMessage.success(`数据集已应用: ${datasetResponse.name || '未命名数据集'}`)
+    } else {
+      ElMessage.warning('数据集数据为空')
+    }
+  } catch (error) {
+    ElMessage.error(`加载数据集失败: ${error.message}`)
   }
 }
 
@@ -3376,13 +3565,51 @@ const applyStaticJSON = () => {
 }
 
 // 保存为公共数据集
-const saveAsDataset = () => {
+const saveAsDataset = async () => {
   if (!apiUrl.value) {
     ElMessage.warning('请先配置接口地址')
     return
   }
-  ElMessage.info('保存为数据集功能开发中...')
-  // TODO: 打开数据集创建弹窗并预填API配置
+
+  try {
+    ElMessage.info('正在创建数据集...')
+
+    // 准备数据集配置
+    const datasetConfig = {
+      name: `API数据集_${new Date().toLocaleString('zh-CN')}`,
+      description: `从临时API配置创建: ${apiUrl.value}`,
+      sourceType: 'api',
+      sourceName: apiUrl.value,
+      updateStrategy: 'cached',
+      cacheTime: 300,
+      config: {
+        url: apiUrl.value,
+        method: apiMethod.value,
+        headers: apiHeaders.value ? JSON.parse(apiHeaders.value) : {},
+        body: apiBody.value || ''
+      }
+    }
+
+    // 调用API创建数据集
+    const response = await datasetApi.createDataset(datasetConfig)
+
+    if (response && response.id) {
+      ElMessage.success('数据集创建成功')
+
+      // 自动应用新创建的数据集到当前组件
+      if (selectedComponent.value) {
+        selectedComponent.value.datasetId = response.id
+        selectedDatasetId.value = response.id
+      }
+
+      // 跳转到数据集编辑页面
+      router.push(`/datasets/edit/${response.id}`)
+    } else {
+      ElMessage.warning('数据集创建成功，但未返回ID')
+    }
+  } catch (error) {
+    ElMessage.error(`创建数据集失败: ${error.message}`)
+  }
 }
 
 const getStrategyText = (strategy) => {
@@ -3392,6 +3619,87 @@ const getStrategyText = (strategy) => {
     static: '静态数据'
   }
   return strategyMap[strategy] || strategy
+}
+
+// 交互事件管理
+const componentEvents = ref([])
+const currentEventIndex = ref(null)
+
+// 添加事件
+const addEvent = () => {
+  const newEvent = {
+    trigger: 'click',
+    action: 'navigate',
+    params: {
+      url: '',
+      newWindow: false,
+      targetId: '',
+      operation: 'toggle',
+      message: '',
+      type: 'info',
+      script: ''
+    }
+  }
+  componentEvents.value.push(newEvent)
+  currentEventIndex.value = componentEvents.value.length - 1
+  ElMessage.success('已添加新事件')
+}
+
+// 删除事件
+const deleteEvent = (index) => {
+  componentEvents.value.splice(index, 1)
+  if (currentEventIndex.value === index) {
+    currentEventIndex.value = null
+  } else if (currentEventIndex.value > index) {
+    currentEventIndex.value--
+  }
+  ElMessage.success('已删除事件')
+}
+
+// 选择事件
+const selectEvent = (index) => {
+  currentEventIndex.value = index
+}
+
+// 获取触发条件标签
+const getEventTriggerLabel = (trigger) => {
+  const labels = {
+    click: '点击',
+    dblclick: '双击',
+    mouseenter: '鼠标移入',
+    mouseleave: '鼠标移出',
+    dataUpdate: '数据更新'
+  }
+  return labels[trigger] || trigger
+}
+
+// 获取动作标签
+const getEventActionLabel = (action) => {
+  const labels = {
+    navigate: '跳转链接',
+    toggleComponent: '显示/隐藏组件',
+    refreshData: '刷新数据',
+    showMessage: '弹出提示',
+    runScript: '执行脚本'
+  }
+  return labels[action] || action
+}
+
+// 动作改变处理
+const handleActionChange = () => {
+  // Reset params when action changes
+  if (currentEventIndex.value !== null) {
+    const event = componentEvents.value[currentEventIndex.value]
+    event.params = {
+      url: '',
+      newWindow: false,
+      targetId: '',
+      operation: 'toggle',
+      message: '',
+      type: 'info',
+      script: ''
+    }
+  }
 }
 </script>
 

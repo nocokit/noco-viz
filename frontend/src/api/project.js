@@ -30,6 +30,15 @@ export function createProject(data) {
 }
 
 /**
+ * 从模板创建项目
+ * @param {number} templateId - 模板ID
+ * @param {Object} data - { name, description }
+ */
+export function createProjectFromTemplate(templateId, data) {
+  return request.post(`/projects/from-template/${templateId}`, data)
+}
+
+/**
  * 更新项目
  * @param {number} id
  * @param {Object} data - { name, description, config }

@@ -77,4 +77,15 @@ export class ProjectsController {
   getStats() {
     return this.projectsService.getStats();
   }
+
+  @Post('from-template/:templateId')
+  @ApiOperation({ summary: '从模板创建项目' })
+  createFromTemplate(
+    @Param('templateId') templateId: string,
+    @Body() body: { name: string; description?: string },
+    @Request() req,
+  ) {
+    // 临时使用固定用户ID，后续添加JWT认证后使用 req.user.id
+    return this.projectsService.createFromTemplate(+templateId, body, req.user?.id || 1);
+  }
 }
