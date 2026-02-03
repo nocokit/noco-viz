@@ -26,9 +26,10 @@ export enum TemplateCategory {
 }
 
 @Entity('templates')
-@Index(['status'])
-@Index(['category'])
+@Index(['status', 'category'])
+@Index(['category', 'createdAt'])
 @Index(['createdById'])
+@Index(['isOfficial', 'status'])
 export class Template {
   @PrimaryGeneratedColumn()
   id: number;

@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
 export enum MediaType {
@@ -10,6 +10,9 @@ export enum MediaType {
 }
 
 @Entity('media')
+@Index(['type', 'createdAt'])
+@Index(['category'])
+@Index(['userId'])
 export class Media {
   @PrimaryGeneratedColumn()
   id: number;

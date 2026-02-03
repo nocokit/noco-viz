@@ -11,22 +11,26 @@ import {
   UseInterceptors,
   UploadedFile,
   Request,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiConsumes, ApiBearerAuth } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TemplatesService } from './templates.service';
 import { CreateTemplateDto } from './dto/create-template.dto';
 import { UpdateTemplateDto } from './dto/update-template.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('templates')
 @Controller('templates')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class TemplatesController {
   constructor(private readonly templatesService: TemplatesService) {}
 
   @Post()
   @ApiOperation({ summary: '创建模板' })
-  create(@Body() createTemplateDto: CreateTemplateDto) {
-    return this.templatesService.create(createTemplateDto, 1);
+  create(@Body() createTemplateDto: CreateTemplateDto, @Request() req) {
+    return this.templatesService.create(createTemplateDto, req.user.id);
   }
 
   @Get()
@@ -43,8 +47,8 @@ export class TemplatesController {
 
   @Get('my')
   @ApiOperation({ summary: '获取我的模板' })
-  getMyTemplates(@Query() params: any) {
-    return this.templatesService.findMyTemplates(1, params);
+  getMyTemplates(@Query() params: any, @Request() req) {
+    return this.templatesService.findMyTemplates(req.user.id, params);
   }
 
   @Get(':id')
@@ -73,8 +77,8 @@ export class TemplatesController {
 
   @Post('publish')
   @ApiOperation({ summary: '发布模板' })
-  publish(@Body() createTemplateDto: CreateTemplateDto) {
-    return this.templatesService.publish(createTemplateDto, 1);
+  publish(@Body() createTemplateDto: CreateTemplateDto, @Request() req) {
+    return this.templatesService.publish(createTemplateDto, req.user.id);
   }
 
   @Post('upload/thumbnail')
@@ -87,8 +91,8 @@ export class TemplatesController {
 
   @Post(':id/clone')
   @ApiOperation({ summary: '复制模板' })
-  clone(@Param('id') id: string, @Body() data: any) {
-    return this.templatesService.clone(+id, data, 1);
+  clone(@Param('id') id: string, @Body() data: any, @Request() req) {
+    return this.templatesService.clone(+id, data, req.user.id);
   }
 
   @Post(':id/review')
@@ -108,6 +112,6 @@ export class TemplatesController {
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('file'))
   importTemplate(@UploadedFile() file: Express.Multer.File, @Request() req) {
-    return this.templatesService.importTemplate(file, req.user?.id || 1);
+    return this.templatesService.importTemplate(file, req.user.id);
   }
 }

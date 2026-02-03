@@ -1,12 +1,20 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('audit_logs')
+@Index(['module', 'status', 'createdAt'])
+@Index(['actionType', 'createdAt'])
+@Index(['userId', 'createdAt'])
 export class AuditLog {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ name: 'user_id', nullable: true })
   userId: number;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
   @Column({ name: 'user_name', nullable: true })
   userName: string;

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BaseService } from '../../common/base/base.service';
@@ -15,8 +15,7 @@ export class TemplatesService extends BaseService<Template> {
     super(templatesRepository);
   }
 
-  // @ts-ignore
-  async create(createTemplateDto: CreateTemplateDto, userId: number): Promise<Template> {
+  async create(createTemplateDto: CreateTemplateDto, userId?: number): Promise<Template> {
     const template = this.templatesRepository.create({
       ...createTemplateDto,
       createdById: userId,
@@ -106,9 +105,12 @@ export class TemplatesService extends BaseService<Template> {
   }
 
   async incrementUsageCount(id: number): Promise<void> {
-    const template = await this.findOne(id);
-    template.usageCount += 1;
-    await this.templatesRepository.save(template);
+    await this.templatesRepository
+      .createQueryBuilder()
+      .update(Template)
+      .set({ usageCount: () => 'usage_count + 1' })
+      .where('id = :id', { id })
+      .execute();
   }
 
   async uploadThumbnail(file: Express.Multer.File): Promise<{ url: string }> {

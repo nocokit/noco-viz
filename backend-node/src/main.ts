@@ -5,6 +5,7 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { GlobalExceptionFilter } from './common/filters/exception.filter';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { Logger } from './common/utils/logger';
 
@@ -29,8 +30,8 @@ async function bootstrap() {
     next();
   });
 
-  // 全局异常过滤器
-  app.useGlobalFilters(new GlobalExceptionFilter());
+  // 全局异常过滤器（按顺序应用）
+  app.useGlobalFilters(new AllExceptionsFilter(), new GlobalExceptionFilter());
 
   // 全局响应转换拦截器
   app.useGlobalInterceptors(new TransformInterceptor());
@@ -61,6 +62,8 @@ async function bootstrap() {
     .addTag('roles', '角色管理')
     .addTag('projects', '项目管理')
     .addTag('datasets', '数据集管理')
+    .addTag('datasources', '数据源管理')
+    .addTag('monitor', '系统监控')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

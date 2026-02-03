@@ -7,9 +7,6 @@ import {
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-/**
- * 标准响应格式接口
- */
 export interface Response<T> {
   success: boolean;
   data: T;
@@ -18,10 +15,6 @@ export interface Response<T> {
   path: string;
 }
 
-/**
- * 响应转换拦截器
- * 将所有成功的响应转换为统一格式
- */
 @Injectable()
 export class TransformInterceptor<T>
   implements NestInterceptor<T, Response<T>>
@@ -43,9 +36,6 @@ export class TransformInterceptor<T>
   }
 }
 
-/**
- * 分页响应格式接口
- */
 export interface PaginatedResponse<T> {
   success: boolean;
   data: T[];
@@ -59,10 +49,6 @@ export interface PaginatedResponse<T> {
   path: string;
 }
 
-/**
- * 分页响应拦截器
- * 处理分页数据的统一格式
- */
 @Injectable()
 export class PaginationInterceptor<T>
   implements NestInterceptor<any, PaginatedResponse<T>>
@@ -75,7 +61,6 @@ export class PaginationInterceptor<T>
 
     return next.handle().pipe(
       map((response) => {
-        // 检查是否是分页响应
         if (
           response &&
           typeof response === 'object' &&
@@ -98,7 +83,6 @@ export class PaginationInterceptor<T>
           };
         }
 
-        // 如果不是分页响应，返回标准格式
         return {
           success: true,
           data: response,
@@ -116,45 +100,21 @@ export class PaginationInterceptor<T>
   }
 }
 
-/**
- * 日志拦截器
- * 记录请求和响应信息
- */
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const request = context.switchToHttp().getRequest();
-    const { method, url, body, query, params } = request;
-    const now = Date.now();
-
-    console.log(`[Request] ${method} ${url}`);
-    console.log('Body:', body);
-    console.log('Query:', query);
-    console.log('Params:', params);
-
-    return next.handle().pipe(
-      map((data) => {
-        const responseTime = Date.now() - now;
-        console.log(`[Response] ${method} ${url} - ${responseTime}ms`);
-        return data;
-      }),
-    );
+    return next.handle();
   }
 }
 
-/**
- * 缓存拦截器
- * 为 GET 请求添加缓存控制
- */
 @Injectable()
 export class CacheControlInterceptor implements NestInterceptor {
-  constructor(private readonly maxAge: number = 300) {} // 默认5分钟
+  constructor(private readonly maxAge: number = 300) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
     const response = context.switchToHttp().getResponse();
 
-    // 只对 GET 请求添加缓存
     if (request.method === 'GET') {
       response.setHeader('Cache-Control', `public, max-age=${this.maxAge}`);
     } else {

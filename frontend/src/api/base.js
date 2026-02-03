@@ -90,9 +90,35 @@ export class BaseApiService {
    */
   batchDelete(ids) {
     return request({
-      url: `/${this.resource}/batch`,
-      method: 'delete',
+      url: `/${this.resource}/batch/delete`,
+      method: 'post',
       data: { ids }
+    })
+  }
+
+  /**
+   * 批量更新
+   * @param {Array} ids - 记录ID数组
+   * @param {Object} data - 更新数据
+   */
+  batchUpdate(ids, data) {
+    return request({
+      url: `/${this.resource}/batch/update`,
+      method: 'post',
+      data: { ids, ...data }
+    })
+  }
+
+  /**
+   * 批量更新状态
+   * @param {Array} ids - 记录ID数组
+   * @param {string} status - 状态值
+   */
+  batchUpdateStatus(ids, status) {
+    return request({
+      url: `/${this.resource}/batch/status`,
+      method: 'post',
+      data: { ids, status }
     })
   }
 

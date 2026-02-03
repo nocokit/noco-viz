@@ -7,6 +7,7 @@ import { CreateDatasetDto } from './dto/create-dataset.dto';
 import { UpdateDatasetDto } from './dto/update-dataset.dto';
 import { CreateConnectionDto } from './dto/create-connection.dto';
 import { UpdateConnectionDto } from './dto/update-connection.dto';
+import { FileValidator } from '../../common/utils/file-validator.util';
 import axios from 'axios';
 
 @Injectable()
@@ -227,6 +228,9 @@ export class DatasetsService {
     page: number,
     pageSize: number,
   ): Promise<{ data: any[]; total: number; fields: any[] }> {
+    // SQL安全验证
+    this.validateSQLSafety(sql);
+
     let mysqlConnection;
     try {
       switch (connection.type) {
@@ -267,6 +271,48 @@ export class DatasetsService {
       if (mysqlConnection) {
         await mysqlConnection.end();
       }
+    }
+  }
+
+  /**
+   * 验证SQL查询安全性
+   */
+  private validateSQLSafety(sql: string): void {
+    if (!sql || typeof sql !== 'string') {
+      throw new BadRequestException('SQL查询不能为空');
+    }
+
+    // 转换为小写进行检查
+    const lowerSQL = sql.toLowerCase().trim();
+
+    // 只允许SELECT查询
+    if (!lowerSQL.startsWith('select')) {
+      throw new BadRequestException('只允许执行SELECT查询');
+    }
+
+    // 检查危险关键字
+    const dangerousKeywords = [
+      'drop', 'delete', 'truncate', 'insert', 'update',
+      'alter', 'create', 'replace', 'rename', 'grant',
+      'revoke', 'exec', 'execute', 'call', 'load_file',
+      'outfile', 'dumpfile', 'into outfile', 'information_schema',
+      'mysql.', 'pg_', 'sys.', 'xp_', 'sp_'
+    ];
+
+    for (const keyword of dangerousKeywords) {
+      if (lowerSQL.includes(keyword)) {
+        throw new BadRequestException(`SQL查询包含危险关键字: ${keyword}`);
+      }
+    }
+
+    // 检查多语句执行
+    if (sql.includes(';') && sql.trim().indexOf(';') < sql.trim().length - 1) {
+      throw new BadRequestException('不允许执行多条SQL语句');
+    }
+
+    // 限制SQL长度
+    if (sql.length > 10000) {
+      throw new BadRequestException('SQL查询长度超过限制(10000字符)');
     }
   }
 
@@ -335,6 +381,9 @@ export class DatasetsService {
   }
 
   async uploadExcel(file: Express.Multer.File): Promise<{ id: number; name: string; rowCount: number }> {
+    // 验证Excel文件安全性
+    FileValidator.validateExcel(file);
+
     // 1. 验证文件类型
     const allowedMimeTypes = [
       'application/vnd.ms-excel',
@@ -344,13 +393,13 @@ export class DatasetsService {
     const fileExt = file.originalname.toLowerCase().substring(file.originalname.lastIndexOf('.'));
 
     if (!allowedMimeTypes.includes(file.mimetype) && !allowedExtensions.includes(fileExt)) {
-      throw new BadRequestException('不支持的文件类型，仅支持 Excel 文件（.xls, .xlsx）');
+      throw new BadRequestException('不支持的文件类型,仅支持 Excel 文件(.xls, .xlsx)');
     }
 
-    // 2. 验证文件大小（10MB）
+    // 2. 验证文件大小(10MB)
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      throw new BadRequestException('文件大小超过限制（最大 10MB）');
+      throw new BadRequestException('文件大小超过限制(最大 10MB)');
     }
 
     try {

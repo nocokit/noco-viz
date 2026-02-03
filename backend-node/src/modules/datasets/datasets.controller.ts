@@ -11,8 +11,10 @@ import {
   UseInterceptors,
   UploadedFile,
   Res,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiConsumes, ApiBearerAuth } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { DatasetsService } from './datasets.service';
@@ -20,17 +22,20 @@ import { CreateDatasetDto } from './dto/create-dataset.dto';
 import { UpdateDatasetDto } from './dto/update-dataset.dto';
 import { CreateConnectionDto } from './dto/create-connection.dto';
 import { UpdateConnectionDto } from './dto/update-connection.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('datasets')
 @Controller('datasets')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class DatasetsController {
   constructor(private readonly datasetsService: DatasetsService) {}
 
   // Dataset endpoints
   @Post()
   @ApiOperation({ summary: '创建数据集' })
-  createDataset(@Body() createDatasetDto: CreateDatasetDto) {
-    return this.datasetsService.createDataset(createDatasetDto, 1);
+  createDataset(@Body() createDatasetDto: CreateDatasetDto, @Request() req) {
+    return this.datasetsService.createDataset(createDatasetDto, req.user.id);
   }
 
   @Get()
@@ -113,8 +118,8 @@ export class DatasetsController {
   // Connection endpoints
   @Post('connections')
   @ApiOperation({ summary: '创建数据库连接' })
-  createConnection(@Body() createConnectionDto: CreateConnectionDto) {
-    return this.datasetsService.createConnection(createConnectionDto, 1);
+  createConnection(@Body() createConnectionDto: CreateConnectionDto, @Request() req) {
+    return this.datasetsService.createConnection(createConnectionDto, req.user.id);
   }
 
   @Get('connections')

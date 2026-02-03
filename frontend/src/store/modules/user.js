@@ -19,10 +19,7 @@ export const useUserStore = defineStore('user', () => {
    */
   async function login(loginData) {
     const res = await userApi.login(loginData)
-    console.log('登录成功:', res)
-    // 保存 Token (适配后端返回格式)
     accessToken.value = res.access_token
-    // 后端暂时没有返回 refresh token，使用 access_token 作为临时方案
     refreshToken.value = res.access_token
     sessionStorage.setItem('access_token', res.access_token)
     sessionStorage.setItem('refresh_token', res.access_token)

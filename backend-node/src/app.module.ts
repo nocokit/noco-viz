@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
+import { CacheModule } from '@nestjs/cache-manager';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { dataSourceOptions } from './config/typeorm.config';
 import { UsersModule } from './modules/users/users.module';
@@ -19,11 +21,19 @@ import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 import { DepartmentsModule } from './modules/departments/departments.module';
 import { ComponentsModule } from './modules/components/components.module';
+import { DatasourcesModule } from './modules/datasources/datasources.module';
+import { MonitorModule } from './modules/monitor/monitor.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    ScheduleModule.forRoot(),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 60000, // 60秒缓存
+      max: 100, // 最多缓存100个项目
     }),
     TypeOrmModule.forRoot(dataSourceOptions),
     AuthModule,
@@ -41,6 +51,8 @@ import { ComponentsModule } from './modules/components/components.module';
     AuditLogModule,
     DepartmentsModule,
     ComponentsModule,
+    DatasourcesModule,
+    MonitorModule,
   ],
   providers: [
     {

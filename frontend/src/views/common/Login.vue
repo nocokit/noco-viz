@@ -19,26 +19,13 @@
           </div>
         </div>
 
-        <!-- 轮播内容 -->
-        <div class="carousel-wrapper">
-          <el-carousel
-            :interval="5000"
-            arrow="never"
-            indicator-position="outside"
-            height="400px"
-          >
-            <el-carousel-item v-for="item in carouselItems" :key="item.id">
-              <div class="carousel-content">
-                <div class="carousel-image">
-                  <div class="image-placeholder">
-                    <el-icon :size="120"><DataAnalysis /></el-icon>
-                  </div>
-                </div>
-                <h3 class="carousel-title">{{ item.title }}</h3>
-                <p class="carousel-desc">{{ item.description }}</p>
-              </div>
-            </el-carousel-item>
-          </el-carousel>
+        <!-- 展示图片 -->
+        <div class="banner-image">
+          <div class="image-placeholder">
+            <el-icon :size="120"><DataAnalysis /></el-icon>
+          </div>
+          <h3 class="banner-title">开箱即用的高质量模板</h3>
+          <p class="banner-desc">丰富的页面模板，覆盖大多数典型业务场景</p>
         </div>
       </div>
     </div>
@@ -162,25 +149,6 @@ import { useUserStore } from '@/store'
 const router = useRouter()
 const userStore = useUserStore()
 
-// 轮播数据
-const carouselItems = [
-  {
-    id: 1,
-    title: '开箱即用的高质量模板',
-    description: '丰富的页面模板，覆盖大多数典型业务场景'
-  },
-  {
-    id: 2,
-    title: '内置了常见问题的解决方案',
-    description: '国际化、路由配置、状态管理应有尽有'
-  },
-  {
-    id: 3,
-    title: '接入可视化增强工具',
-    description: '实现灵活的区块式开发'
-  }
-]
-
 // 模式切换：true=登录，false=注册
 const isLoginMode = ref(true)
 const loading = ref(false)
@@ -282,7 +250,32 @@ const handleSubmit = async () => {
     }
   } catch (error) {
     console.error('提交失败:', error)
-    ElMessage.error(error.message || '提交失败')
+
+    // 提取错误信息
+    let errorMessage = '提交失败'
+
+    if (error.message) {
+      errorMessage = error.message
+    } else if (error.data?.message) {
+      errorMessage = error.data.message
+    } else if (error.data?.detail) {
+      errorMessage = error.data.detail
+    } else if (typeof error === 'string') {
+      errorMessage = error
+    }
+
+    // 根据错误类型显示不同的提示
+    if (isLoginMode.value) {
+      if (errorMessage.includes('用户名') || errorMessage.includes('密码')) {
+        ElMessage.error(errorMessage)
+      } else if (errorMessage.includes('Unauthorized') || errorMessage.includes('401')) {
+        ElMessage.error('用户名或密码错误')
+      } else {
+        ElMessage.error(errorMessage)
+      }
+    } else {
+      ElMessage.error(errorMessage)
+    }
   } finally {
     loading.value = false
   }
@@ -330,20 +323,13 @@ const handleSubmit = async () => {
   color: white;
 }
 
-.carousel-wrapper {
+.banner-image {
   margin-top: 40px;
-}
-
-.carousel-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   padding: 20px;
-}
-
-.carousel-image {
-  margin-bottom: 32px;
 }
 
 .image-placeholder {
@@ -355,38 +341,30 @@ const handleSubmit = async () => {
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(10px);
+  margin-bottom: 32px;
 }
 
 .image-placeholder .el-icon {
   color: rgba(255, 255, 255, 0.8);
 }
 
-.carousel-title {
+.banner-title {
   font-size: 24px;
   font-weight: 600;
   color: white;
   margin: 0 0 16px 0;
 }
 
-.carousel-desc {
+.banner-desc {
   font-size: 16px;
   color: rgba(255, 255, 255, 0.8);
   margin: 0;
   line-height: 1.6;
 }
 
-/* 轮播指示器样式 */
-.carousel-wrapper :deep(.el-carousel__indicator) {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.carousel-wrapper :deep(.el-carousel__indicator.is-active) {
-  background: white;
-}
-
 /* 右侧登录区 */
 .login-panel {
-  width: 40%;
+  width: 48%;
   min-width: 600px;
   background: white;
   display: flex;
@@ -423,6 +401,13 @@ const handleSubmit = async () => {
   margin-bottom: 20px;
 }
 
+.login-form :deep(.el-input) {
+  --el-input-bg-color: #f7f8fa;
+  --el-input-border-color: transparent;
+  --el-input-hover-border-color: #165dff;
+  --el-input-focus-border-color: #165dff;
+}
+
 .login-form :deep(.el-input__wrapper) {
   background: #f7f8fa;
   box-shadow: none;
@@ -446,8 +431,22 @@ const handleSubmit = async () => {
   color: #c9cdd4;
 }
 
-.login-form :deep(.el-input__prefix) {
-  color: #86909c;
+.login-form :deep(.el-input__prefix),
+.login-form :deep(.el-input__suffix) {
+  color: #86909c !important;
+  background: transparent !important;
+}
+
+.login-form :deep(.el-input__prefix-inner),
+.login-form :deep(.el-input__suffix-inner) {
+  display: flex;
+  align-items: center;
+  background: transparent !important;
+}
+
+.login-form :deep(.el-icon) {
+  background: transparent !important;
+  color: #86909c !important;
 }
 
 /* 登录选项 */

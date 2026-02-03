@@ -32,7 +32,20 @@ export class MediaService {
 
     const queryBuilder = this.mediaRepository
       .createQueryBuilder('media')
-      .leftJoinAndSelect('media.user', 'user')
+      .select([
+        'media.id',
+        'media.name',
+        'media.url',
+        'media.type',
+        'media.mimeType',
+        'media.size',
+        'media.category',
+        'media.thumbnail',
+        'media.createdAt',
+        'user.id',
+        'user.username',
+      ])
+      .leftJoin('media.user', 'user')
       .orderBy('media.createdAt', 'DESC');
 
     if (type) {

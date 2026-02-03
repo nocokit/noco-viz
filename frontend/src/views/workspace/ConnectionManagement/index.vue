@@ -86,10 +86,10 @@
           >
             <el-option label="MySQL" value="mysql" />
             <el-option label="PostgreSQL" value="postgresql" />
-            <el-option label="Oracle" value="oracle" />
             <el-option label="MongoDB" value="mongodb" />
-            <el-option label="SQL Server" value="sqlserver" />
             <el-option label="Redis" value="redis" />
+            <el-option label="REST API" value="restapi" />
+            <el-option label="GraphQL" value="graphql" />
           </el-select>
         </el-form-item>
 
@@ -168,13 +168,13 @@ import { Plus, QuestionFilled } from '@element-plus/icons-vue'
 import PageHeader from '@/components/PageHeader.vue'
 import CommonModal from '@/components/CommonModal.vue'
 import {
-  getConnections,
-  createConnection,
-  updateConnection,
-  deleteConnection as deleteConnectionApi,
+  getDatasources,
+  createDatasource,
+  updateDatasource,
+  deleteDatasource,
   testConnection as testConnectionApi,
-  testConnectionConfig
-} from '@/api/dataset'
+  testSavedConnection
+} from '@/api/datasource'
 
 const modalVisible = ref(false)
 const isEditMode = ref(false)
@@ -225,20 +225,20 @@ const formRules = {
 const defaultPorts = {
   mysql: '3306',
   postgresql: '5432',
-  oracle: '1521',
   mongodb: '27017',
-  sqlserver: '1433',
-  redis: '6379'
+  redis: '6379',
+  restapi: '80',
+  graphql: '80'
 }
 
 // 数据库类型显示名称
 const dbTypeNames = {
-  mysql: 'MySQL 8.0',
-  postgresql: 'PostgreSQL 14',
-  oracle: 'Oracle 11g',
-  mongodb: 'MongoDB 5.0',
-  sqlserver: 'SQL Server 2019',
-  redis: 'Redis 7.0'
+  mysql: 'MySQL',
+  postgresql: 'PostgreSQL',
+  mongodb: 'MongoDB',
+  redis: 'Redis',
+  restapi: 'REST API',
+  graphql: 'GraphQL'
 }
 
 // 监听数据库类型变化，自动更新端口
@@ -255,11 +255,14 @@ const connections = ref([])
 const loadConnections = async () => {
   try {
     loading.value = true
-    const data = await getConnections()
+    const data = await getDatasources()
     connections.value = data.map(conn => ({
       ...conn,
       dbType: dbTypeNames[conn.type] || conn.type,
-      host: `${conn.host}:${conn.port}`,
+      host: conn.config?.host ? `${conn.config.host}:${conn.config.port || ''}` : 'N/A',
+      port: conn.config?.port,
+      database: conn.config?.database,
+      username: conn.config?.username,
       usedByDatasets: 0 // TODO: 从后端获取
     }))
   } catch (error) {
@@ -314,10 +317,10 @@ const editConnection = (conn) => {
   editingConnectionId.value = conn.id
   formData.name = conn.name
   formData.type = conn.type
-  formData.host = conn.host.split(':')[0]
-  formData.port = String(conn.port || conn.host.split(':')[1] || defaultPorts[conn.type])
-  formData.database = conn.database || ''
-  formData.username = conn.username || ''
+  formData.host = conn.config?.host || ''
+  formData.port = String(conn.config?.port || defaultPorts[conn.type])
+  formData.database = conn.config?.database || ''
+  formData.username = conn.config?.username || ''
   formData.password = '' // 不回显密码
   modalVisible.value = true
 }
@@ -356,8 +359,6 @@ const handleTestConnection = async () => {
 
     try {
       const config = {
-        name: formData.name,
-        type: formData.type,
         host: formData.host,
         port: parseInt(formData.port),
         database: formData.database,
@@ -365,9 +366,13 @@ const handleTestConnection = async () => {
         password: formData.password
       }
 
-      const result = await testConnectionConfig(config)
+      const result = await testConnectionApi({
+        type: formData.type,
+        config
+      })
+
       if (result.success) {
-        ElMessage.success('连接测试成功！')
+        ElMessage.success(`连接测试成功！延迟: ${result.latency}ms`)
       } else {
         ElMessage.error(result.message || '连接测试失败，请检查配置')
       }
@@ -393,20 +398,23 @@ const handleSubmit = async () => {
       const data = {
         name: formData.name,
         type: formData.type,
-        host: formData.host,
-        port: parseInt(formData.port),
-        database: formData.database,
-        username: formData.username,
-        password: formData.password
+        description: '',
+        config: {
+          host: formData.host,
+          port: parseInt(formData.port),
+          database: formData.database,
+          username: formData.username,
+          password: formData.password
+        }
       }
 
       if (isEditMode.value) {
         // 编辑模式
-        await updateConnection(editingConnectionId.value, data)
+        await updateDatasource(editingConnectionId.value, data)
         ElMessage.success(`连接 "${formData.name}" 已更新`)
       } else {
         // 新建模式
-        await createConnection(data)
+        await createDatasource(data)
         ElMessage.success(`连接 "${formData.name}" 创建成功`)
       }
 
@@ -427,12 +435,12 @@ const testConnection = async (conn) => {
   const loadingMsg = ElMessage.loading('正在测试连接...')
 
   try {
-    const result = await testConnectionApi(conn.id)
+    const result = await testSavedConnection(conn.id)
     loadingMsg.close()
 
     if (result.success) {
-      conn.status = 'connected'
-      ElMessage.success(`连接 "${conn.name}" 测试成功`)
+      conn.status = 'active'
+      ElMessage.success(`连接 "${conn.name}" 测试成功，延迟: ${result.latency}ms`)
       // 重新加载以更新状态
       await loadConnections()
     } else {
@@ -460,7 +468,7 @@ const deleteConnection = async (conn) => {
       }
     )
 
-    await deleteConnectionApi(conn.id)
+    await deleteDatasource(conn.id)
     ElMessage.success('连接已删除')
     // 重新加载连接列表
     await loadConnections()

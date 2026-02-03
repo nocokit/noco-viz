@@ -18,8 +18,7 @@ export class ProjectsService extends BaseService<Project> {
     super(projectsRepository);
   }
 
-  // @ts-ignore
-  async create(createProjectDto: CreateProjectDto, userId: number): Promise<Project> {
+  async create(createProjectDto: CreateProjectDto, userId?: number): Promise<Project> {
     const project = this.projectsRepository.create({
       ...createProjectDto,
       createdById: userId,
@@ -81,30 +80,31 @@ export class ProjectsService extends BaseService<Project> {
   }
 
   async getStats(): Promise<any> {
-    const total = await this.projectsRepository.count();
-    const published = await this.projectsRepository.count({
-      where: { status: ProjectStatus.PUBLISHED },
-    });
-    const draft = await this.projectsRepository.count({
-      where: { status: ProjectStatus.DRAFT },
-    });
-    const screenCount = await this.projectsRepository.count({
-      where: { type: ProjectType.SCREEN },
-    });
-    const reportCount = await this.projectsRepository.count({
-      where: { type: ProjectType.REPORT },
-    });
+    // 使用单个聚合查询优化性能
+    const stats = await this.projectsRepository
+      .createQueryBuilder('project')
+      .select('COUNT(*)', 'total')
+      .addSelect('SUM(CASE WHEN project.status = :published THEN 1 ELSE 0 END)', 'published')
+      .addSelect('SUM(CASE WHEN project.status = :draft THEN 1 ELSE 0 END)', 'draft')
+      .addSelect('SUM(CASE WHEN project.type = :screen THEN 1 ELSE 0 END)', 'screenCount')
+      .addSelect('SUM(CASE WHEN project.type = :report THEN 1 ELSE 0 END)', 'reportCount')
+      .setParameters({
+        published: ProjectStatus.PUBLISHED,
+        draft: ProjectStatus.DRAFT,
+        screen: ProjectType.SCREEN,
+        report: ProjectType.REPORT,
+      })
+      .getRawOne();
 
     return {
-      total,
-      published,
-      draft,
-      byType: {
-        screen: screenCount,
-        report: reportCount,
-      },
+      total: parseInt(stats.total) || 0,
+      published: parseInt(stats.published) || 0,
+      draft: parseInt(stats.draft) || 0,
+      screenCount: parseInt(stats.screenCount) || 0,
+      reportCount: parseInt(stats.reportCount) || 0,
     };
   }
+
 
   async createFromTemplate(
     templateId: number,
@@ -125,5 +125,41 @@ export class ProjectsService extends BaseService<Project> {
     });
 
     return this.projectsRepository.save(project);
+  }
+
+  /**
+   * 批量删除项目
+   */
+  async batchDelete(ids: number[]): Promise<{
+    successCount: number;
+    failureCount: number;
+    failures: Array<{ id: number; error: string }>;
+  }> {
+    // 使用 BaseService 的通用批量删除方法
+    return super.batchDelete(ids);
+  }
+
+  /**
+   * 批量发布项目
+   */
+  async batchPublish(ids: number[]): Promise<{
+    successCount: number;
+    failureCount: number;
+    failures: Array<{ id: number; error: string }>;
+  }> {
+    // 使用 BaseService 的批量更新状态方法
+    return this.batchUpdateStatus(ids, ProjectStatus.PUBLISHED);
+  }
+
+  /**
+   * 批量取消发布项目
+   */
+  async batchUnpublish(ids: number[]): Promise<{
+    successCount: number;
+    failureCount: number;
+    failures: Array<{ id: number; error: string }>;
+  }> {
+    // 使用 BaseService 的批量更新状态方法
+    return this.batchUpdateStatus(ids, ProjectStatus.DRAFT);
   }
 }

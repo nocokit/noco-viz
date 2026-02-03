@@ -5,6 +5,10 @@
 import axios from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/store/modules/user'
+import { RequestCanceler } from '@/utils/request-optimizer'
+
+// 创建请求取消管理器
+const requestCanceler = new RequestCanceler()
 
 // 创建 axios 实例
 const request = axios.create({
@@ -40,6 +44,17 @@ request.interceptors.request.use(
       config.headers['Pragma'] = 'no-cache'
     }
 
+    // 添加请求取消功能
+    const controller = new AbortController()
+    config.signal = controller.signal
+
+    // 为每个请求生成唯一key
+    const requestKey = `${config.method}:${config.url}:${JSON.stringify(config.params || {})}`
+    requestCanceler.add(requestKey, controller)
+
+    // 保存requestKey到config中,用于后续取消
+    config.requestKey = requestKey
+
     return config
   },
   (error) => {
@@ -52,6 +67,11 @@ request.interceptors.request.use(
  */
 request.interceptors.response.use(
   (response) => {
+    // 请求完成,移除请求记录
+    if (response.config.requestKey) {
+      requestCanceler.remove(response.config.requestKey)
+    }
+
     // HTTP 状态码 2xx 表示成功
     // NestJS 返回格式: { success: true, data: {...}, timestamp, path }
     // 解包返回 data 字段
@@ -63,6 +83,15 @@ request.interceptors.response.use(
   },
   async (error) => {
     const { config, response } = error
+
+    // 请求失败,移除请求记录
+    if (config?.requestKey) {
+      requestCanceler.remove(config.requestKey)
+    }
+
+    if (axios.isCancel(error)) {
+      return Promise.reject({ message: '请求已取消', cancelled: true })
+    }
 
     // 处理 401 未授权
     if (response?.status === 401) {
@@ -131,8 +160,7 @@ request.interceptors.response.use(
               window.location.href = '/login'
             }
           } catch (cancelError) {
-            // 用户点击取消，不做任何操作
-            console.log('用户取消重新登录')
+            // 用户取消操作
           } finally {
             is401ConfirmShowing = false
           }
@@ -155,7 +183,7 @@ request.interceptors.response.use(
         // DRF 标准错误格式
         message = errorData.detail
       } else if (errorData.message) {
-        // 自定义错误格式
+        // NestJS 标准错误格式
         message = errorData.message
       } else if (typeof errorData === 'string') {
         message = errorData
@@ -168,14 +196,41 @@ request.interceptors.response.use(
           message = firstError
         }
       }
+    } else if (error.code === 'ECONNABORTED') {
+      message = '请求超时，请稍后重试'
+    } else if (error.code === 'ERR_NETWORK') {
+      message = '网络连接失败，请检查网络'
     } else {
       message = error.message || '请求失败'
     }
 
-    ElMessage.error(message)
+    // 构造统一的错误对象
+    const errorObj = {
+      message,
+      status: response?.status,
+      data: response?.data,
+      code: error.code
+    }
 
-    return Promise.reject(response?.data || error)
+    // 不在拦截器中显示错误提示，由业务代码决定是否显示
+    // ElMessage.error(message)
+
+    return Promise.reject(errorObj)
   }
 )
+
+/**
+ * 取消所有待处理的请求
+ */
+export function cancelAllRequests() {
+  requestCanceler.cancelAll()
+}
+
+/**
+ * 取消指定请求
+ */
+export function cancelRequest(requestKey) {
+  requestCanceler.cancel(requestKey)
+}
 
 export default request

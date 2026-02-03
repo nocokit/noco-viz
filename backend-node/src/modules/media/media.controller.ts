@@ -18,6 +18,7 @@ import { MediaService } from './media.service';
 import { CreateMediaDto } from './dto/create-media.dto';
 import { UpdateMediaDto } from './dto/update-media.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { FileValidator } from '../../common/utils/file-validator.util';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
@@ -49,6 +50,9 @@ export class MediaController {
     }),
   )
   async uploadFile(@UploadedFile() file: Express.Multer.File, @Request() req) {
+    // 验证文件安全性
+    FileValidator.validateMedia(file);
+
     const mediaDto: CreateMediaDto = {
       name: file.originalname,
       url: `/uploads/media/${file.filename}`,

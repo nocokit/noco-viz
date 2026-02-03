@@ -39,15 +39,34 @@ export class PlaylistsService {
 
     const playlists = await queryBuilder.getMany();
 
+    // 收集所有需要查询的项目ID（避免N+1查询）
+    const projectIds = new Set<number>();
+    for (const playlist of playlists) {
+      if (playlist.slides && playlist.slides.length > 0) {
+        for (const slide of playlist.slides) {
+          if (slide.projectId) {
+            projectIds.add(slide.projectId);
+          }
+        }
+      }
+    }
+
+    // 一次性查询所有项目
+    const projectsMap = new Map<number, Project>();
+    if (projectIds.size > 0) {
+      const projects = await this.projectsRepository.findByIds(Array.from(projectIds));
+      projects.forEach(project => {
+        projectsMap.set(project.id, project);
+      });
+    }
+
     // 填充项目信息
     for (const playlist of playlists) {
       if (playlist.slides && playlist.slides.length > 0) {
         const enrichedSlides = [];
         for (const slide of playlist.slides) {
           if (slide.projectId) {
-            const project = await this.projectsRepository.findOne({
-              where: { id: slide.projectId },
-            });
+            const project = projectsMap.get(slide.projectId);
             if (project) {
               enrichedSlides.push({
                 ...slide,
