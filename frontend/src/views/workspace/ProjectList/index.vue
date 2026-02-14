@@ -135,21 +135,6 @@
 
         <!-- Step 2: 填写信息 -->
         <div v-show="modalStep === 2" class="form-content">
-          <div class="selected-type-banner" :class="newProject.type">
-            <div class="banner-icon">
-              <svg v-if="newProject.type === 'screen'" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/>
-              </svg>
-              <svg v-else-if="newProject.type === 'report'" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 19V5h12v14H6zm2-4h8v2H8v-2zm0-4h8v2H8v-2zm0-4h8v2H8V7z"/>
-              </svg>
-            </div>
-            <div>
-              <div class="banner-title">{{ newProject.type === 'screen' ? '数据可视化大屏' : '中国式复杂报表' }}</div>
-              <div class="banner-subtitle">{{ newProject.type === 'screen' ? 'Screen Visualization' : 'Enterprise Report' }}</div>
-            </div>
-          </div>
-
           <el-form :model="newProject" label-position="top" :rules="projectRules" ref="projectFormRef">
             <el-form-item label="项目名称" prop="title">
               <el-input
@@ -852,43 +837,6 @@ const handleDeleteProject = async (project) => {
 
 /* Step 2: Form Content */
 .form-content { padding: 30px; }
-
-.selected-type-banner {
-  display: flex; align-items: center; gap: 16px; padding: 20px;
-  border-radius: 12px; margin-bottom: 32px; border: 2px solid transparent;
-  transition: 0.3s;
-}
-.selected-type-banner.screen {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.3);
-}
-.selected-type-banner.report {
-  background: rgba(16, 185, 129, 0.1);
-  border-color: rgba(16, 185, 129, 0.3);
-}
-
-.banner-icon {
-  width: 56px; height: 56px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.selected-type-banner.screen .banner-icon {
-  background: rgba(59, 130, 246, 0.2);
-  color: var(--el-color-primary);
-}
-.selected-type-banner.report .banner-icon {
-  background: rgba(16, 185, 129, 0.2);
-  color: #10b981;
-}
-.banner-icon svg { width: 28px; height: 28px; }
-
-.banner-title {
-  font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px;
-}
-.banner-subtitle {
-  font-size: 12px; color: var(--el-text-color-secondary);
-  text-transform: uppercase; letter-spacing: 0.5px;
-}
 
 .form-footer {
   display: flex; justify-content: flex-end; gap: 12px;

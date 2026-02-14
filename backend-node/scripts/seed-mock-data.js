@@ -579,8 +579,7 @@ async function seedMockData() {
     const ipWhitelist = [
       { ip: '192.168.1.100', type: 'single', description: '办公室网络', addedBy: 'admin', enabled: true },
       { ip: '10.0.0.0/8', type: 'range', description: '内网IP段', addedBy: 'admin', enabled: true },
-      { ip: '203.0.113.0/24', type: 'range', description: '合作伙伴网络', addedBy: 'admin', enabled: true },
-      { ip: '198.51.100.50', type: 'single', description: '测试服务器', addedBy: 'admin', enabled: false }
+      { ip: '203.0.113.0/24', type: 'range', description: '合作伙伴网络', addedBy: 'admin', enabled: true }
     ];
 
     for (const ip of ipWhitelist) {

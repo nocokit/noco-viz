@@ -125,45 +125,86 @@ export const themes = {
       '--el-color-primary': '#1890ff'
     }
   },
-  purple: {
-    name: '紫色梦幻',
-    key: 'purple',
+  red: {
+    name: '红色警戒',
+    key: 'red',
     colors: {
       // 背景色
-      '--noco-bg-body': '#13111a',
-      '--noco-bg-sidebar': '#1a1625',
-      '--noco-bg-card': '#251f35',
-      '--noco-bg-input': '#1c1829',
-      '--noco-bg-hover': '#2d2640',
+      '--noco-bg-body': '#1a0a0f',
+      '--noco-bg-sidebar': '#260f18',
+      '--noco-bg-card': '#2d1420',
+      '--noco-bg-input': '#220d15',
+      '--noco-bg-hover': '#381a29',
 
       // 边框色
-      '--noco-border': '#3a2f54',
-      '--noco-border-light': '#453863',
+      '--noco-border': '#4a2533',
+      '--noco-border-light': '#552d3d',
 
       // 文字色
       '--noco-text-main': '#ffffff',
-      '--noco-text-secondary': '#c8b8e8',
-      '--noco-text-muted': '#9d89c7',
-      '--noco-text-placeholder': '#7864a6',
+      '--noco-text-secondary': '#f0c5d4',
+      '--noco-text-muted': '#c89aaa',
+      '--noco-text-placeholder': '#a07080',
 
       // 主题色
-      '--noco-primary': '#8b5cf6',
-      '--noco-primary-hover': '#a78bfa',
-      '--noco-primary-active': '#7c3aed',
+      '--noco-primary': '#ff4466',
+      '--noco-primary-hover': '#ff6688',
+      '--noco-primary-active': '#cc3344',
 
       // Element Plus 变量覆盖
-      '--el-bg-color': '#251f35',
-      '--el-bg-color-page': '#13111a',
-      '--el-bg-color-overlay': '#251f35',
-      '--el-fill-color-blank': '#1c1829',
-      '--el-fill-color': '#2d2640',
-      '--el-fill-color-light': '#3a2f54',
+      '--el-bg-color': '#2d1420',
+      '--el-bg-color-page': '#1a0a0f',
+      '--el-bg-color-overlay': '#2d1420',
+      '--el-fill-color-blank': '#220d15',
+      '--el-fill-color': '#381a29',
+      '--el-fill-color-light': '#4a2533',
       '--el-text-color-primary': '#ffffff',
-      '--el-text-color-regular': '#ede9fe',
-      '--el-text-color-secondary': '#c8b8e8',
-      '--el-text-color-placeholder': '#9d89c7',
-      '--el-border-color': '#3a2f54',
-      '--el-color-primary': '#8b5cf6'
+      '--el-text-color-regular': '#ffe9ed',
+      '--el-text-color-secondary': '#f0c5d4',
+      '--el-text-color-placeholder': '#c89aaa',
+      '--el-border-color': '#4a2533',
+      '--el-color-primary': '#ff4466'
+    }
+  },
+  yellow: {
+    name: '黄色活力',
+    key: 'yellow',
+    colors: {
+      // 背景色
+      '--noco-bg-body': '#1a1508',
+      '--noco-bg-sidebar': '#261f0f',
+      '--noco-bg-card': '#2d2614',
+      '--noco-bg-input': '#221c0d',
+      '--noco-bg-hover': '#382f1a',
+
+      // 边框色
+      '--noco-border': '#4a3f25',
+      '--noco-border-light': '#55472d',
+
+      // 文字色
+      '--noco-text-main': '#ffffff',
+      '--noco-text-secondary': '#fde68a',
+      '--noco-text-muted': '#d4b86a',
+      '--noco-text-placeholder': '#a89050',
+
+      // 主题色
+      '--noco-primary': '#fbbf24',
+      '--noco-primary-hover': '#fcd34d',
+      '--noco-primary-active': '#f59e0b',
+
+      // Element Plus 变量覆盖
+      '--el-bg-color': '#2d2614',
+      '--el-bg-color-page': '#1a1508',
+      '--el-bg-color-overlay': '#2d2614',
+      '--el-fill-color-blank': '#221c0d',
+      '--el-fill-color': '#382f1a',
+      '--el-fill-color-light': '#4a3f25',
+      '--el-text-color-primary': '#ffffff',
+      '--el-text-color-regular': '#fef3c7',
+      '--el-text-color-secondary': '#fde68a',
+      '--el-text-color-placeholder': '#d4b86a',
+      '--el-border-color': '#4a3f25',
+      '--el-color-primary': '#fbbf24'
     }
   },
   green: {

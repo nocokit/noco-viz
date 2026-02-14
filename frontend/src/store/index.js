@@ -9,3 +9,5 @@ export default pinia
 
 // 导出 store
 export { useUserStore } from './modules/user'
+export { useIpWhitelistStore } from './modules/ipWhitelist'
+export { useRecycleStore } from './modules/recycle'

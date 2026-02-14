@@ -1,114 +1,105 @@
-import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
+import { message as antMessage, Modal, notification } from 'ant-design-vue'
 
 /**
  * 消息提示工具
- * 统一封装 Element Plus 的消息组件，提供一致的 API
+ * 统一封装 Ant Design Vue 的消息组件，提供一致的 API
  */
 
 /**
  * 成功消息
- * @param {string} message - 消息内容
+ * @param {string} content - 消息内容
  * @param {Object} options - 其他选项
  */
-export function success(message, options = {}) {
-  return ElMessage.success({
-    message,
-    duration: 3000,
+export function success(content, options = {}) {
+  return antMessage.success({
+    content,
+    duration: 3,
     ...options
   })
 }
 
 /**
  * 错误消息
- * @param {string} message - 消息内容
+ * @param {string} content - 消息内容
  * @param {Object} options - 其他选项
  */
-export function error(message, options = {}) {
-  return ElMessage.error({
-    message,
-    duration: 3000,
+export function error(content, options = {}) {
+  return antMessage.error({
+    content,
+    duration: 3,
     ...options
   })
 }
 
 /**
  * 警告消息
- * @param {string} message - 消息内容
+ * @param {string} content - 消息内容
  * @param {Object} options - 其他选项
  */
-export function warning(message, options = {}) {
-  return ElMessage.warning({
-    message,
-    duration: 3000,
+export function warning(content, options = {}) {
+  return antMessage.warning({
+    content,
+    duration: 3,
     ...options
   })
 }
 
 /**
  * 信息消息
- * @param {string} message - 消息内容
+ * @param {string} content - 消息内容
  * @param {Object} options - 其他选项
  */
-export function info(message, options = {}) {
-  return ElMessage.info({
-    message,
-    duration: 3000,
+export function info(content, options = {}) {
+  return antMessage.info({
+    content,
+    duration: 3,
     ...options
   })
 }
 
 /**
  * 确认对话框
- * @param {string} message - 消息内容
+ * @param {string} content - 消息内容
  * @param {string} title - 标题
  * @param {Object} options - 其他选项
  */
-export function confirm(message, title = '提示', options = {}) {
-  return ElMessageBox.confirm(message, title, {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning',
+export function confirm(content, title = '提示', options = {}) {
+  return Modal.confirm({
+    title,
+    content,
+    okText: '确定',
+    cancelText: '取消',
     ...options
   })
 }
 
 /**
  * 删除确认对话框
- * @param {string} message - 消息内容
+ * @param {string} content - 消息内容
  * @param {Object} options - 其他选项
  */
-export function confirmDelete(message = '此操作将永久删除该数据，是否继续？', options = {}) {
-  return confirm(message, '删除确认', {
-    type: 'warning',
-    confirmButtonText: '删除',
-    confirmButtonClass: 'el-button--danger',
+export function confirmDelete(content = '此操作将永久删除该数据，是否继续？', options = {}) {
+  return Modal.confirm({
+    title: '删除确认',
+    content,
+    okText: '删除',
+    cancelText: '取消',
+    okType: 'danger',
     ...options
   })
 }
 
 /**
  * 提示对话框
- * @param {string} message - 消息内容
+ * @param {string} content - 消息内容
  * @param {string} title - 标题
  * @param {Object} options - 其他选项
  */
-export function alert(message, title = '提示', options = {}) {
-  return ElMessageBox.alert(message, title, {
-    confirmButtonText: '确定',
-    ...options
-  })
-}
-
-/**
- * 输入对话框
- * @param {string} message - 消息内容
- * @param {string} title - 标题
- * @param {Object} options - 其他选项
- */
-export function prompt(message, title = '提示', options = {}) {
-  return ElMessageBox.prompt(message, title, {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+export function alert(content, title = '提示', options = {}) {
+  return Modal.info({
+    title,
+    content,
+    okText: '确定',
     ...options
   })
 }
@@ -116,14 +107,14 @@ export function prompt(message, title = '提示', options = {}) {
 /**
  * 通知 - 成功
  * @param {string} message - 消息内容
- * @param {string} title - 标题
+ * @param {string} description - 描述
  * @param {Object} options - 其他选项
  */
-export function notifySuccess(message, title = '成功', options = {}) {
-  return ElNotification.success({
-    title,
+export function notifySuccess(message, description = '', options = {}) {
+  return notification.success({
     message,
-    duration: 4500,
+    description,
+    duration: 4.5,
     ...options
   })
 }
@@ -131,14 +122,14 @@ export function notifySuccess(message, title = '成功', options = {}) {
 /**
  * 通知 - 错误
  * @param {string} message - 消息内容
- * @param {string} title - 标题
+ * @param {string} description - 描述
  * @param {Object} options - 其他选项
  */
-export function notifyError(message, title = '错误', options = {}) {
-  return ElNotification.error({
-    title,
+export function notifyError(message, description = '', options = {}) {
+  return notification.error({
     message,
-    duration: 4500,
+    description,
+    duration: 4.5,
     ...options
   })
 }
@@ -146,29 +137,29 @@ export function notifyError(message, title = '错误', options = {}) {
 /**
  * 通知 - 警告
  * @param {string} message - 消息内容
- * @param {string} title - 标题
+ * @param {string} description - 描述
  * @param {Object} options - 其他选项
  */
-export function notifyWarning(message, title = '警告', options = {}) {
-  return ElNotification.warning({
-    title,
+export function notifyWarning(message, description = '', options = {}) {
+  return notification.warning({
     message,
-    duration: 4500,
+    description,
+    duration: 4.5,
     ...options
   })
 }
 
 /**
  * 通知 - 信息
- * @param {string} message - 消息内���
- * @param {string} title - 标题
+ * @param {string} message - 消息内容
+ * @param {string} description - 描述
  * @param {Object} options - 其他选项
  */
-export function notifyInfo(message, title = '提示', options = {}) {
-  return ElNotification.info({
-    title,
+export function notifyInfo(message, description = '', options = {}) {
+  return notification.info({
     message,
-    duration: 4500,
+    description,
+    duration: 4.5,
     ...options
   })
 }
@@ -184,7 +175,6 @@ export default {
   confirm,
   confirmDelete,
   alert,
-  prompt,
   notifySuccess,
   notifyError,
   notifyWarning,

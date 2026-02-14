@@ -458,11 +458,17 @@ const getThemePreviewStyle = (themeKey) => {
       card: '#162544',
       primary: '#1890ff'
     },
-    purple: {
-      bg: '#13111a',
-      sidebar: '#1a1625',
-      card: '#251f35',
-      primary: '#8b5cf6'
+    red: {
+      bg: '#1a0a0f',
+      sidebar: '#260f18',
+      card: '#2d1420',
+      primary: '#ff4466'
+    },
+    yellow: {
+      bg: '#1a1508',
+      sidebar: '#261f0f',
+      card: '#2d2614',
+      primary: '#fbbf24'
     },
     green: {
       bg: '#0a1410',
