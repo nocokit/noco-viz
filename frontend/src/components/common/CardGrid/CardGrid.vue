@@ -9,7 +9,7 @@
       >
         <slot name="create-card">
           <div class="create-icon">
-            <el-icon><Plus /></el-icon>
+            <Plus />
           </div>
           <h3 class="create-title">{{ createButtonText }}</h3>
           <p class="create-desc">{{ createButtonDesc }}</p>
@@ -26,11 +26,11 @@
         <slot name="card" :item="item" :index="index">
           <!-- 默认卡片布局 -->
           <div class="card-header">
-            <el-tag v-if="item.type" :type="getTagType(item.type)">
+            <a-tag v-if="item.type" :type="getTagType(item.type)">
               {{ item.type }}
-            </el-tag>
+            </a-tag>
             <div class="card-actions">
-              <el-button
+              <a-button
                 v-if="editable"
                 link
                 type="primary"
@@ -38,8 +38,8 @@
                 @click.stop="handleEdit(item)"
               >
                 编辑
-              </el-button>
-              <el-button
+              </a-button>
+              <a-button
                 v-if="deletable"
                 link
                 type="danger"
@@ -47,7 +47,7 @@
                 @click.stop="handleDelete(item)"
               >
                 删除
-              </el-button>
+              </a-button>
             </div>
           </div>
 
@@ -62,7 +62,7 @@
     </div>
 
     <!-- 空状态 -->
-    <el-empty
+    <a-empty
       v-if="items.length === 0"
       :description="emptyText"
       :image-size="120"
@@ -72,7 +72,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Plus } from '@element-plus/icons-vue'
+import { PlusOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps({
   // 数据列表
@@ -233,138 +233,3 @@ const getTagType = (type) => {
 }
 </script>
 
-<style scoped lang="scss">
-.card-grid {
-  width: 100%;
-  min-height: 200px;
-
-  .grid-container {
-    margin-bottom: 20px;
-  }
-
-  .card-item {
-    background: #181b21;
-    border: 1px solid #2a2e35;
-    border-radius: 8px;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    min-height: 160px;
-    transition: all 0.2s;
-    cursor: pointer;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-      background: #22262e;
-      border-color: #444;
-    }
-
-    &.selected {
-      border-color: #409eff;
-      background: rgba(64, 158, 255, 0.1);
-    }
-
-    &.error {
-      border-color: rgba(239, 68, 68, 0.4);
-      background: linear-gradient(180deg, rgba(239, 68, 68, 0.05) 0%, #181b21 40%);
-
-      &:hover {
-        border-color: #ef4444;
-        box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.15);
-      }
-    }
-  }
-
-  .create-card {
-    border: 1px dashed #444;
-    background: transparent;
-    justify-content: center;
-    align-items: center;
-
-    &:hover {
-      border-color: #f59e0b;
-      background: rgba(245, 158, 11, 0.05);
-
-      .create-icon {
-        color: #f59e0b;
-        transform: scale(1.1);
-      }
-    }
-  }
-
-  .create-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: #1e293b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #788595;
-    font-size: 24px;
-    transition: all 0.2s;
-    margin-bottom: 12px;
-  }
-
-  .create-title {
-    color: #fff;
-    font-size: 14px;
-    font-weight: 500;
-    margin: 0 0 4px 0;
-  }
-
-  .create-desc {
-    font-size: 12px;
-    color: #64748b;
-    margin: 0;
-  }
-
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 8px;
-    gap: 8px;
-  }
-
-  .card-actions {
-    display: flex;
-    gap: 4px;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-
-  .card-item:hover .card-actions {
-    opacity: 1;
-  }
-
-  .card-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: #fff;
-    margin: 0 0 6px 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .card-desc {
-    font-size: 11px;
-    color: #94a3b8;
-    line-height: 1.5;
-    margin: 0 0 16px 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    min-height: 33px;
-  }
-
-  .card-footer {
-    margin-top: auto;
-    padding-top: 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-  }
-}
-</style>

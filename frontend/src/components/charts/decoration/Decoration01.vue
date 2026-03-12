@@ -94,13 +94,3 @@ const containerStyle = computed(() => ({
 }))
 </script>
 
-<style scoped>
-.decoration-01 {
-  position: relative;
-  display: inline-block;
-}
-
-.decoration-svg {
-  filter: drop-shadow(0 0 3px currentColor);
-}
-</style>

@@ -166,16 +166,25 @@ export class MonitorService {
     const now = new Date();
     const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-    const errorLogs = await this.auditLogRepository
-      .createQueryBuilder('log')
-      .where('log.action LIKE :pattern', { pattern: '%error%' })
-      .orWhere('log.action LIKE :pattern2', { pattern2: '%fail%' })
-      .andWhere('log.createdAt >= :date', { date: oneDayAgo })
-      .getCount();
+    const [errorLogs, totalLogs] = await Promise.all([
+      this.auditLogRepository
+        .createQueryBuilder('log')
+        .where('log.action LIKE :pattern', { pattern: '%error%' })
+        .orWhere('log.action LIKE :pattern2', { pattern2: '%fail%' })
+        .andWhere('log.createdAt >= :date', { date: oneDayAgo })
+        .getCount(),
+      this.auditLogRepository
+        .createQueryBuilder('log')
+        .where('log.createdAt >= :date', { date: oneDayAgo })
+        .getCount(),
+    ]);
+
+    // 计算错误率（百分比）
+    const errorRate = totalLogs > 0 ? (errorLogs / totalLogs) * 100 : 0;
 
     return {
       last24Hours: errorLogs,
-      errorRate: 0, // TODO: 计算错误率
+      errorRate: Number(errorRate.toFixed(2)),
     };
   }
 

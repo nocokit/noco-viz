@@ -1,5 +1,5 @@
 <template>
-  <el-drawer
+  <a-drawer
     v-model="visible"
     :title="title"
     :size="size"
@@ -23,14 +23,14 @@
     <template #footer>
       <slot name="footer" :data="data">
         <div v-if="showFooter" class="detail-panel__footer">
-          <el-button @click="handleClose">关闭</el-button>
-          <el-button v-if="showEdit" type="primary" @click="handleEdit">
+          <a-button @click="handleClose">关闭</a-button>
+          <a-button v-if="showEdit" type="primary" @click="handleEdit">
             编辑
-          </el-button>
+          </a-button>
         </div>
       </slot>
     </template>
-  </el-drawer>
+  </a-drawer>
 </template>
 
 <script setup>
@@ -93,37 +93,3 @@ const handleEdit = () => {
 }
 </script>
 
-<style scoped>
-.detail-panel__header {
-  padding: 0;
-}
-
-.detail-panel__title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary, #e8eaed);
-  margin: 0;
-}
-
-.detail-panel__body {
-  padding: 0;
-}
-
-.detail-panel__footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 0 0 0;
-  border-top: 1px solid var(--border, #35363a);
-}
-
-:deep(.el-drawer__header) {
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border, #35363a);
-}
-
-:deep(.el-drawer__body) {
-  padding: 20px;
-}
-</style>

@@ -7,9 +7,7 @@
       :class="{ 'breadcrumb__item--active': index === items.length - 1 }"
     >
       <!-- 首页图标 -->
-      <el-icon v-if="showHome && index === 0" class="breadcrumb__home-icon">
-        <HomeFilled />
-      </el-icon>
+      <HomeFilled />
 
       <!-- 链接 -->
       <component
@@ -20,26 +18,26 @@
         class="breadcrumb__link"
         @click="handleClick(item, index)"
       >
-        <el-icon v-if="item.icon && index > 0" class="breadcrumb__icon">
+         0" class="breadcrumb__icon">
           <component :is="item.icon" />
-        </el-icon>
+        
         <span>{{ item.label }}</span>
       </component>
 
       <!-- 当前页（不可点击） -->
       <span v-else class="breadcrumb__current">
-        <el-icon v-if="item.icon && index > 0" class="breadcrumb__icon">
+         0" class="breadcrumb__icon">
           <component :is="item.icon" />
-        </el-icon>
+        
         <span>{{ item.label }}</span>
       </span>
 
       <!-- 分隔符 -->
       <span v-if="index < items.length - 1" class="breadcrumb__separator">
         <slot name="separator">
-          <el-icon v-if="separatorIcon">
+          
             <component :is="separatorIcon" />
-          </el-icon>
+          
           <span v-else>{{ separator }}</span>
         </slot>
       </span>
@@ -49,7 +47,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { HomeFilled, ArrowRight } from '@element-plus/icons-vue'
+import { HomeFilled, RightOutlined } from '@ant-design/icons-vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({
@@ -99,110 +97,3 @@ const handleClick = (item, index) => {
 }
 </script>
 
-<style scoped>
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px 0;
-  font-size: 14px;
-}
-
-.breadcrumb--small {
-  font-size: 12px;
-  gap: 6px;
-}
-
-.breadcrumb--large {
-  font-size: 16px;
-  gap: 10px;
-}
-
-.breadcrumb__item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-secondary, #9aa0a6);
-}
-
-.breadcrumb__item--active {
-  color: var(--text-primary, #e8eaed);
-  font-weight: 500;
-}
-
-.breadcrumb__home-icon {
-  font-size: 16px;
-  color: var(--el-color-primary);
-}
-
-.breadcrumb--small .breadcrumb__home-icon {
-  font-size: 14px;
-}
-
-.breadcrumb--large .breadcrumb__home-icon {
-  font-size: 18px;
-}
-
-.breadcrumb__icon {
-  font-size: 14px;
-}
-
-.breadcrumb--small .breadcrumb__icon {
-  font-size: 12px;
-}
-
-.breadcrumb--large .breadcrumb__icon {
-  font-size: 16px;
-}
-
-.breadcrumb__link {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--text-secondary, #9aa0a6);
-  text-decoration: none;
-  transition: color 0.3s;
-  cursor: pointer;
-}
-
-.breadcrumb__link:hover {
-  color: var(--el-color-primary);
-}
-
-.breadcrumb__current {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.breadcrumb__separator {
-  color: var(--text-tertiary, #5f6368);
-  user-select: none;
-  font-size: 12px;
-}
-
-.breadcrumb--small .breadcrumb__separator {
-  font-size: 10px;
-}
-
-.breadcrumb--large .breadcrumb__separator {
-  font-size: 14px;
-}
-
-@media (max-width: 768px) {
-  .breadcrumb {
-    font-size: 12px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .breadcrumb::-webkit-scrollbar {
-    display: none;
-  }
-
-  .breadcrumb__item {
-    flex-shrink: 0;
-  }
-}
-</style>

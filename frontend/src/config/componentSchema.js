@@ -130,7 +130,23 @@ export const chartConfigSchema = {
             ]
           },
           color: { type: 'color', default: '#fff', label: '字体颜色' },
-          fontFamily: { type: 'string', default: 'inherit', label: '字体' }
+          fontFamily: {
+            type: 'select',
+            default: 'inherit',
+            label: '字体',
+            options: [
+              { label: '系统默认', value: 'inherit' },
+              { label: 'Arial', value: 'Arial, sans-serif' },
+              { label: 'Helvetica', value: 'Helvetica, Arial, sans-serif' },
+              { label: 'Times New Roman', value: '"Times New Roman", Times, serif' },
+              { label: 'Georgia', value: 'Georgia, serif' },
+              { label: 'Courier New', value: '"Courier New", Courier, monospace' },
+              { label: 'Verdana', value: 'Verdana, sans-serif' },
+              { label: 'Trebuchet MS', value: '"Trebuchet MS", sans-serif' },
+              { label: 'Comic Sans MS', value: '"Comic Sans MS", cursive' },
+              { label: 'Impact', value: 'Impact, sans-serif' }
+            ]
+          }
         }
       },
       left: {

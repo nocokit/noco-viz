@@ -1,0 +1,7 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#1f2937"/>
+  <rect x="20" y="20" width="360" height="80" rx="8" fill="#374151"/>
+  <rect x="20" y="120" width="170" height="160" rx="8" fill="#4b5563"/>
+  <rect x="210" y="120" width="170" height="160" rx="8" fill="#4b5563"/>
+  <text x="200" y="70" font-family="Arial" font-size="20" fill="#f3f4f6" text-anchor="middle">研发效能看板</text>
+</svg>

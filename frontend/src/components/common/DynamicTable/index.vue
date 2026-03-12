@@ -1,6 +1,6 @@
 <template>
   <div class="dynamic-table">
-    <el-table
+    <a-table
       ref="tableRef"
       :data="data"
       v-bind="$attrs"
@@ -8,7 +8,7 @@
       @sort-change="handleSortChange"
     >
       <!-- 选择列 -->
-      <el-table-column
+      <a-table-column
         v-if="showSelection"
         type="selection"
         width="55"
@@ -16,7 +16,7 @@
       />
 
       <!-- 索引列 -->
-      <el-table-column
+      <a-table-column
         v-if="showIndex"
         type="index"
         label="序号"
@@ -25,7 +25,7 @@
       />
 
       <!-- 动态列 -->
-      <el-table-column
+      <a-table-column
         v-for="column in columns"
         :key="column.prop"
         :prop="column.prop"
@@ -57,17 +57,17 @@
 
         <!-- 标签显示 -->
         <template v-else-if="column.type === 'tag'" #default="scope">
-          <el-tag
+          <a-tag
             :type="getTagType(scope.row, column)"
             :size="column.size || 'small'"
           >
             {{ getTagLabel(scope.row, column) }}
-          </el-tag>
+          </a-tag>
         </template>
 
         <!-- 开关显示 -->
         <template v-else-if="column.type === 'switch'" #default="scope">
-          <el-switch
+          <a-switch
             v-model="scope.row[column.prop]"
             :disabled="column.disabled"
             @change="handleSwitchChange(scope.row, column)"
@@ -76,7 +76,7 @@
 
         <!-- 图片显示 -->
         <template v-else-if="column.type === 'image'" #default="scope">
-          <el-image
+          <a-image
             :src="scope.row[column.prop]"
             :style="{ width: column.imageWidth || '50px', height: column.imageHeight || '50px' }"
             :preview-src-list="[scope.row[column.prop]]"
@@ -86,17 +86,18 @@
 
         <!-- 链接显示 -->
         <template v-else-if="column.type === 'link'" #default="scope">
-          <el-link
+          <a
             :type="column.linkType || 'primary'"
             @click="handleLinkClick(scope.row, column)"
+            style="color: #1890ff; cursor: pointer;"
           >
             {{ scope.row[column.prop] }}
-          </el-link>
+          </a>
         </template>
-      </el-table-column>
+      </a-table-column>
 
       <!-- 操作列 -->
-      <el-table-column
+      <a-table-column
         v-if="actions && actions.length > 0"
         label="操作"
         :width="actionsWidth"
@@ -105,7 +106,7 @@
       >
         <template #default="scope">
           <slot name="actions" :row="scope.row" :$index="scope.$index">
-            <el-button
+            <a-button
               v-for="action in getRowActions(scope.row)"
               :key="action.command"
               :type="action.type || 'primary'"
@@ -116,20 +117,20 @@
               @click="handleAction(action.command, scope.row, scope.$index)"
             >
               {{ action.label }}
-            </el-button>
+            </a-button>
           </slot>
         </template>
-      </el-table-column>
+      </a-table-column>
 
       <!-- 展开行 -->
       <template v-if="$slots.expand" #expand="scope">
         <slot name="expand" :row="scope.row" />
       </template>
-    </el-table>
+    </a-table>
 
     <!-- 分页 -->
     <div v-if="showPagination && pagination" class="table-pagination">
-      <el-pagination
+      <a-pagination
         v-model:current-page="pagination.currentPage"
         v-model:page-size="pagination.pageSize"
         :total="pagination.total"
@@ -310,18 +311,3 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-.dynamic-table {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.table-pagination {
-  display: flex;
-  justify-content: center;
-  padding: var(--spacing-lg);
-  border-top: 1px solid var(--border);
-  background: var(--bg-card);
-}
-</style>

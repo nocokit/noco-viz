@@ -1,16 +1,10 @@
 /**
  * 仪表盘配置
  */
+import { createTitleConfig } from './commonConfig'
 
 export const defaultGaugeConfig = {
-  title: {
-    text: '仪表盘',
-    left: 'center',
-    textStyle: {
-      color: '#fff',
-      fontSize: 16
-    }
-  },
+  title: createTitleConfig('仪表盘'),
   tooltip: {
     formatter: '{a} <br/>{b} : {c}%'
   },

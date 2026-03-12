@@ -3,11 +3,11 @@
  * 提供统一的加载状态管理
  */
 import { ref } from 'vue'
-import { ElLoading } from 'element-plus'
+import { message } from 'ant-design-vue'
 
 export function useLoading(initialState = false) {
   const loading = ref(initialState)
-  let loadingInstance = null
+  let loadingMessageInstance = null
 
   /**
    * 开始加载
@@ -15,14 +15,9 @@ export function useLoading(initialState = false) {
   const startLoading = (options = {}) => {
     loading.value = true
 
-    // 如果需要全屏加载
-    if (options.fullscreen) {
-      loadingInstance = ElLoading.service({
-        lock: true,
-        text: options.text || '加载中...',
-        background: 'rgba(0, 0, 0, 0.7)',
-        ...options
-      })
+    // 如果需要全屏加载提示
+    if (options.fullscreen && options.text) {
+      loadingMessageInstance = message.loading(options.text || '加载中...', 0)
     }
   }
 
@@ -32,9 +27,9 @@ export function useLoading(initialState = false) {
   const stopLoading = () => {
     loading.value = false
 
-    if (loadingInstance) {
-      loadingInstance.close()
-      loadingInstance = null
+    if (loadingMessageInstance) {
+      loadingMessageInstance()
+      loadingMessageInstance = null
     }
   }
 

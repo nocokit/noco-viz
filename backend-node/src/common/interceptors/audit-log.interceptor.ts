@@ -17,7 +17,7 @@ export class AuditLogInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest();
     const response = context.switchToHttp().getResponse();
 
-    const { method, url, body, user, ip, headers } = request;
+    const { method, url, body, query, params, user, ip, headers } = request;
     const userAgent = headers['user-agent'] || '';
     const traceId = uuidv4();
 
@@ -48,6 +48,7 @@ export class AuditLogInterceptor implements NestInterceptor {
           status: 'success',
           responseStatus: response.statusCode,
           responseTime,
+          responseData: data,
         });
       }),
       catchError((error) => {
@@ -73,8 +74,8 @@ export class AuditLogInterceptor implements NestInterceptor {
   }
 
   private async createAuditLog(params: any) {
-    const { request, user, ip, userAgent, traceId, status, error, responseStatus } = params;
-    const { method, url, body } = request;
+    const { request, user, ip, userAgent, traceId, status, error, responseStatus, responseData } = params;
+    const { method, url, body, query, params: routeParams } = request;
 
     // 解析模块和操作
     const { module, action, actionType, description } = this.parseRequestInfo(method, url, body);
@@ -89,11 +90,18 @@ export class AuditLogInterceptor implements NestInterceptor {
         action,
         actionType,
         description,
-        requestMethod: method,
-        requestUrl: url,
-        requestBody: this.sanitizeBody(body),
-        responseStatus,
-        error,
+        requestData: {
+          method,
+          url,
+          body: this.sanitizeBody(body),
+          query,
+          params: routeParams,
+        },
+        responseData: {
+          status: responseStatus,
+          error,
+          message: responseData?.message,
+        },
         status,
         traceId,
       });
@@ -109,8 +117,8 @@ export class AuditLogInterceptor implements NestInterceptor {
     return parseModuleInfo(method, url, body);
   }
 
-  private sanitizeBody(body: any): string {
-    if (!body) return '';
+  private sanitizeBody(body: any): any {
+    if (!body) return null;
 
     try {
       const sanitized = { ...body };
@@ -123,9 +131,9 @@ export class AuditLogInterceptor implements NestInterceptor {
         }
       });
 
-      return JSON.stringify(sanitized);
+      return sanitized;
     } catch (err) {
-      return '';
+      return null;
     }
   }
 }

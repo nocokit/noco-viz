@@ -28,40 +28,40 @@
       >
         <!-- 自定义筛选器 -->
         <template #filters>
-          <el-select
-            v-model="statusFilter"
+          <a-select
+            v-model:value="statusFilter"
             placeholder="用户状态"
             clearable
             style="width: 140px; margin-left: 12px;"
             @change="handleFilterChange"
           >
-            <el-option label="全部" value="" />
-            <el-option label="活跃" value="active" />
-            <el-option label="禁用" value="inactive" />
-          </el-select>
-          <el-select
-            v-model="roleFilter"
+            <a-select-option label="全部" value="" />
+            <a-select-option label="活跃" value="active" />
+            <a-select-option label="禁用" value="inactive" />
+          </a-select>
+          <a-select
+            v-model:value="roleFilter"
             placeholder="用户角色"
             clearable
             style="width: 160px; margin-left: 12px;"
             @change="handleFilterChange"
           >
-            <el-option label="全部角色" value="" />
-            <el-option
+            <a-select-option label="全部角色" value="" />
+            <a-select-option
               v-for="role in availableRoles"
               :key="role.id"
               :label="role.name"
               :value="role.id"
             />
-          </el-select>
+          </a-select>
         </template>
 
         <!-- 自定义列 -->
         <template #column-username="{ row }">
           <div class="user-cell">
-            <el-avatar :size="32" class="user-avatar">
+            <a-avatar :size="32" class="user-avatar">
               {{ row.username.charAt(0).toUpperCase() }}
-            </el-avatar>
+            </a-avatar>
             <div class="user-info">
               <div class="user-name">{{ row.username }}</div>
               <div class="user-email">{{ row.email }}</div>
@@ -74,14 +74,14 @@
         </template>
 
         <template #column-role="{ row }">
-          <el-tag :type="getRoleTagType(row.role)" size="small">
+          <a-tag :type="getRoleTagType(row.role)" size="small">
             {{ getRoleText(row.role) }}
-          </el-tag>
+          </a-tag>
         </template>
 
         <template #column-isActive="{ row }">
-          <el-switch
-            v-model="row.isActive"
+          <a-switch
+            v-model:value="row.isActive"
             :loading="row.statusChanging"
             @change="handleToggleStatus(row)"
           />
@@ -97,161 +97,262 @@
 
         <!-- 自定义操作列 -->
         <template #row-actions="{ row }">
-          <el-button
+          <a-button
             link
             type="primary"
             size="small"
             @click="handleEdit(row)"
           >
             编辑
-          </el-button>
-          <el-button
+          </a-button>
+          <a-button
             link
             type="warning"
             size="small"
             @click="handleResetPassword(row)"
           >
             重置密码
-          </el-button>
-          <el-button
+          </a-button>
+          <a-button
             link
             type="danger"
             size="small"
             @click="handleDelete(row)"
           >
             删除
-          </el-button>
+          </a-button>
         </template>
       </CrudTable>
     </div>
 
-    <!-- 创建/编辑用户对话框 -->
-    <el-dialog
-      v-model="userDialogVisible"
-      :title="dialogMode === 'create' ? '新建用户' : '编辑用户'"
+    <!-- 创建用户对话框 -->
+    <a-modal
+      v-model:open="createDialogVisible"
+      title="新建用户"
       width="600px"
-      :close-on-click-modal="false"
-      @close="resetUserForm"
+      @cancel="resetUserForm"
     >
-      <el-form
-        ref="userFormRef"
+      <a-form
+        ref="createFormRef"
         :model="userForm"
         :rules="userFormRules"
-        label-position="top"
+        :label-col="{ span: 6 }"
+        :wrapper-col="{ span: 18 }"
       >
-        <el-form-item label="用户名" prop="username">
-          <el-input
-            v-model="userForm.username"
-            placeholder="请输入用户名（仅创建时可设置）"
-            :disabled="dialogMode === 'edit'"
-            maxlength="50"
-            show-word-limit
-          >
-            <template #prefix>
-              <el-icon><User /></el-icon>
-            </template>
-          </el-input>
-        </el-form-item>
+        <a-form-item label="用户名" name="username">
+          <a-input
+            v-model:value="userForm.username"
+            placeholder="请输入用户名"
+            :maxlength="50"
+          />
+        </a-form-item>
 
-        <el-form-item label="邮箱" prop="email">
-          <el-input
-            v-model="userForm.email"
+        <a-form-item label="邮箱" name="email">
+          <a-input
+            v-model:value="userForm.email"
             placeholder="请输入邮箱地址"
-            maxlength="100"
-          >
-            <template #prefix>
-              <el-icon><Message /></el-icon>
-            </template>
-          </el-input>
-        </el-form-item>
+            :maxlength="100"
+          />
+        </a-form-item>
 
-        <el-form-item label="手机号" prop="phone">
-          <el-input
-            v-model="userForm.phone"
+        <a-form-item label="手机号" name="phone">
+          <a-input
+            v-model:value="userForm.phone"
             placeholder="请输入手机号（可选）"
-            maxlength="20"
-          >
-            <template #prefix>
-              <el-icon><Phone /></el-icon>
-            </template>
-          </el-input>
-        </el-form-item>
+            :maxlength="20"
+          />
+        </a-form-item>
 
-        <el-form-item label="角色" prop="roleId">
-          <el-select
-            v-model="userForm.roleId"
+        <a-form-item label="角色" name="roleId">
+          <a-select
+            v-model:value="userForm.roleId"
             placeholder="请选择用户角色"
-            style="width: 100%"
           >
-            <el-option
+            <a-select-option
               v-for="role in availableRoles"
               :key="role.id"
-              :label="role.name"
               :value="role.id"
             >
-              <div style="display: flex; flex-direction: column;">
-                <span>{{ role.name }}</span>
-                <span style="font-size: 12px; color: #9ca3af;">{{ role.description }}</span>
-              </div>
-            </el-option>
-          </el-select>
-        </el-form-item>
+              {{ role.name }}
+            </a-select-option>
+          </a-select>
+        </a-form-item>
 
-        <el-form-item
-          v-if="dialogMode === 'create'"
-          label="初始密码"
-          prop="password"
-        >
-          <el-input
-            v-model="userForm.password"
-            type="password"
+        <a-form-item label="初始密码" name="password">
+          <a-input-password
+            v-model:value="userForm.password"
             placeholder="请输入初始密码（至少6位）"
-            show-password
-            maxlength="50"
-          >
-            <template #prefix>
-              <el-icon><Lock /></el-icon>
-            </template>
-          </el-input>
-          <div class="form-tip">用户首次登录后应修改密码</div>
-        </el-form-item>
+            :maxlength="50"
+          />
+          <div style="font-size: 12px; color: #999; margin-top: 4px;">用户首次登录后应修改密码</div>
+        </a-form-item>
 
-        <el-form-item label="用户状态" prop="isActive">
-          <el-radio-group v-model="userForm.isActive">
-            <el-radio :value="true">启用</el-radio>
-            <el-radio :value="false">禁用</el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </el-form>
+        <a-form-item label="用户状态" name="isActive">
+          <a-radio-group v-model:value="userForm.isActive">
+            <a-radio :value="true">启用</a-radio>
+            <a-radio :value="false">禁用</a-radio>
+          </a-radio-group>
+        </a-form-item>
+      </a-form>
 
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="userDialogVisible = false">取消</el-button>
-          <el-button
-            type="primary"
-            @click="handleUserSubmit"
-            :loading="userSubmitting"
-          >
-            {{ dialogMode === 'create' ? '创建' : '保存' }}
-          </el-button>
-        </span>
+        <a-button @click="createDialogVisible = false">取消</a-button>
+        <a-button
+          type="primary"
+          @click="handleCreateSubmit"
+          :loading="userSubmitting"
+        >
+          创建
+        </a-button>
       </template>
-    </el-dialog>
+    </a-modal>
+
+    <!-- 编辑用户抽屉 -->
+    <a-drawer
+      v-model:open="userDrawerVisible"
+      title="用户详情"
+      width="720"
+      :body-style="{ paddingBottom: '80px' }"
+      @close="resetUserForm"
+    >
+      <a-tabs v-model:activeKey="activeTab">
+        <!-- 基本信息 Tab -->
+        <a-tab-pane key="info" tab="基本信息">
+          <a-form
+            ref="userFormRef"
+            :model="userForm"
+            :rules="editFormRules"
+            :label-col="{ span: 6 }"
+            :wrapper-col="{ span: 18 }"
+          >
+            <a-form-item label="用户名">
+              <a-input
+                :value="userForm.username"
+                disabled
+              />
+            </a-form-item>
+
+            <a-form-item label="邮箱" name="email">
+              <a-input
+                v-model:value="userForm.email"
+                placeholder="请输入邮箱地址"
+                :maxlength="100"
+              />
+            </a-form-item>
+
+            <a-form-item label="手机号" name="phone">
+              <a-input
+                v-model:value="userForm.phone"
+                placeholder="请输入手机号（可选）"
+                :maxlength="20"
+              />
+            </a-form-item>
+
+            <a-form-item label="用户状态" name="isActive">
+              <a-radio-group v-model:value="userForm.isActive">
+                <a-radio :value="true">启用</a-radio>
+                <a-radio :value="false">禁用</a-radio>
+              </a-radio-group>
+            </a-form-item>
+
+            <a-form-item label="创建时间">
+              <span>{{ currentUser?.createdAt || '-' }}</span>
+            </a-form-item>
+
+            <a-form-item label="最后登录">
+              <span>{{ currentUser?.lastLoginAt || '从未登录' }}</span>
+            </a-form-item>
+          </a-form>
+        </a-tab-pane>
+
+        <!-- 角色权限 Tab -->
+        <a-tab-pane key="role" tab="角色权限">
+          <a-form
+            :label-col="{ span: 6 }"
+            :wrapper-col="{ span: 18 }"
+          >
+            <a-form-item label="当前角色">
+              <a-select
+                v-model:value="userForm.roleId"
+                placeholder="请选择用户角色"
+              >
+                <a-select-option
+                  v-for="role in availableRoles"
+                  :key="role.id"
+                  :value="role.id"
+                >
+                  {{ role.name }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+
+            <a-divider />
+
+            <div v-if="currentUserRole" style="padding: 16px; background: #f5f5f5; border-radius: 4px;">
+              <h4 style="margin-bottom: 12px;">角色信息</h4>
+              <p><strong>角色名称：</strong>{{ currentUserRole.name }}</p>
+              <p><strong>角色描述：</strong>{{ currentUserRole.description || '无' }}</p>
+              <p><strong>权限数量：</strong>{{ currentUserRole.permissions?.length || 0 }}</p>
+
+              <a-divider style="margin: 16px 0;" />
+
+              <h4 style="margin-bottom: 12px;">权限列表</h4>
+              <div v-if="currentUserRole.permissions && currentUserRole.permissions.length > 0">
+                <a-tag
+                  v-for="permission in currentUserRole.permissions"
+                  :key="permission.id"
+                  style="margin-bottom: 8px;"
+                >
+                  {{ permission.name }}
+                </a-tag>
+              </div>
+              <div v-else style="color: #999;">
+                该角色暂无权限
+              </div>
+            </div>
+          </a-form>
+        </a-tab-pane>
+      </a-tabs>
+
+      <div
+        style="
+          position: absolute;
+          right: 0;
+          bottom: 0;
+          width: 100%;
+          border-top: 1px solid #e9e9e9;
+          padding: 10px 16px;
+          background: #fff;
+          text-align: right;
+        "
+      >
+        <a-button style="margin-right: 8px" @click="userDrawerVisible = false">
+          取消
+        </a-button>
+        <a-button
+          type="primary"
+          @click="handleEditSubmit"
+          :loading="userSubmitting"
+        >
+          保存
+        </a-button>
+      </div>
+    </a-drawer>
 
     <!-- 重置密码对话框 -->
-    <el-dialog
-      v-model="resetPasswordDialogVisible"
+    <a-modal
+      v-model:value="resetPasswordDialogVisible"
       title="重置用户密码"
       width="500px"
       :close-on-click-modal="false"
     >
-      <el-form
+      <a-form
         ref="resetPasswordFormRef"
         :model="resetPasswordForm"
         :rules="resetPasswordRules"
         label-position="top"
       >
-        <el-alert
+        <a-alert
           title="提示"
           type="warning"
           :closable="false"
@@ -264,57 +365,49 @@
               <p>• 建议通知用户及时修改密码</p>
             </div>
           </template>
-        </el-alert>
+        </a-alert>
 
-        <el-form-item label="新密码" prop="newPassword">
-          <el-input
-            v-model="resetPasswordForm.newPassword"
+        <a-form-item label="新密码" prop="newPassword">
+          <a-input
+            v-model:value="resetPasswordForm.newPassword"
             type="password"
             placeholder="请输入新密码（至少6位）"
             show-password
             maxlength="50"
-          >
-            <template #prefix>
-              <el-icon><Lock /></el-icon>
-            </template>
-          </el-input>
-        </el-form-item>
+          />
+        </a-form-item>
 
-        <el-form-item label="确认密码" prop="confirmPassword">
-          <el-input
-            v-model="resetPasswordForm.confirmPassword"
+        <a-form-item label="确认密码" prop="confirmPassword">
+          <a-input
+            v-model:value="resetPasswordForm.confirmPassword"
             type="password"
             placeholder="请再次输入新密码"
             show-password
             maxlength="50"
-          >
-            <template #prefix>
-              <el-icon><Lock /></el-icon>
-            </template>
-          </el-input>
-        </el-form-item>
-      </el-form>
+          />
+        </a-form-item>
+      </a-form>
 
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="resetPasswordDialogVisible = false">取消</el-button>
-          <el-button
+          <a-button @click="resetPasswordDialogVisible = false">取消</a-button>
+          <a-button
             type="primary"
             @click="handleResetPasswordSubmit"
             :loading="resetPasswordSubmitting"
           >
             确认重置
-          </el-button>
+          </a-button>
         </span>
       </template>
-    </el-dialog>
+    </a-modal>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { User, Message, Phone, Lock } from '@element-plus/icons-vue'
+import { message, Modal } from 'ant-design-vue'
+import { UserOutlined, MailOutlined, PhoneOutlined, LockOutlined } from '@ant-design/icons-vue'
 
 // 组件导入
 import CrudTable from '@/components/business/CrudTable.vue'
@@ -391,14 +484,16 @@ const users = ref([])
 const availableRoles = ref([])
 
 // 对话框状态
-const userDialogVisible = ref(false)
+const createDialogVisible = ref(false)
+const userDrawerVisible = ref(false)
 const resetPasswordDialogVisible = ref(false)
-const dialogMode = ref('create') // 'create' | 'edit'
+const activeTab = ref('info')
 const currentUser = ref(null)
 const userSubmitting = ref(false)
 const resetPasswordSubmitting = ref(false)
 
 // 表单引用
+const createFormRef = ref(null)
 const userFormRef = ref(null)
 const resetPasswordFormRef = ref(null)
 
@@ -440,6 +535,16 @@ const userFormRules = {
   ]
 }
 
+const editFormRules = {
+  email: [
+    { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+    { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
+  ],
+  phone: [
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+  ]
+}
+
 const resetPasswordRules = {
   newPassword: [
     { required: true, message: '请输入新密码', trigger: 'blur' },
@@ -465,7 +570,9 @@ const loadUsers = async () => {
   try {
     loading.value = true
     const data = await getUserList()
-    users.value = data.map(user => ({
+
+    // 处理返回的数据
+    users.value = (Array.isArray(data) ? data : []).map(user => ({
       ...user,
       statusChanging: false,
       isActive: user.isActive !== false,
@@ -474,7 +581,7 @@ const loadUsers = async () => {
     }))
   } catch (error) {
     console.error('加载用户列表失败:', error)
-    ElMessage.error('加载用户列表失败')
+    message.error('加载用户列表失败')
   } finally {
     loading.value = false
   }
@@ -487,7 +594,7 @@ const loadRoles = async () => {
     availableRoles.value = data
   } catch (error) {
     console.error('加载角色列表失败:', error)
-    ElMessage.error('加载角色列表失败')
+    message.error('加载角色列表失败')
   }
 }
 
@@ -546,6 +653,11 @@ const inactiveUsersCount = computed(() => {
   return users.value.filter(user => !user.isActive).length
 })
 
+const currentUserRole = computed(() => {
+  if (!userForm.roleId) return null
+  return availableRoles.value.find(role => role.id === userForm.roleId)
+})
+
 // 方法
 const handleSearch = (query) => {
   searchKeyword.value = query
@@ -573,15 +685,14 @@ const getRoleTagType = (role) => {
 }
 
 const handleCreate = () => {
-  dialogMode.value = 'create'
-  currentUser.value = null
-  userDialogVisible.value = true
+  resetUserForm()
+  createDialogVisible.value = true
 }
 
 const handleEdit = async (user) => {
   try {
-    dialogMode.value = 'edit'
     currentUser.value = user
+    activeTab.value = 'info'
 
     // 获取用户详情
     const detail = await getUserDetail(user.id)
@@ -593,51 +704,77 @@ const handleEdit = async (user) => {
     userForm.roleId = detail.roleId
     userForm.isActive = detail.isActive !== false
 
-    userDialogVisible.value = true
+    userDrawerVisible.value = true
   } catch (error) {
     console.error('加载用户详情失败:', error)
-    ElMessage.error('加载用户详情失败')
+    message.error('加载用户详情失败')
   }
 }
 
-const handleUserSubmit = async () => {
-  if (!userFormRef.value) return
+const handleCreateSubmit = async () => {
+  if (!createFormRef.value) return
 
-  userFormRef.value.validate(async (valid) => {
-    if (!valid) return
-
+  try {
+    await createFormRef.value.validate()
     userSubmitting.value = true
 
-    try {
-      const submitData = {
-        email: userForm.email,
-        phone: userForm.phone,
-        roleId: userForm.roleId,
-        isActive: userForm.isActive
-      }
-
-      if (dialogMode.value === 'create') {
-        // 创建用户
-        submitData.username = userForm.username
-        submitData.password = userForm.password
-        await createUser(submitData)
-        ElMessage.success(`用户 "${userForm.username}" 创建成功`)
-      } else {
-        // 更新用户
-        await updateUser(currentUser.value.id, submitData)
-        ElMessage.success(`用户 "${currentUser.value.username}" 更新成功`)
-      }
-
-      // 重新加载列表
-      await loadUsers()
-      userDialogVisible.value = false
-    } catch (error) {
-      console.error('操作失败:', error)
-      ElMessage.error(dialogMode.value === 'create' ? '创建用户失败' : '更新用户失败')
-    } finally {
-      userSubmitting.value = false
+    const submitData = {
+      username: userForm.username,
+      email: userForm.email,
+      phone: userForm.phone,
+      password: userForm.password,
+      roleId: userForm.roleId,
+      isActive: userForm.isActive
     }
-  })
+
+    await createUser(submitData)
+    message.success(`用户 "${userForm.username}" 创建成功`)
+
+    // 重新加载列表
+    await loadUsers()
+    createDialogVisible.value = false
+  } catch (error) {
+    if (error.errorFields) {
+      // 表单验证错误
+      return
+    }
+    console.error('创建用户失败:', error)
+    message.error('创建用户失败')
+  } finally {
+    userSubmitting.value = false
+  }
+}
+
+const handleEditSubmit = async () => {
+  if (!userFormRef.value) return
+
+  try {
+    await userFormRef.value.validate()
+    userSubmitting.value = true
+
+    const submitData = {
+      email: userForm.email,
+      phone: userForm.phone,
+      roleId: userForm.roleId,
+      isActive: userForm.isActive
+    }
+
+    await updateUser(currentUser.value.id, submitData)
+    message.success(`用户 "${currentUser.value.username}" 更新成功`)
+
+    // 重新加载列表
+    await loadUsers()
+    userDrawerVisible.value = false
+  } catch (error) {
+    if (error.errorFields) {
+      // 表单验证错误
+      return
+    }
+    console.error('更新用户失败:', error)
+    message.error('更新用户失败')
+  } finally {
+    userSubmitting.value = false
+  }
 }
 
 const resetUserForm = () => {
@@ -655,7 +792,7 @@ const resetUserForm = () => {
 
 const handleDelete = async (user) => {
   try {
-    await ElMessageBox.confirm(
+    await Modal.confirm(
       `确定要删除用户 "${user.username}" 吗？此操作不可恢复。`,
       '删除确认',
       {
@@ -666,14 +803,14 @@ const handleDelete = async (user) => {
     )
 
     await deleteUser(user.id)
-    ElMessage.success(`已删除用户 "${user.username}"`)
+    message.success(`已删除用户 "${user.username}"`)
 
     // 重新加载列表
     await loadUsers()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除用户失败:', error)
-      ElMessage.error('删除用户失败')
+      message.error('删除用户失败')
     }
   }
 }
@@ -683,12 +820,12 @@ const handleBatchAction = async (command) => {
     // 获取选中的用户
     const selectedUsers = users.value.filter(user => user.selected)
     if (selectedUsers.length === 0) {
-      ElMessage.warning('请先选择要删除的用户')
+      message.warning('请先选择要删除的用户')
       return
     }
 
     try {
-      await ElMessageBox.confirm(
+      await Modal.confirm(
         `确定要删除选中的 ${selectedUsers.length} 个用户吗？此操作不可恢复。`,
         '批量删除确认',
         {
@@ -700,14 +837,14 @@ const handleBatchAction = async (command) => {
 
       const userIds = selectedUsers.map(user => user.id)
       await batchDeleteUsers(userIds)
-      ElMessage.success(`已删除 ${selectedUsers.length} 个用户`)
+      message.success(`已删除 ${selectedUsers.length} 个用户`)
 
       // 重新加载列表
       await loadUsers()
     } catch (error) {
       if (error !== 'cancel') {
         console.error('批量删除失败:', error)
-        ElMessage.error('批量删除失败')
+        message.error('批量删除失败')
       }
     }
   }
@@ -730,11 +867,11 @@ const handleResetPasswordSubmit = async () => {
 
     try {
       await resetUserPassword(currentUser.value.id, resetPasswordForm.newPassword)
-      ElMessage.success(`已重置用户 "${currentUser.value.username}" 的密码`)
+      message.success(`已重置用户 "${currentUser.value.username}" 的密码`)
       resetPasswordDialogVisible.value = false
     } catch (error) {
       console.error('重置密码失败:', error)
-      ElMessage.error('重置密码失败')
+      message.error('重置密码失败')
     } finally {
       resetPasswordSubmitting.value = false
     }
@@ -746,10 +883,10 @@ const handleToggleStatus = async (user) => {
 
   try {
     await toggleUserStatus(user.id, user.isActive)
-    ElMessage.success(`已${user.isActive ? '启用' : '禁用'}用户 "${user.username}"`)
+    message.success(`已${user.isActive ? '启用' : '禁用'}用户 "${user.username}"`)
   } catch (error) {
     console.error('切换用户状态失败:', error)
-    ElMessage.error('切换用户状态失败')
+    message.error('切换用户状态失败')
     // 恢复状态
     user.isActive = !user.isActive
   } finally {
@@ -758,102 +895,3 @@ const handleToggleStatus = async (user) => {
 }
 </script>
 
-<style scoped>
-.user-management-page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background-color: #0a0b0d;
-  color: #ffffff;
-  overflow: hidden;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.toolbar-stats {
-  display: flex;
-  gap: 24px;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-}
-
-.stat-label {
-  color: #9ca3af;
-}
-
-.stat-value {
-  color: #3b82f6;
-  font-weight: 600;
-}
-
-.table-container {
-  flex: 1;
-  overflow: hidden;
-  padding: 24px;
-}
-
-/* User Cell */
-.user-cell {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.user-avatar {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
-  font-weight: 600;
-}
-
-.user-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.user-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #ffffff;
-}
-
-.user-email {
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-.phone-text {
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  color: #d1d5db;
-}
-
-.time-text {
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-/* Form Tips */
-.form-tip {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #9ca3af;
-  line-height: 1.4;
-}
-
-/* Dialog Footer */
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-</style>

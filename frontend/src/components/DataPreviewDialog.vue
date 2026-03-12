@@ -1,10 +1,10 @@
 <template>
-  <el-dialog
-    v-model="visible"
+  <a-modal
+    v-model:open="visible"
     :title="`数据预览 - ${datasetName}`"
     width="90%"
-    top="5vh"
-    @close="handleClose"
+    :style="{ top: '5vh' }"
+    @cancel="handleClose"
   >
     <div class="preview-container">
       <!-- 工具栏 -->
@@ -16,69 +16,58 @@
           <span class="value">{{ columns.length }}</span>
         </div>
         <div class="actions">
-          <el-button size="small" @click="refreshData">
-            <el-icon><Refresh /></el-icon>
+          <a-button size="small" @click="refreshData">
+            <template #icon><ReloadOutlined /></template>
             刷新
-          </el-button>
-          <el-button size="small" @click="exportData">
-            <el-icon><Download /></el-icon>
+          </a-button>
+          <a-button size="small" @click="exportData">
+            <template #icon><DownloadOutlined /></template>
             导出
-          </el-button>
+          </a-button>
         </div>
       </div>
 
       <!-- 数据表格 -->
-      <div v-loading="loading" class="table-wrapper">
-        <el-table
-          :data="tableData"
-          border
-          stripe
-          height="500"
-          style="width: 100%"
-        >
-          <el-table-column
-            type="index"
-            label="序号"
-            width="60"
-            align="center"
-          />
-          <el-table-column
-            v-for="col in columns"
-            :key="col.field"
-            :prop="col.field"
-            :label="col.label"
-            :width="col.width || 150"
-            show-overflow-tooltip
+      <div class="table-wrapper">
+        <a-spin :spinning="loading">
+          <a-table
+            :dataSource="tableData"
+            :columns="tableColumns"
+            :scroll="{ y: 500 }"
+            :pagination="false"
+            bordered
+            :rowKey="(record, index) => index"
           >
-            <template #default="{ row }">
-              <span :class="getCellClass(row[col.field])">
-                {{ formatCellValue(row[col.field]) }}
+            <template #bodyCell="{ column, record }">
+              <span :class="getCellClass(record[column.dataIndex])">
+                {{ formatCellValue(record[column.dataIndex]) }}
               </span>
             </template>
-          </el-table-column>
-        </el-table>
+          </a-table>
+        </a-spin>
       </div>
 
       <!-- 分页 -->
       <div class="pagination-wrapper">
-        <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[50, 100, 200, 500]"
+        <a-pagination
+          v-model:current="currentPage"
+          v-model:pageSize="pageSize"
           :total="totalRows"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
-          @current-change="handlePageChange"
+          :pageSizeOptions="['50', '100', '200', '500']"
+          :showSizeChanger="true"
+          :showTotal="total => `共 ${total} 条`"
+          @change="handlePageChange"
+          @showSizeChange="handleSizeChange"
         />
       </div>
     </div>
-  </el-dialog>
+  </a-modal>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Refresh, Download } from '@element-plus/icons-vue'
+import { message, ElMessageBox } from '@/utils/ui'
+import { ReloadOutlined, DownloadOutlined } from '@ant-design/icons-vue'
 import { previewDataset } from '@/api/dataset'
 
 const props = defineProps({
@@ -110,6 +99,32 @@ const currentPage = ref(1)
 const pageSize = ref(100)
 const totalRows = ref(0)
 
+// 计算表格列配置
+const tableColumns = computed(() => {
+  const cols = [
+    {
+      title: '序号',
+      dataIndex: 'index',
+      key: 'index',
+      width: 60,
+      align: 'center',
+      customRender: ({ index }) => index + 1 + (currentPage.value - 1) * pageSize.value
+    }
+  ]
+
+  columns.value.forEach(col => {
+    cols.push({
+      title: col.label,
+      dataIndex: col.field,
+      key: col.field,
+      width: col.width || 150,
+      ellipsis: true
+    })
+  })
+
+  return cols
+})
+
 // 监听对话框打开，加载数据
 watch(visible, (newVal) => {
   if (newVal && props.datasetId) {
@@ -140,11 +155,11 @@ const loadData = async () => {
       tableData.value = data || []
       totalRows.value = total || 0
     } else {
-      ElMessage.error(response.message || '加载数据失败')
+      message.error(response.message || '加载数据失败')
     }
   } catch (error) {
     console.error('预览数据错误:', error)
-    ElMessage.error('加载数据失败')
+    message.error('加载数据失败')
 
     // Mock数据用于演示（在后端未就绪时）
     mockData()
@@ -198,11 +213,7 @@ const exportData = async () => {
       }
     )
 
-    const loading = ElMessage({
-      message: '正在导出数据...',
-      type: 'info',
-      duration: 0
-    })
+    const loading = message.loading('正在导出数据...', 0)
 
     try {
       // 导入导出API
@@ -220,12 +231,12 @@ const exportData = async () => {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
 
-      loading.close()
-      ElMessage.success('数据导出成功！')
+      loading()
+      message.success('数据导出成功！')
     } catch (error) {
-      loading.close()
+      loading()
       console.error('导出数据失败:', error)
-      ElMessage.error('导出数据失败')
+      message.error('导出数据失败')
     }
   } catch (error) {
     // 用户取消操作
@@ -281,77 +292,3 @@ const getCellClass = (value) => {
 }
 </script>
 
-<style scoped>
-.preview-container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.preview-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background: #f5f7fa;
-  border-radius: 4px;
-}
-
-.info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.label {
-  font-size: 13px;
-  color: #606266;
-  font-weight: 500;
-}
-
-.value {
-  font-size: 14px;
-  color: #303133;
-  font-weight: 600;
-}
-
-.ml-20 {
-  margin-left: 20px;
-}
-
-.actions {
-  display: flex;
-  gap: 8px;
-}
-
-.table-wrapper {
-  flex: 1;
-  min-height: 500px;
-}
-
-.pagination-wrapper {
-  display: flex;
-  justify-content: flex-end;
-  padding: 12px 0;
-}
-
-:deep(.el-table) {
-  font-size: 13px;
-}
-
-:deep(.el-table th) {
-  background-color: #f5f7fa;
-  color: #606266;
-  font-weight: 600;
-}
-
-.cell-null {
-  color: #909399;
-  font-style: italic;
-}
-
-.cell-number {
-  color: #409eff;
-  font-weight: 500;
-}
-</style>

@@ -39,34 +39,3 @@ const containerStyle = computed(() => {
 })
 </script>
 
-<style scoped>
-.page-container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--el-bg-color);
-}
-
-.padding-24 {
-  padding: 24px;
-}
-
-.padding-16 {
-  padding: 16px;
-}
-
-.padding-none {
-  padding: 0;
-}
-
-@media (max-width: 768px) {
-  .padding-24 {
-    padding: 16px;
-  }
-
-  .padding-16 {
-    padding: 12px;
-  }
-}
-</style>

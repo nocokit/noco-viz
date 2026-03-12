@@ -2,10 +2,10 @@
   <div class="simple-crud-modal">
     <!-- CRUD 列表 -->
     <SimpleCrud
-      :config="config.table"
+      :config="config?.table || {}"
       :data="data"
       :loading="loading"
-      :show-search="config.showSearch !== false"
+      :show-search="config?.showSearch !== false"
       :pagination="pagination"
       :sort="sort"
       @action="handleAction"
@@ -14,6 +14,7 @@
       @page-change="$emit('page-change', $event)"
       @page-size-change="$emit('page-size-change', $event)"
       @sort-change="$emit('sort-change', $event)"
+      @batch-delete="$emit('batch-delete', $event)"
     >
       <!-- 透传所有插槽 -->
       <template v-for="(_, name) in $slots" #[name]="slotProps">
@@ -37,17 +38,17 @@
       />
 
       <template #footer>
-        <button class="btn" @click="handleCloseModal">
+        <a-button @click="handleCloseModal">
           {{ modalConfig.cancelText }}
-        </button>
-        <button
-          class="btn btn-primary"
+        </a-button>
+        <a-button
+          type="primary"
           @click="handleSubmit"
           :disabled="submitting"
+          :loading="submitting"
         >
-          {{ submitting ? modalConfig.submittingText :
-             (isEditing ? modalConfig.editSubmitText : modalConfig.addSubmitText) }}
-        </button>
+          {{ isEditing ? modalConfig.editSubmitText : modalConfig.addSubmitText }}
+        </a-button>
       </template>
     </CommonModal>
   </div>
@@ -116,9 +117,14 @@ const emit = defineEmits([
   'edit',     // 编辑事件 (formData, editingItem)
   'delete',   // 删除事件 (item)
   'refresh',  // 刷新事件
+  'search',   // 搜索事件
   'page-change',      // 页码变化
   'page-size-change', // 每页条数变化
-  'sort-change'       // 排序变化
+  'sort-change',      // 排序变化
+  'configure-permission', // 配置权限
+  'test-connection',      // 测试连接
+  'view-details',         // 查看详情
+  'batch-delete'          // 批量删除
 ])
 
 // 状态
@@ -164,9 +170,10 @@ const modalConfig = computed(() => {
 
 // 初始化表单数据
 const initFormData = () => {
-  const fields = props.config.form.fields || []
+  const fields = props.config.form?.fields || []
   fields.forEach(field => {
-    formData[field.key] = ''
+    const key = field.name || field.key
+    formData[key] = field.defaultValue ?? ''
   })
 }
 
@@ -191,6 +198,9 @@ const handleRowAction = (actionKey, row) => {
     openModal(row)
   } else if (actionKey === 'delete') {
     emit('delete', row)
+  } else {
+    // 处理自定义操作，发出事件
+    emit(actionKey, row)
   }
 }
 
@@ -202,11 +212,14 @@ const openModal = (item = null) => {
   const fields = props.config.form.fields || []
   if (item) {
     fields.forEach(field => {
-      formData[field.key] = item[field.key] || ''
+      const key = field.name || field.key
+      // 使用 ?? 而不是 || 来避免 false、0、null 等值被替换为空字符串
+      formData[key] = item[key] ?? (field.defaultValue ?? '')
     })
   } else {
     fields.forEach(field => {
-      formData[field.key] = ''
+      const key = field.name || field.key
+      formData[key] = field.defaultValue ?? ''
     })
   }
 
@@ -226,7 +239,8 @@ const handleCloseModal = () => {
   // 重置表单数据
   const fields = props.config.form.fields || []
   fields.forEach(field => {
-    formData[field.key] = ''
+    const key = field.name || field.key
+    formData[key] = field.defaultValue ?? ''
   })
 
   formRef.value?.clearErrors()
@@ -279,41 +293,8 @@ defineExpose({
   height: 100%;
 }
 
-/* Button Styles */
-.btn {
-  height: 36px;
-  padding: 0 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid var(--el-border-color);
-  background: var(--el-bg-color);
-  color: var(--el-text-color-regular);
-  transition: 0.2s;
-}
-
-.btn:hover {
-  border-color: var(--el-color-primary);
-  color: var(--el-color-primary);
-}
-
-.btn-primary {
-  background: var(--el-color-primary);
-  border-color: var(--el-color-primary);
-  color: #fff;
-}
-
-.btn-primary:hover {
-  background: var(--el-color-primary-light-3);
-  border-color: var(--el-color-primary-light-3);
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.simple-crud-modal :deep(.simple-crud-container) {
+  flex: 1;
+  min-height: 0;
 }
 </style>

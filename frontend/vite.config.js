@@ -36,6 +36,10 @@ export default defineConfig({
     assetsDir: 'assets',
     sourcemap: false,
     minify: 'esbuild',
+    // 生产环境移除 console
+    esbuild: {
+      drop: ['console', 'debugger']
+    },
     rollupOptions: {
       output: {
         chunkFileNames: 'assets/js/[name]-[hash].js',
@@ -43,26 +47,40 @@ export default defineConfig({
         assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('element-plus')) {
-              return 'element-plus'
+            // Ant Design Vue 按模块拆分
+            if (id.includes('ant-design-vue')) {
+              if (id.includes('es/table')) return 'antd-table'
+              if (id.includes('es/form')) return 'antd-form'
+              if (id.includes('es/modal')) return 'antd-modal'
+              return 'ant-design-vue'
             }
+            // ECharts 按需拆分
             if (id.includes('echarts')) {
+              if (id.includes('echarts-gl')) return 'echarts-gl'
+              if (id.includes('echarts-wordcloud')) return 'echarts-wordcloud'
+              if (id.includes('echarts-liquidfill')) return 'echarts-liquidfill'
               return 'echarts'
             }
-            if (id.includes('@vue')) {
+            // Vue 相关
+            if (id.includes('@vue') || id.includes('vue-router') || id.includes('pinia')) {
               return 'vue-vendor'
             }
+            // Axios
             if (id.includes('axios')) {
               return 'axios'
             }
+            // 其他第三方库
             return 'vendor'
           }
-          if (id.includes('/src/views/ScreenEditor')) {
+          // 编辑器相关
+          if (id.includes('/src/views/ScreenEditor') || id.includes('/src/views/editor/')) {
             return 'screen-editor'
           }
+          // 编辑器组件
           if (id.includes('/src/components/editor/')) {
             return 'editor-components'
           }
+          // 图表组件
           if (id.includes('/src/components/charts/')) {
             return 'chart-components'
           }
@@ -79,7 +97,7 @@ export default defineConfig({
       'vue-router',
       'pinia',
       'axios',
-      'element-plus'
+      'ant-design-vue'
     ],
     exclude: ['vue-demi']
   }

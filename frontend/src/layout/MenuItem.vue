@@ -1,10 +1,10 @@
 <template>
   <template v-if="menu.type === 'submenu' && menu.children">
-    <el-sub-menu :index="menu.id">
+    <a-sub-menu :index="menu.id">
       <template #title>
-        <el-icon v-if="menu.icon">
+        
           <component :is="iconMap[menu.icon]" />
-        </el-icon>
+        
         <span>{{ menu.title }}</span>
       </template>
       <menu-item
@@ -13,35 +13,23 @@
         :menu="child"
         :collapse="collapse"
       />
-    </el-sub-menu>
+    </a-sub-menu>
   </template>
 
   <template v-else>
-    <el-menu-item :index="menu.path">
-      <el-icon v-if="menu.icon">
+    <a-menu-item :index="menu.path">
+      
         <component :is="iconMap[menu.icon]" />
-      </el-icon>
+      
       <template #title>
         <span>{{ menu.title }}</span>
       </template>
-    </el-menu-item>
+    </a-menu-item>
   </template>
 </template>
 
 <script setup>
-import {
-  Odometer,
-  Setting,
-  Coin,
-  DocumentCopy,
-  Files,
-  Document,
-  UserFilled,
-  Delete,
-  Share,
-  Monitor,
-  Connection
-} from '@element-plus/icons-vue'
+import { DashboardOutlined, SettingOutlined, DollarCircleOutlined, CopyOutlined, FileOutlined, UserOutlined, DeleteOutlined, ShareAltOutlined, DesktopOutlined, ApiOutlined } from '@ant-design/icons-vue'
 
 defineProps({
   menu: {

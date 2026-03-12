@@ -370,10 +370,3 @@ const formatDate = (dateStr) => {
 loadData()
 </script>
 
-<style scoped lang="scss">
-.antd-crud-example-page {
-  height: 100%;
-  padding: 24px;
-  background: #f0f2f5;
-}
-</style>

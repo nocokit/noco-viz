@@ -3,7 +3,7 @@
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from 'ant-design-vue'
 import {
   getRecycleList,
   getRecycleStats,
@@ -81,7 +81,7 @@ export const useRecycleStore = defineStore('recycle', () => {
       stats.value = statistics
     } catch (error) {
       console.error('加载回收站数据失败:', error)
-      ElMessage.error('加载回收站数据失败')
+      message.error('加载回收站数据失败')
     } finally {
       loading.value = false
     }
@@ -137,12 +137,12 @@ export const useRecycleStore = defineStore('recycle', () => {
   async function restoreItem(item) {
     try {
       await restoreItemApi(item.id)
-      ElMessage.success(`已还原 "${item.name}"`)
+      message.success(`已还原 "${item.name}"`)
       await loadData()
       selectedRowKeys.value = []
     } catch (error) {
       console.error('还原失败:', error)
-      ElMessage.error('还原失败')
+      message.error('还原失败')
       throw error
     }
   }
@@ -150,12 +150,12 @@ export const useRecycleStore = defineStore('recycle', () => {
   async function batchRestore() {
     try {
       await Promise.all(selectedRowKeys.value.map(id => restoreItemApi(id)))
-      ElMessage.success(`已还原 ${selectedRowKeys.value.length} 项`)
+      message.success(`已还原 ${selectedRowKeys.value.length} 项`)
       await loadData()
       selectedRowKeys.value = []
     } catch (error) {
       console.error('批量还原失败:', error)
-      ElMessage.error('批量还原失败')
+      message.error('批量还原失败')
       throw error
     }
   }
@@ -181,17 +181,17 @@ export const useRecycleStore = defineStore('recycle', () => {
     try {
       if (isEmptying.value) {
         await emptyRecycleBinApi()
-        ElMessage.success('回收站已清空')
+        message.success('回收站已清空')
       } else {
         await Promise.all(selectedRowKeys.value.map(id => deleteItemApi(id)))
-        ElMessage.success(`已删除 ${selectedRowKeys.value.length} 项`)
+        message.success(`已删除 ${selectedRowKeys.value.length} 项`)
       }
       await loadData()
       selectedRowKeys.value = []
       closeDeleteModal()
     } catch (error) {
       console.error('删除失败:', error)
-      ElMessage.error('删除失败')
+      message.error('删除失败')
       throw error
     }
   }

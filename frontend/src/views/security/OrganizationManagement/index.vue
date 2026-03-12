@@ -1,384 +1,429 @@
 <template>
-  <div class="page-container organization-management">
-    <!-- Header -->
-    <PageHeader
-      title="组织架构"
-      description="管理企业组织架构和部门成员，支持LDAP同步。"
-      :actions="[
-        { text: '导入/导出', icon: 'Sort', handler: handleImportExport },
-        { text: '立即同步', icon: 'RefreshRight', type: 'primary', handler: handleSync }
+  <div class="organization-management">
+    <!-- 面包屑 -->
+    <BreadcrumbHeader
+      :items="[
+        { label: '首页', path: '/' },
+        { label: '安全与权限', path: '/security' },
+        { label: '组织架构' }
       ]"
     />
 
-    <div class="content-body">
-      <!-- Left: Org Tree -->
-      <aside class="org-tree-panel">
+    <div class="content-wrapper">
+      <!-- 左侧：部门树 -->
+      <div class="tree-panel">
         <div class="tree-header">
-          <el-input
-            v-model="filterText"
-            placeholder="搜索部门..."
-            prefix-icon="Search"
-            class="tree-search"
-          />
+          <h3>部门</h3>
+          <a-button type="primary" @click="handleAddRootDept">
+            <template #icon><PlusOutlined /></template>
+            新增部门
+          </a-button>
         </div>
-        <div class="tree-content">
-          <el-tree
-            ref="treeRef"
-            :data="treeData"
-            :props="defaultProps"
-            default-expand-all
-            :filter-node-method="filterNode"
-            @node-click="handleNodeClick"
-            highlight-current
-            node-key="id"
+
+        <a-input-search
+          v-model:value="searchText"
+          placeholder="搜索部门"
+          class="tree-search"
+          allow-clear
+          @search="onSearch"
+        >
+          <template #prefix>
+            <SearchOutlined style="color: #bfbfbf" />
+          </template>
+        </a-input-search>
+
+        <a-spin :spinning="treeLoading">
+          <a-tree
+            v-if="treeData.length > 0"
+            :tree-data="treeData"
+            :field-names="{ children: 'children', title: 'label', key: 'id' }"
+            :expanded-keys="expandedKeys"
+            :selected-keys="selectedKeys"
+            show-line
+            @select="onSelectDept"
+            @expand="onExpand"
           >
-            <template #default="{ node, data }">
-              <div class="custom-tree-node">
-                <el-icon class="node-icon" v-if="data.children && data.children.length"><OfficeBuilding /></el-icon>
-                <el-icon class="node-icon" v-else><Folder /></el-icon>
-                <span class="node-name">{{ node.label }}</span>
-                <span class="node-count">{{ data.count }}</span>
+            <template #title="{ label, count, id }">
+              <div class="tree-node">
+                <span class="node-label">{{ label }}</span>
+                <span class="node-count">{{ count || 0 }}</span>
                 <div class="node-actions" @click.stop>
-                  <el-button
-                    link
-                    type="primary"
-                    size="small"
-                    @click="handleAddChildNode(data)"
-                    title="添加子部门"
-                  >
-                    <el-icon><Plus /></el-icon>
-                  </el-button>
-                  <el-button
-                    link
-                    type="primary"
-                    size="small"
-                    @click="handleEditNode(data)"
-                    title="编辑部门"
-                  >
-                    <el-icon><Edit /></el-icon>
-                  </el-button>
-                  <el-button
-                    link
-                    type="danger"
-                    size="small"
-                    @click="handleDeleteNode(data, node)"
-                    title="删除部门"
-                  >
-                    <el-icon><Delete /></el-icon>
-                  </el-button>
+                  <a-button type="link" size="small" @click="handleAddChildDept(id)">
+                    <PlusOutlined />
+                  </a-button>
+                  <a-button type="link" size="small" @click="handleEditDept(id)">
+                    <EditOutlined />
+                  </a-button>
+                  <a-button type="link" size="small" danger @click="handleDeleteDept(id)">
+                    <DeleteOutlined />
+                  </a-button>
                 </div>
               </div>
             </template>
-          </el-tree>
-        </div>
-      </aside>
+          </a-tree>
+          <a-empty v-else description="暂无部门数据" />
+        </a-spin>
+      </div>
 
-      <!-- Right: Members -->
-      <aside class="member-panel">
-        <div class="panel-toolbar">
-          <div class="breadcrumb">
-            {{ currentDept.label || '集团总部' }} <span>/ 成员列表 ({{ currentDept.count || 1204 }})</span>
-          </div>
-          <div class="toolbar-actions">
-            <el-input
-              v-model="searchMember"
-              placeholder="搜索成员姓名/工号"
-              prefix-icon="Search"
-              style="width: 200px"
-            />
-            <el-button type="primary" icon="Plus" @click="openCreateModal">
-              添加成员
-            </el-button>
-          </div>
+      <!-- 右侧：用户列表 -->
+      <div class="user-panel">
+        <div class="user-panel-header">
+          <h3>{{ currentDeptName || '全部用户' }} <span class="user-count">({{ userStore.filteredData.length }})</span></h3>
         </div>
-
-        <div class="table-container">
-          <el-table :data="tableData" style="width: 100%" :header-cell-style="{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af', borderBottom: '1px solid #2d2e33' }" :cell-style="{ background: 'transparent', color: '#fff', borderBottom: '1px solid #2d2e33' }" row-class-name="table-row">
-            <el-table-column label="姓名 / 工号" width="250">
-              <template #default="scope">
-                <div class="user-cell">
-                  <div class="avatar" :style="{ background: scope.row.avatarColor }">
-                    {{ scope.row.initials }}
-                  </div>
-                  <div>
-                    <div class="user-name">{{ scope.row.name }}</div>
-                    <div class="user-no">{{ scope.row.no }}</div>
-                  </div>
-                </div>
-              </template>
-            </el-table-column>
-            <el-table-column prop="dept" label="所属部门" />
-            <el-table-column label="系统角色">
-              <template #default="scope">
-                <span :class="['role-badge', scope.row.roleClass]">{{ scope.row.role }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="email" label="邮箱" />
-            <el-table-column label="状态">
-              <template #default="scope">
-                <span class="status-cell">
-                  <span :class="['status-dot', scope.row.status === 'active' ? 'status-active' : 'status-disabled']"></span>
-                  {{ scope.row.status === 'active' ? '正常' : '禁用' }}
-                </span>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="150">
-              <template #default="scope">
-                <el-button link type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-                <el-button link type="danger" size="small" @click="handleDelete(scope.row)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+        <div class="user-panel-body">
+          <SimpleCrudModal
+            :config="dynamicUserConfig"
+            :data="userStore.userList"
+            :loading="userStore.loading"
+            :pagination="userStore.pagination"
+            :sort="userStore.sort"
+            @add="userStore.handleAdd"
+            @edit="userStore.handleEdit"
+            @delete="userStore.handleDelete"
+            @refresh="userStore.loadData"
+            @search="userStore.handleSearch"
+            @page-change="userStore.handlePageChange"
+            @page-size-change="userStore.handlePageSizeChange"
+            @sort-change="userStore.handleSortChange"
+          />
         </div>
-      </aside>
+      </div>
     </div>
 
-    <!-- 新增/编辑部门节点模态框 -->
-    <el-dialog
-      v-model="deptModalVisible"
-      :title="isDeptEditMode ? '编辑部门' : '新增部门'"
-      width="500px"
-      :close-on-click-modal="false"
+    <!-- 部门编辑弹窗 -->
+    <CommonModal
+      v-model:visible="deptModalVisible"
+      :title="deptEditMode ? '编辑部门' : '新增部门'"
+      :width="'600px'"
+      :show-footer="true"
+      @close="closeDeptModal"
     >
-      <el-form :model="deptFormData" :rules="deptFormRules" ref="deptFormRef" label-position="top">
-        <el-form-item label="部门名称" prop="label">
-          <el-input v-model="deptFormData.label" placeholder="请输入部门名称" />
-        </el-form-item>
-      </el-form>
+      <SimpleForm
+        ref="deptFormRef"
+        :modelValue="deptFormData"
+        @update:modelValue="handleDeptFormUpdate"
+        :config="dynamicDeptConfig.form"
+      />
 
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="closeDeptModal">取消</el-button>
-          <el-button type="primary" @click="handleDeptSubmit" :loading="deptSubmitting">
-            {{ isDeptEditMode ? '保存' : '创建' }}
-          </el-button>
-        </span>
+        <button class="modal-btn" @click="closeDeptModal">
+          取消
+        </button>
+        <button
+          class="modal-btn modal-btn-primary"
+          @click="handleDeptSubmit"
+          :disabled="deptSubmitting"
+        >
+          {{ deptSubmitting ? '保存中...' : '确定' }}
+        </button>
       </template>
-    </el-dialog>
-
-    <!-- 新增/编辑成员模态框 -->
-    <el-dialog
-      v-model="modalVisible"
-      :title="isEditMode ? '编辑成员' : '新增成员'"
-      width="600px"
-      :close-on-click-modal="false"
-    >
-      <el-form :model="formData" :rules="formRules" ref="formRef" label-position="top">
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="姓名" prop="name">
-              <el-input v-model="formData.name" placeholder="请输入姓名" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="工号" prop="no">
-              <el-input v-model="formData.no" placeholder="例如：NO.1001" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-form-item label="邮箱" prop="email">
-          <el-input v-model="formData.email" placeholder="请输入邮箱地址" />
-        </el-form-item>
-
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="所属部门" prop="dept">
-              <el-select v-model="formData.dept" placeholder="请选择部门" style="width: 100%">
-                <el-option label="集团总部" value="集团总部" />
-                <el-option label="研发中心" value="研发中心" />
-                <el-option label="市场营销部" value="市场营销部" />
-                <el-option label="财务部" value="财务部" />
-                <el-option label="前端架构组" value="前端架构组" />
-                <el-option label="后端服务组" value="后端服务组" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="系统角色" prop="role">
-              <el-select v-model="formData.role" placeholder="请选择角色" style="width: 100%">
-                <el-option label="超级管理员" value="超级管理员" />
-                <el-option label="管理员" value="管理员" />
-                <el-option label="普通用户" value="普通用户" />
-                <el-option label="访客" value="访客" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="formData.status">
-            <el-radio value="active">正常</el-radio>
-            <el-radio value="disabled">禁用</el-radio>
-          </el-radio-group>
-        </el-form-item>
-
-        <el-form-item label="头像颜色" prop="avatarColor">
-          <el-select v-model="formData.avatarColor" placeholder="选择头像背景色" style="width: 100%">
-            <el-option label="蓝色" value="#3b82f6" />
-            <el-option label="橙色" value="#f59e0b" />
-            <el-option label="绿色" value="#10b981" />
-            <el-option label="紫色" value="#8b5cf6" />
-            <el-option label="红色" value="#ef4444" />
-            <el-option label="灰色" value="#333" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="closeModal">取消</el-button>
-          <el-button type="primary" @click="handleSubmit" :loading="submitting">
-            {{ isEditMode ? '保存' : '创建' }}
-          </el-button>
-        </span>
-      </template>
-    </el-dialog>
+    </CommonModal>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, reactive, onMounted } from 'vue'
-import { Search, Refresh, RefreshRight, Sort, Plus, OfficeBuilding, Folder, Edit, Delete } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import PageHeader from '@/components/PageHeader.vue'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { message, Modal } from 'ant-design-vue'
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons-vue'
+import BreadcrumbHeader from '@/components/BreadcrumbHeader.vue'
+import SimpleCrudModal from '@/components/simple/SimpleCrudModal.vue'
+import CommonModal from '@/components/CommonModal.vue'
+import SimpleForm from '@/components/simple/SimpleForm.vue'
+import { useUserListStore } from '@/store'
+import { userConfig } from './userConfig'
+import { departmentConfig } from './departmentConfig'
 import {
   getDepartmentTree,
   createDepartment,
   updateDepartment,
-  deleteDepartment
+  deleteDepartment,
+  getDepartmentDetail
 } from '@/api/department'
+import { getRoles } from '@/api/role'
 
-// --- Tree Logic ---
-const filterText = ref('')
-const treeRef = ref(null)
-const currentDept = ref({ label: '集团总部', count: 1204 })
-const loading = ref(false)
-
-// Header 操作函数
-const handleImportExport = () => {
-  ElMessage.info('导入/导出功能开发中...')
-}
-
-const handleSync = () => {
-  ElMessage.info('正在同步 LDAP 数据...')
-}
-
-const defaultProps = {
-  children: 'children',
-  label: 'label',
-}
-
+// 部门树相关
+const treeLoading = ref(false)
 const treeData = ref([])
+const searchText = ref('')
+const expandedKeys = ref([])
+const selectedKeys = ref([])
+const currentDeptId = ref(null)
+
+// 用户管理相关
+const userStore = useUserListStore()
+
+// 角色列表
+const roleList = ref([])
+
+// 部门弹窗相关
+const deptModalVisible = ref(false)
+const deptEditMode = ref(false)
+const deptSubmitting = ref(false)
+const deptFormRef = ref(null)
+const currentEditDeptId = ref(null)
+
+const deptFormData = reactive({
+  label: '',
+  parentId: null,
+  description: '',
+  count: 0,
+  isActive: true
+})
+
+// 动态部门配置（添加上级部门选项）
+const dynamicDeptConfig = computed(() => {
+  const config = { ...departmentConfig }
+
+  // 将树形数据转换为平铺的选项列表
+  const flattenTree = (nodes, result = []) => {
+    nodes.forEach(node => {
+      result.push({ label: node.label, value: node.id })
+      if (node.children && node.children.length > 0) {
+        flattenTree(node.children, result)
+      }
+    })
+    return result
+  }
+
+  // 更新上级部门选项
+  const parentField = config.form.fields.find(f => f.name === 'parentId')
+  if (parentField) {
+    parentField.options = flattenTree(treeData.value)
+  }
+
+  return config
+})
+
+// 动态用户配置（添加角色和部门选项）
+const dynamicUserConfig = computed(() => {
+  const config = JSON.parse(JSON.stringify(userConfig))
+
+  // 将树形数据转换为平铺的选项列表
+  const flattenTree = (nodes, result = []) => {
+    nodes.forEach(node => {
+      result.push({ label: node.label, value: node.id })
+      if (node.children && node.children.length > 0) {
+        flattenTree(node.children, result)
+      }
+    })
+    return result
+  }
+
+  // 更新部门选项（表单）
+  const formDeptField = config.form.fields.find(f => f.name === 'departmentId')
+  if (formDeptField) {
+    formDeptField.options = flattenTree(treeData.value)
+  }
+
+  // 更新部门选项（搜索）
+  const searchDeptField = config.search.fields.find(f => f.name === 'departmentId')
+  if (searchDeptField) {
+    searchDeptField.options = flattenTree(treeData.value)
+  }
+
+  // 更新角色选项
+  const roleField = config.form.fields.find(f => f.name === 'roleId')
+  if (roleField) {
+    roleField.options = roleList.value.map(role => ({
+      label: role.name,
+      value: role.id
+    }))
+  }
+
+  return config
+})
+
+// 当前选中部门的名称
+const currentDeptName = computed(() => {
+  if (!currentDeptId.value) return ''
+
+  // 递归查找部门名称
+  const findDeptName = (nodes, id) => {
+    for (const node of nodes) {
+      if (node.id === id) return node.label
+      if (node.children && node.children.length > 0) {
+        const found = findDeptName(node.children, id)
+        if (found) return found
+      }
+    }
+    return null
+  }
+
+  return findDeptName(treeData.value, currentDeptId.value) || ''
+})
 
 // 加载部门树
 const loadDepartmentTree = async () => {
   try {
-    loading.value = true
+    treeLoading.value = true
     const res = await getDepartmentTree()
-    // 后端直接返回数组，不需要访问 .data
-    treeData.value = Array.isArray(res) ? res : (res.data || [])
+    treeData.value = Array.isArray(res) ? res : []
+
+    // 默认展开第一层并选中第一个部门
     if (treeData.value.length > 0) {
-      currentDept.value = treeData.value[0]
+      expandedKeys.value = [treeData.value[0].id]
+      selectedKeys.value = [treeData.value[0].id]
+      currentDeptId.value = treeData.value[0].id
+      // 加载该部门的用户
+      loadUsersByDept(treeData.value[0].id)
+    } else {
+      // 如果没有部门，显示所有用户
+      loadUsersByDept(null)
     }
   } catch (error) {
     console.error('加载部门树失败:', error)
-    ElMessage.error('加载部门树失败')
+    message.error('加载部门树失败')
   } finally {
-    loading.value = false
+    treeLoading.value = false
   }
 }
 
-// 页面加载时获取数据
-onMounted(() => {
-  loadDepartmentTree()
-})
-
-watch(filterText, (val) => {
-  treeRef.value?.filter(val)
-})
-
-const filterNode = (value, data) => {
-  if (!value) return true
-  return data.label.includes(value)
+// 加载角色列表
+const loadRoleList = async () => {
+  try {
+    const res = await getRoles()
+    roleList.value = Array.isArray(res) ? res : (res.data || [])
+  } catch (error) {
+    console.error('加载角色列表失败:', error)
+    message.error('加载角色列表失败')
+  }
 }
 
-const handleNodeClick = (data) => {
-  currentDept.value = data
+// 搜索部门
+const onSearch = (value) => {
+  // TODO: 实现搜索逻辑
+  console.log('搜索:', value)
 }
 
-// --- Department Node CRUD Logic ---
-const deptModalVisible = ref(false)
-const isDeptEditMode = ref(false)
-const deptSubmitting = ref(false)
-const deptFormRef = ref(null)
-let parentNodeData = null
-let currentEditingNode = null
-
-// 部门表单数据
-const deptFormData = reactive({
-  label: ''
-})
-
-// 部门表单验证规则
-const deptFormRules = {
-  label: [
-    { required: true, message: '请输入部门名称', trigger: 'blur' },
-    { min: 2, max: 30, message: '部门名称长度在 2 到 30 个字符', trigger: 'blur' }
-  ]
+// 选择部门
+const onSelectDept = (keys) => {
+  if (keys.length > 0) {
+    selectedKeys.value = keys
+    currentDeptId.value = keys[0]
+    // 根据选中的部门加载用户列表
+    loadUsersByDept(keys[0])
+  } else {
+    // 如果没有选中任何部门，显示所有用户
+    selectedKeys.value = []
+    currentDeptId.value = null
+    loadUsersByDept(null)
+  }
 }
 
-// 生成新的部门ID
-let maxDeptId = 100
-const generateDeptId = () => {
-  maxDeptId++
-  return maxDeptId
+// 展开/收起节点
+const onExpand = (keys) => {
+  expandedKeys.value = keys
 }
 
-// 添加子部门
-const handleAddChildNode = (data) => {
-  isDeptEditMode.value = false
-  parentNodeData = data
-  currentEditingNode = null
+// 根据部门加载用户
+const loadUsersByDept = (deptId) => {
+  // 更新搜索条件，触发用户列表过滤
+  userStore.handleSearch({
+    ...userStore.searchQuery,
+    departmentId: deptId || ''
+  })
+}
+
+// 处理部门表单更新
+const handleDeptFormUpdate = (newData) => {
+  Object.assign(deptFormData, newData)
+}
+
+// 新增根部门
+const handleAddRootDept = () => {
+  deptEditMode.value = false
+  currentEditDeptId.value = null
   resetDeptForm()
   deptModalVisible.value = true
 }
 
-// 编辑部门
-const handleEditNode = (data) => {
-  isDeptEditMode.value = true
-  parentNodeData = null
-  currentEditingNode = data
-  deptFormData.label = data.label
+// 新增子部门
+const handleAddChildDept = (parentId) => {
+  deptEditMode.value = false
+  currentEditDeptId.value = null
+  deptFormData.parentId = parentId
   deptModalVisible.value = true
 }
 
+// 编辑部门
+const handleEditDept = async (id) => {
+  try {
+    deptEditMode.value = true
+    currentEditDeptId.value = id
+
+    // 加载部门详情
+    const dept = await getDepartmentDetail(id)
+    deptFormData.label = dept.label
+    deptFormData.description = dept.description || ''
+    deptFormData.count = dept.count || 0
+    deptFormData.isActive = dept.isActive !== false
+
+    deptModalVisible.value = true
+  } catch (error) {
+    console.error('加载部门详情失败:', error)
+    message.error('加载部门详情失败')
+  }
+}
+
 // 删除部门
-const handleDeleteNode = async (data, node) => {
-  ElMessageBox.confirm(
-    `确定要删除部门 "${data.label}" 吗？${data.children && data.children.length > 0 ? '删除后，其子部门也将被删除。' : ''}此操作不可恢复。`,
-    '删除确认',
-    {
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  )
-    .then(async () => {
+const handleDeleteDept = (id) => {
+  Modal.confirm({
+    title: '确认删除',
+    content: '确定要删除该部门吗？删除后将无法恢复。',
+    okText: '确定',
+    cancelText: '取消',
+    onOk: async () => {
       try {
-        await deleteDepartment(data.id)
-        ElMessage.success(`部门 "${data.label}" 已删除`)
-        // 重新加载部门树
+        await deleteDepartment(id)
+        message.success('删除成功')
         await loadDepartmentTree()
       } catch (error) {
         console.error('删除部门失败:', error)
-        ElMessage.error('删除部门失败')
+        message.error('删除失败')
       }
-    })
-    .catch(() => {})
+    }
+  })
 }
 
-// 关闭部门模态框
+// 提交部门表单
+const handleDeptSubmit = async () => {
+  try {
+    // 验证表单
+    if (!deptFormRef.value?.validate()) {
+      return
+    }
+
+    deptSubmitting.value = true
+
+    const payload = {
+      label: deptFormData.label,
+      description: deptFormData.description,
+      count: deptFormData.count || 0,
+      isActive: deptFormData.isActive
+    }
+
+    if (deptEditMode.value) {
+      await updateDepartment(currentEditDeptId.value, payload)
+      message.success('更新成功')
+    } else {
+      if (deptFormData.parentId) {
+        payload.parentId = deptFormData.parentId
+      }
+      await createDepartment(payload)
+      message.success('创建成功')
+    }
+
+    await loadDepartmentTree()
+    closeDeptModal()
+  } catch (error) {
+    console.error('提交失败:', error)
+    message.error(deptEditMode.value ? '更新失败' : '创建失败')
+  } finally {
+    deptSubmitting.value = false
+  }
+}
+
+// 关闭部门弹窗
 const closeDeptModal = () => {
   deptModalVisible.value = false
   resetDeptForm()
@@ -387,510 +432,256 @@ const closeDeptModal = () => {
 // 重置部门表单
 const resetDeptForm = () => {
   deptFormData.label = ''
-  if (deptFormRef.value) {
-    deptFormRef.value.resetFields()
-  }
+  deptFormData.parentId = null
+  deptFormData.description = ''
+  deptFormData.count = 0
+  deptFormData.isActive = true
+  deptFormRef.value?.clearErrors()
 }
 
-// 提交部门表单
-const handleDeptSubmit = async () => {
-  if (!deptFormRef.value) return
-
-  deptFormRef.value.validate(async (valid) => {
-    if (!valid) return
-
-    deptSubmitting.value = true
-
-    try {
-      if (isDeptEditMode.value) {
-        // 编辑模式
-        await updateDepartment(currentEditingNode.id, {
-          label: deptFormData.label
-        })
-        ElMessage.success(`部门 "${deptFormData.label}" 已更新`)
-      } else {
-        // 新增模式
-        const payload = {
-          label: deptFormData.label,
-          parentId: parentNodeData?.id
-        }
-        await createDepartment(payload)
-        ElMessage.success(`部门 "${deptFormData.label}" 创建成功`)
-      }
-
-      // 重新加载部门树
-      await loadDepartmentTree()
-      closeDeptModal()
-    } catch (error) {
-      console.error('提交部门失败:', error)
-      ElMessage.error(isDeptEditMode.value ? '更新部门失败' : '创建部门失败')
-    } finally {
-      deptSubmitting.value = false
-    }
-  })
-}
-
-// --- Modal & Form Logic ---
-const modalVisible = ref(false)
-const isEditMode = ref(false)
-const submitting = ref(false)
-const formRef = ref(null)
-const editingMemberNo = ref(null)
-
-// 表单数据
-const formData = reactive({
-  name: '',
-  no: '',
-  email: '',
-  dept: '',
-  role: '普通用户',
-  status: 'active',
-  avatarColor: '#3b82f6'
+// 初始化
+onMounted(async () => {
+  // 先加载角色列表
+  await loadRoleList()
+  // 加载用户数据
+  await userStore.loadData()
+  // 再加载部门树并选中第一个部门
+  await loadDepartmentTree()
 })
-
-// 表单验证规则
-const formRules = {
-  name: [
-    { required: true, message: '请输入姓名', trigger: 'blur' },
-    { min: 2, max: 20, message: '姓名长度在 2 到 20 个字符', trigger: 'blur' }
-  ],
-  no: [
-    { required: true, message: '请输入工号', trigger: 'blur' }
-  ],
-  email: [
-    { required: true, message: '请输入邮箱地址', trigger: 'blur' },
-    { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
-  ],
-  dept: [
-    { required: true, message: '请选择所属部门', trigger: 'change' }
-  ],
-  role: [
-    { required: true, message: '请选择系统角色', trigger: 'change' }
-  ]
-}
-
-// 生成首字母缩写
-const getInitials = (name) => {
-  const parts = name.split(' ')
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase()
-  }
-  return name.substring(0, 2).toUpperCase()
-}
-
-// 获取角色样式类
-const getRoleClass = (role) => {
-  if (role === '超级管理员' || role === '管理员') {
-    return 'admin'
-  }
-  return ''
-}
-
-// 打开新增成员模态框
-const openCreateModal = () => {
-  isEditMode.value = false
-  editingMemberNo.value = null
-  resetForm()
-  modalVisible.value = true
-}
-
-// 关闭模态框
-const closeModal = () => {
-  modalVisible.value = false
-  resetForm()
-}
-
-// 重置表单
-const resetForm = () => {
-  formData.name = ''
-  formData.no = ''
-  formData.email = ''
-  formData.dept = ''
-  formData.role = '普通用户'
-  formData.status = 'active'
-  formData.avatarColor = '#3b82f6'
-  if (formRef.value) {
-    formRef.value.resetFields()
-  }
-}
-
-// 提交表单
-const handleSubmit = () => {
-  if (!formRef.value) return
-
-  formRef.value.validate((valid) => {
-    if (!valid) return
-
-    submitting.value = true
-
-    // 模拟异步提交
-    setTimeout(() => {
-      if (isEditMode.value) {
-        // 编辑模式
-        const member = tableData.find(item => item.no === editingMemberNo.value)
-        if (member) {
-          member.name = formData.name
-          member.no = formData.no
-          member.email = formData.email
-          member.dept = formData.dept
-          member.role = formData.role
-          member.roleClass = getRoleClass(formData.role)
-          member.status = formData.status
-          member.avatarColor = formData.avatarColor
-          member.initials = getInitials(formData.name)
-          ElMessage.success(`成员 "${formData.name}" 已更新`)
-        }
-      } else {
-        // 新增模式
-        const newMember = {
-          name: formData.name,
-          no: formData.no,
-          initials: getInitials(formData.name),
-          avatarColor: formData.avatarColor,
-          dept: formData.dept,
-          role: formData.role,
-          roleClass: getRoleClass(formData.role),
-          email: formData.email,
-          status: formData.status
-        }
-        tableData.unshift(newMember)
-        ElMessage.success(`成员 "${formData.name}" 创建成功`)
-      }
-
-      submitting.value = false
-      closeModal()
-    }, 800)
-  })
-}
-
-// --- Table Logic ---
-const searchMember = ref('')
-const tableData = reactive([
-  {
-    name: 'David Miller',
-    no: 'NO.1001',
-    initials: 'DM',
-    avatarColor: '#3b82f6',
-    dept: '集团总部',
-    role: '超级管理员',
-    roleClass: 'admin',
-    email: 'david@company.com',
-    status: 'active',
-  },
-  {
-    name: 'Sarah Jen',
-    no: 'NO.1024',
-    initials: 'SJ',
-    avatarColor: '#f59e0b',
-    dept: '研发中心',
-    role: '普通用户',
-    roleClass: '',
-    email: 'sarah@company.com',
-    status: 'active',
-  },
-  {
-    name: 'Mike Ross',
-    no: 'NO.8821',
-    initials: 'MR',
-    avatarColor: '#333',
-    dept: '市场营销部',
-    role: '普通用户',
-    roleClass: '',
-    email: 'mike@company.com',
-    status: 'disabled',
-  },
-])
-
-// 编辑成员
-const handleEdit = (row) => {
-  isEditMode.value = true
-  editingMemberNo.value = row.no
-  formData.name = row.name
-  formData.no = row.no
-  formData.email = row.email
-  formData.dept = row.dept
-  formData.role = row.role
-  formData.status = row.status
-  formData.avatarColor = row.avatarColor
-  modalVisible.value = true
-}
-
-// 删除成员
-const handleDelete = (row) => {
-  ElMessageBox.confirm(
-    `确定要删除成员 "${row.name}" 吗？此操作不可恢复。`,
-    '删除确认',
-    {
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  )
-    .then(() => {
-      const index = tableData.findIndex(item => item.no === row.no)
-      if (index !== -1) {
-        tableData.splice(index, 1)
-        ElMessage.success('成员已删除')
-      }
-    })
-    .catch(() => {})
-}
 </script>
 
 <style scoped>
-/* =========================================
-   Global Variables & Reset
-   ========================================= */
 .organization-management {
-  height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #0a0b0d; /* var(--bg-body) */
-  color: #ffffff; /* var(--text-main) */
-  overflow: hidden;
-  padding: 24px;
+  height: 100%;
+  background: #f5f5f5;
 }
 
-.sync-status {
-  font-size: 12px;
-  color: #9ca3af;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px solid #2d2e33;
-}
-
-/* =========================================
-   Content Body
-   ========================================= */
-.content-body {
+.content-wrapper {
   flex: 1;
   display: flex;
+  gap: 16px;
+  padding: 16px;
   overflow: hidden;
-  padding: 12px 0px;
-  gap: 24px;
 }
 
-/* --- Left: Org Tree Panel --- */
-.org-tree-panel {
-  width: 300px;
-  background: #1c1d21; /* var(--bg-card) */
-  border: 1px solid #2d2e33;
-  border-radius: 12px;
+/* 左侧部门树 */
+.tree-panel {
+  width: 280px;
   display: flex;
   flex-direction: column;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   overflow: hidden;
 }
 
 .tree-header {
-  padding: 16px;
-  border-bottom: 1px solid #2d2e33;
-}
-
-.tree-search :deep(.el-input__wrapper) {
-  background-color: #000;
-  box-shadow: 0 0 0 1px #2d2e33 inset;
-}
-
-.tree-search :deep(.el-input__inner) {
-  color: #fff;
-}
-
-.tree-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px;
-}
-
-.tree-content :deep(.el-tree) {
-  background: transparent;
-  color: #9ca3af;
-}
-
-.tree-content :deep(.el-tree-node__content:hover) {
-  background-color: #26272c; /* var(--bg-hover) */
-  color: #fff;
-}
-
-.tree-content :deep(.el-tree-node.is-current > .el-tree-node__content) {
-  background-color: rgba(59, 130, 246, 0.1);
-  color: #3b82f6; /* var(--primary) */
-}
-
-.custom-tree-node {
   display: flex;
   align-items: center;
-  font-size: 13px;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  background: linear-gradient(to bottom, #fafafa, #fff);
+}
+
+.tree-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.tree-search {
+  margin: 12px 16px;
+  position: relative;
+  z-index: 1;
+  width: calc(100% - 32px);
+}
+
+.tree-search :deep(.ant-input-search) {
   width: 100%;
 }
 
-.node-icon {
-  margin-right: 8px;
-  font-size: 14px;
+.tree-search :deep(.ant-input-affix-wrapper) {
+  border-radius: 6px;
+  border-color: #e8e8e8;
+  transition: all 0.3s;
 }
 
-.node-name {
+.tree-search :deep(.ant-input-affix-wrapper:hover) {
+  border-color: #40a9ff;
+}
+
+.tree-search :deep(.ant-input-affix-wrapper-focused) {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.tree-search :deep(.ant-input) {
+  font-size: 13px;
+}
+
+.tree-panel :deep(.ant-spin-nested-loading) {
   flex: 1;
+  overflow: hidden;
+}
+
+.tree-panel :deep(.ant-spin-container) {
+  height: 100%;
+  overflow-y: auto;
+  padding: 8px 16px 16px;
+}
+
+.tree-panel :deep(.ant-tree) {
+  background: transparent;
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 0;
+}
+
+.node-label {
+  flex: 1;
+  font-size: 14px;
+  color: #262626;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .node-count {
-  font-size: 11px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 1px 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 20px;
+  padding: 0 6px;
+  background: rgba(24, 144, 255, 0.1);
+  border: 1px solid rgba(24, 144, 255, 0.2);
+  color: #1890ff;
   border-radius: 10px;
-  color: #9ca3af;
-  margin-right: 8px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .node-actions {
   display: none;
+  align-items: center;
   gap: 4px;
 }
 
-.custom-tree-node:hover .node-actions {
+.tree-node:hover .node-actions {
   display: flex;
 }
 
-.node-actions .el-button {
-  padding: 2px;
-  font-size: 14px;
+.node-actions :deep(.ant-btn) {
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* --- Right: Member Panel --- */
-.member-panel {
+.tree-panel :deep(.ant-tree-node-selected) .node-label {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.tree-panel :deep(.ant-tree-node-selected) {
+  background: rgba(24, 144, 255, 0.05);
+}
+
+.tree-panel :deep(.ant-empty) {
+  padding: 40px 0;
+}
+
+/* 右侧用户列表 */
+.user-panel {
   flex: 1;
-  background: #1c1d21;
-  border: 1px solid #2d2e33;
-  border-radius: 12px;
   display: flex;
   flex-direction: column;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   overflow: hidden;
 }
 
-.panel-toolbar {
-  padding: 16px 24px;
-  border-bottom: 1px solid #2d2e33;
+.user-panel-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  background: linear-gradient(to bottom, #fafafa, #fff);
 }
 
-.breadcrumb {
-  font-size: 14px;
+.user-panel-header h3 {
+  margin: 0;
+  font-size: 16px;
   font-weight: 600;
-  color: #fff;
+  color: #262626;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.breadcrumb span {
-  color: #9ca3af; /* var(--text-muted) */
+.user-count {
+  font-size: 14px;
   font-weight: 400;
-  font-size: 12px;
+  color: #8c8c8c;
 }
 
-.toolbar-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.toolbar-actions :deep(.el-input__wrapper) {
-  background-color: #000;
-  box-shadow: 0 0 0 1px #2d2e33 inset;
-}
-
-.toolbar-actions :deep(.el-input__inner) {
-  color: #fff;
-}
-
-.table-container {
+.user-panel-body {
   flex: 1;
-  overflow-y: auto;
-}
-
-/* Table Styles Override */
-.table-container :deep(.el-table) {
-  background-color: transparent;
-  --el-table-border-color: #2d2e33;
-  --el-table-bg-color: transparent;
-  --el-table-tr-bg-color: transparent;
-  --el-table-header-bg-color: rgba(0, 0, 0, 0.2);
-  --el-table-row-hover-bg-color: #26272c;
-  --el-table-text-color: #fff;
-  --el-table-header-text-color: #9ca3af;
-}
-
-/* User Cell */
-.user-cell {
+  overflow: hidden;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  padding: 16px;
 }
 
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #333;
+.user-panel-body :deep(.simple-crud-modal) {
+  height: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  color: #fff;
-  flex-shrink: 0;
+  flex-direction: column;
 }
 
-.user-name {
-  font-weight: 600;
-  font-size: 13px;
-  color: #fff;
-}
-
-.user-no {
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-.role-badge {
-  font-size: 11px;
-  padding: 2px 6px;
+/* 部门弹窗样式 */
+.modal-btn {
+  padding: 6px 16px;
+  border: 1px solid #d9d9d9;
   border-radius: 4px;
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-  display: inline-block;
+  background: #fff;
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
-.role-badge.admin {
-  background: rgba(139, 92, 246, 0.15);
-  color: #a78bfa;
+.modal-btn:hover {
+  border-color: #40a9ff;
+  color: #40a9ff;
 }
 
-.status-cell {
-  font-size: 12px;
-  display: flex;
-  align-items: center;
+.modal-btn-primary {
+  background: #1890ff;
+  border-color: #1890ff;
+  color: #fff;
 }
 
-.status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 6px;
+.modal-btn-primary:hover {
+  background: #40a9ff;
+  border-color: #40a9ff;
 }
 
-.status-active {
-  background: #10b981; /* var(--success) */
-}
-
-.status-disabled {
-  background: #9ca3af; /* var(--text-muted) */
+.modal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

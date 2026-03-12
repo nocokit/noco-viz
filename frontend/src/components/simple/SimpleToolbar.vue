@@ -1,47 +1,118 @@
 <template>
   <div class="simple-toolbar">
-    <div class="toolbar-left" v-if="showSearch">
-      <!-- 搜索框 -->
-      <input
-        type="text"
-        class="search-input"
+    <!-- 左侧：搜索表单区域 -->
+    <div v-if="showSearch || searchForm" class="toolbar-left">
+      <!-- 简单搜索框（旧版兼容） -->
+      <a-input
+        v-if="showSearch && !searchForm"
         :placeholder="searchPlaceholder"
         :value="search"
-        @input="$emit('update:search', $event.target.value)"
-      >
+        @update:value="$emit('update:search', $event)"
+        allow-clear
+        style="width: 200px"
+      />
+
+      <!-- 高级搜索表单（新版） -->
+      <div v-if="searchForm" class="search-form">
+        <template v-for="field in searchForm.fields" :key="field.name">
+          <!-- 输入框 -->
+          <a-input
+            v-if="field.type === 'input'"
+            v-model="searchData[field.name]"
+            :placeholder="field.placeholder"
+            :clearable="field.clearable !== false"
+            size="default"
+            class="search-field"
+            @clear="handleSearch"
+            @keyup.enter="handleSearch"
+          >
+            <template v-if="field.label" #prepend>{{ field.label }}</template>
+          </a-input>
+
+          <!-- 下拉选择 -->
+          <a-select
+            v-else-if="field.type === 'select'"
+            v-model="searchData[field.name]"
+            :placeholder="field.placeholder"
+            :clearable="field.clearable !== false"
+            size="default"
+            class="search-field"
+            @change="handleSearch"
+          >
+            <template v-if="field.label" #prefix>{{ field.label }}</template>
+            <a-select-option
+              v-for="option in field.options"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
+          </a-select>
+
+          <!-- 日期选择 -->
+          <a-date-picker
+            v-else-if="field.type === 'date' || field.type === 'daterange'"
+            v-model="searchData[field.name]"
+            :type="field.type === 'daterange' ? 'daterange' : 'date'"
+            :placeholder="field.placeholder"
+            :clearable="field.clearable !== false"
+            size="default"
+            class="search-field"
+            @change="handleSearch"
+          />
+        </template>
+
+        <!-- 搜索按钮 -->
+        <a-button type="primary" size="default" @click="handleSearch">
+          搜索
+        </a-button>
+        <a-button size="default" @click="handleReset">
+          重置
+        </a-button>
+      </div>
     </div>
 
+    <!-- 右侧：操作按钮区域 -->
     <div class="toolbar-right">
+      <!-- 批量删除按钮 -->
+      <a-button
+        v-if="selectedCount > 0"
+        danger
+        @click="$emit('batch-delete')"
+      >
+        <template #icon><DeleteOutlined /></template>
+        批量删除 ({{ selectedCount }})
+      </a-button>
+
       <!-- 操作按钮 -->
-      <button
+      <a-button
         v-for="action in actions"
         :key="action.key"
-        :class="['btn', action.type === 'primary' ? 'btn-primary' : '']"
+        :type="action.type === 'primary' ? 'primary' : 'default'"
         @click="$emit('action', action.key)"
       >
-        <svg v-if="action.icon === 'plus'" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-        </svg>
+        <template v-if="action.icon === 'plus'" #icon>
+          <PlusOutlined />
+        </template>
         {{ action.label }}
-      </button>
+      </a-button>
 
       <!-- 刷新按钮 -->
-      <button
+      <a-button
         v-if="showRefresh"
-        class="btn btn-icon"
         @click="$emit('refresh')"
         title="刷新"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-        </svg>
-      </button>
+        <template #icon><ReloadOutlined /></template>
+      </a-button>
     </div>
   </div>
 </template>
 
 <script setup>
-defineProps({
+import { ref, watch } from 'vue'
+import { PlusOutlined, ReloadOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+
+const props = defineProps({
   search: {
     type: String,
     default: ''
@@ -61,86 +132,78 @@ defineProps({
   actions: {
     type: Array,
     default: () => []
+  },
+  // 新增：搜索表单配置
+  searchForm: {
+    type: Object,
+    default: null
+    // 格式：{ fields: [{ name, label, type, placeholder, options, clearable }] }
+  },
+  // 选中的数量
+  selectedCount: {
+    type: Number,
+    default: 0
   }
 })
 
-defineEmits(['update:search', 'action', 'refresh'])
+const emit = defineEmits(['update:search', 'action', 'refresh', 'search', 'reset'])
+
+// 搜索表单数据
+const searchData = ref({})
+
+// 初始化搜索数据
+if (props.searchForm) {
+  props.searchForm.fields.forEach(field => {
+    searchData.value[field.name] = field.defaultValue || ''
+  })
+}
+
+// 处理搜索
+const handleSearch = () => {
+  emit('search', { ...searchData.value })
+}
+
+// 处理重置
+const handleReset = () => {
+  if (props.searchForm) {
+    props.searchForm.fields.forEach(field => {
+      searchData.value[field.name] = field.defaultValue || ''
+    })
+  }
+  emit('reset')
+  emit('search', { ...searchData.value })
+}
 </script>
 
 <style scoped>
 .simple-toolbar {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  margin-bottom: 16px;
   gap: 16px;
-  flex-direction: row-reverse;
 }
 
-.toolbar-left,
+.toolbar-left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
 .toolbar-right {
   display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-.search-input {
-  width: 240px;
-  height: 32px;
-  padding: 0 12px;
-  background: var(--el-fill-color-blank);
-  border: 1px solid var(--el-border-color);
-  border-radius: 6px;
-  color: var(--el-text-color-primary);
-  font-size: 13px;
-}
-
-.search-input::placeholder {
-  color: var(--el-text-color-placeholder);
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--el-color-primary);
-}
-
-.btn {
-  height: 32px;
-  padding: 0 14px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
+.search-form {
   display: flex;
   align-items: center;
-  gap: 6px;
-  border: 1px solid var(--el-border-color);
-  background: var(--el-bg-color);
-  color: var(--el-text-color-regular);
-  transition: 0.2s;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.btn:hover {
-  border-color: var(--el-color-primary);
-  color: var(--el-color-primary);
-}
-
-.btn-primary {
-  background: var(--el-color-primary);
-  border-color: var(--el-color-primary);
-  color: #fff;
-}
-
-.btn-primary:hover {
-  background: var(--el-color-primary-light-3);
-  border-color: var(--el-color-primary-light-3);
-}
-
-.btn-icon {
-  padding: 0;
-  width: 32px;
-  justify-content: center;
-}
-
-.btn-icon:hover {
-  background: var(--el-fill-color-light);
+.search-field {
+  width: 200px;
 }
 </style>

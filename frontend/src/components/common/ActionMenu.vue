@@ -1,32 +1,32 @@
 <template>
-  <el-dropdown @command="handleCommand" trigger="click">
-    <el-button :type="buttonType" :size="buttonSize" :text="text" :circle="circle">
-      <el-icon v-if="icon">
+  <a-dropdown @command="handleCommand" trigger="click">
+    <a-button :type="buttonType" :size="buttonSize" :text="text" :circle="circle">
+      
         <component :is="icon" />
-      </el-icon>
+      
       <span v-else-if="!circle">{{ buttonText }}</span>
-    </el-button>
+    </a-button>
     <template #dropdown>
-      <el-dropdown-menu>
+      <a-menu>
         <template v-for="(action, index) in actions" :key="action.value">
-          <el-dropdown-item
+          <a-menu-item
             :command="action.value"
             :disabled="action.disabled"
             :divided="action.divided"
           >
-            <el-icon v-if="action.icon">
+            
               <component :is="action.icon" />
-            </el-icon>
+            
             {{ action.label }}
-          </el-dropdown-item>
+          </a-menu-item>
         </template>
-      </el-dropdown-menu>
+      </a-menu>
     </template>
-  </el-dropdown>
+  </a-dropdown>
 </template>
 
 <script setup>
-import { MoreFilled } from '@element-plus/icons-vue'
+import { MoreOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps({
   actions: {
@@ -66,14 +66,3 @@ const handleCommand = (command) => {
 }
 </script>
 
-<style scoped>
-:deep(.el-dropdown-menu__item) {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-:deep(.el-dropdown-menu__item .el-icon) {
-  margin-right: 0;
-}
-</style>

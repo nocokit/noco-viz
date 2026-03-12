@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsEnum, IsOptional, IsArray } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, IsOptional, IsArray, IsInt, Min, Max } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { TransitionType } from '../entities/playlist.entity';
 
@@ -17,6 +17,18 @@ export class CreatePlaylistDto {
   @IsEnum(TransitionType)
   @IsNotEmpty()
   transition: TransitionType;
+
+  @ApiProperty({ description: '切换间隔(秒)', example: 60, required: false })
+  @IsInt()
+  @Min(10)
+  @Max(300)
+  @IsOptional()
+  interval?: number;
+
+  @ApiProperty({ description: '描述', example: '用于公司大堂展示', required: false })
+  @IsString()
+  @IsOptional()
+  description?: string;
 
   @ApiProperty({ description: '轮播项列表', required: false })
   @IsArray()

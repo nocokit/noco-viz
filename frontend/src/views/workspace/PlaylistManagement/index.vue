@@ -1,737 +1,949 @@
 <template>
-  <div class="playlist-management">
-    <!-- 头部区域 -->
-    <PageHeader
-      title="轮播管理"
-      description="将多个已发布的大屏组合成播放列表，在展厅、大堂等显示器循环播放。"
-      :actions="[
-        { text: '新建轮播组', icon: 'Plus', type: 'primary', handler: openCreateModal }
-      ]"
-    />
-
-    <!-- 筛选和搜索 -->
-    <FilterBar
-      v-model="activeFilter"
+  <div class="playlist-management-page">
+    <WorkspaceLayout
+      :breadcrumb-items="breadcrumbItems"
       :filters="filters"
-      :search-value="searchKeyword"
-      search-placeholder="搜索轮播组..."
-      @search="searchKeyword = $event"
-    />
+      :search-placeholder="'搜索轮播组...'"
+      :view-modes="viewModes"
+      :default-view="'grid'"
+      :items="playlists"
+      :filter-function="filterPlaylists"
+      :search-function="searchPlaylists"
+      @filter-change="handleFilterChange"
+      @search="handleSearch"
+      @view-change="handleViewChange"
+    >
+      <template #toolbar-extra>
+        <a-button @click="loadPlaylists" title="刷新">
+          <template #icon>
+            <ReloadOutlined />
+          </template>
+        </a-button>
+        <a-button type="primary" @click="openCreateModal">
+          <template #icon>
+            <PlusOutlined />
+          </template>
+          新增
+        </a-button>
+      </template>
 
-    <!-- 内容区域 -->
-    <div class="content-scroll">
-      <div class="grid-container">
-        <!-- Playlist Cards -->
-        <div
-          v-for="playlist in filteredPlaylists"
+      <!-- Grid 视图 -->
+      <template #grid="{ items }">
+        <PlaylistCard
+          v-for="playlist in items"
           :key="playlist.id"
-          class="playlist-card"
-          :class="{ 'status-playing': playlist.status === 'playing' }"
+          :playlist="playlist"
+          @config="handleConfigPlaylist"
+          @copy-url="copyPlaylistUrl"
+          @action="handleMenuAction"
+        />
+      </template>
+
+      <!-- List 视图 -->
+      <template #list="{ items }">
+        <div
+          v-for="playlist in items"
+          :key="playlist.id"
+          class="playlist-list-item"
         >
-          <div class="card-image-header">
+          <div class="list-item-thumb">
             <img
               v-if="playlist.coverImage"
               :src="playlist.coverImage"
-              class="header-img"
               :alt="playlist.name"
-            >
-            <div v-else class="header-img-default">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" class="default-icon">
+            />
+            <div v-else class="list-item-thumb-default">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" class="thumb-icon">
                 <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/>
               </svg>
-              <div class="default-text">轮播列表</div>
-            </div>
-            <div class="card-overlay">
-              <button class="overlay-btn btn-edit" @click="handleConfigPlaylist(playlist)">
-                配置轮播
-              </button>
-              <button class="overlay-btn btn-preview" @click.stop="copyPlaylistUrl(playlist)">
-                复制链接
-              </button>
             </div>
           </div>
-          <div class="card-content">
-            <div class="card-header-row">
-              <div class="card-title">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="type-icon">
+          <div class="list-item-content">
+            <div class="list-item-header">
+              <div class="list-item-title-row">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="title-icon">
                   <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/>
                 </svg>
-                {{ playlist.name }}
+                <span class="list-item-title">{{ playlist.name }}</span>
+                <a-tag v-if="playlist.status === 'playing'" color="success">
+                  播放中
+                </a-tag>
+                <a-tag v-else class="draft-tag">
+                  闲置
+                </a-tag>
               </div>
-              <div class="card-actions-menu">
-                <el-dropdown @command="handleCommand($event, playlist)">
-                  <span class="el-dropdown-link">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-                    </svg>
-                  </span>
-                  <template #dropdown>
-                    <el-dropdown-menu>
-                      <el-dropdown-item command="edit">编辑信息</el-dropdown-item>
-                      <el-dropdown-item command="toggle">
+              <div class="list-item-actions">
+                <a-button size="small" type="primary" @click="handleConfigPlaylist(playlist)">
+                  <template #icon><SettingOutlined /></template>
+                  配置轮播
+                </a-button>
+                <a-button size="small" @click="copyPlaylistUrl(playlist)">
+                  <template #icon><LinkOutlined /></template>
+                  复制链接
+                </a-button>
+                <a-dropdown>
+                  <a-button size="small">
+                    <template #icon><MoreOutlined /></template>
+                  </a-button>
+                  <template #overlay>
+                    <a-menu @click="({ key }) => handleMenuAction(key, playlist)">
+                      <a-menu-item key="edit">
+                        <EditOutlined />
+                        编辑信息
+                      </a-menu-item>
+                      <a-menu-item key="toggle">
+                        <SwapOutlined />
                         {{ playlist.status === 'playing' ? '设为闲置' : '设为播放中' }}
-                      </el-dropdown-item>
-                      <el-dropdown-item command="copy">复制链接</el-dropdown-item>
-                      <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
-                    </el-dropdown-menu>
+                      </a-menu-item>
+                      <a-menu-divider />
+                      <a-menu-item key="delete" danger>
+                        <DeleteOutlined />
+                        删除
+                      </a-menu-item>
+                    </a-menu>
                   </template>
-                </el-dropdown>
-                <span
-                  class="status-badge"
-                  :class="{ playing: playlist.status === 'playing' }"
-                >
-                  {{ playlist.status === 'playing' ? '● 播放中' : '闲置' }}
-                </span>
+                </a-dropdown>
               </div>
             </div>
-            <div class="card-desc">
-              {{ playlist.slides.length }} 个页面 · {{ playlist.resolution }} · {{ getTransitionLabel(playlist.transition) }}
+            <div class="list-item-desc">{{ playlist.description || '暂无描述' }}</div>
+            <div class="list-item-meta">
+              <a-space :size="16">
+                <span class="meta-text">
+                  <PlayCircleOutlined />
+                  <span class="meta-number">{{ playlist.screenCount || 0 }}</span> 个大屏
+                </span>
+                <span class="meta-text">
+                  <ClockCircleOutlined />
+                  间隔 <span class="meta-number">{{ playlist.interval || 10 }}</span> 秒
+                </span>
+                <span class="meta-text">
+                  <CalendarOutlined />
+                  更新于 {{ playlist.updatedAt }}
+                </span>
+              </a-space>
             </div>
-            <div class="card-footer">
-              <span>Playlist Carousel</span>
-              <span>{{ playlist.updatedAt }}</span>
+          </div>
+        </div>
+      </template>
+    </WorkspaceLayout>
+
+    <!-- 创建/编辑弹窗 -->
+    <a-modal
+      v-model:open="modalVisible"
+      :title="modalMode === 'create' ? '新增轮播组' : '编辑轮播组'"
+      :width="600"
+      @cancel="handleModalCancel"
+    >
+      <a-form
+        ref="formRef"
+        :model="formData"
+        :rules="formRules"
+        layout="vertical"
+      >
+        <a-form-item label="轮播名称" name="name">
+          <a-input
+            v-model:value="formData.name"
+            placeholder="请输入轮播名称"
+            :maxlength="100"
+          />
+        </a-form-item>
+
+        <a-form-item label="分辨率" name="resolution">
+          <a-select v-model:value="formData.resolution" placeholder="请选择分辨率">
+            <a-select-option value="1920x1080">1920x1080 (Full HD)</a-select-option>
+            <a-select-option value="3840x2160">3840x2160 (4K)</a-select-option>
+            <a-select-option value="1280x720">1280x720 (HD)</a-select-option>
+            <a-select-option value="2560x1440">2560x1440 (2K)</a-select-option>
+          </a-select>
+        </a-form-item>
+
+        <a-form-item label="切换效果" name="transition">
+          <a-select v-model:value="formData.transition" placeholder="请选择切换效果">
+            <a-select-option value="fade">淡入淡出</a-select-option>
+            <a-select-option value="slide">滑动</a-select-option>
+            <a-select-option value="zoom">缩放</a-select-option>
+            <a-select-option value="none">无</a-select-option>
+          </a-select>
+        </a-form-item>
+
+        <a-form-item label="切换间隔（秒）" name="interval">
+          <a-input-number
+            v-model:value="formData.interval"
+            :min="10"
+            :max="300"
+            placeholder="秒"
+            style="width: 100%"
+          />
+        </a-form-item>
+
+        <a-form-item label="描述" name="description">
+          <a-textarea
+            v-model:value="formData.description"
+            placeholder="请输入描述"
+            :rows="4"
+            :maxlength="500"
+            show-count
+          />
+        </a-form-item>
+      </a-form>
+
+      <template #footer>
+        <a-button @click="handleModalCancel">取消</a-button>
+        <a-button type="primary" @click="handleModalOk" :loading="submitting">
+          {{ modalMode === 'create' ? '创建' : '保存' }}
+        </a-button>
+      </template>
+    </a-modal>
+
+    <!-- 轮播配置抽屉 -->
+    <a-drawer
+      v-model:open="configDrawerVisible"
+      title="轮播配置"
+      placement="right"
+      :width="drawerWidth"
+      :body-style="{ padding: 0, height: '100%', display: 'flex', flexDirection: 'column' }"
+      destroy-on-close
+    >
+      <template #extra>
+        <a-space>
+          <a-button @click="configDrawerVisible = false">
+            关闭
+          </a-button>
+          <a-button type="primary" @click="handleSaveConfig" :loading="savingConfig">
+            <template #icon>
+              <SaveOutlined />
+            </template>
+            保存
+          </a-button>
+        </a-space>
+      </template>
+      <div class="config-drawer-content">
+        <!-- 主体内容 -->
+        <div class="config-body">
+          <!-- 左侧：页面列表 -->
+          <div class="slides-panel">
+            <div class="panel-header">
+              <h4>轮播页面序列</h4>
+              <a-button type="link" size="small" @click="showPageSelector">
+                <template #icon>
+                  <PlusOutlined />
+                </template>
+                添加页面
+              </a-button>
+            </div>
+
+            <div class="slides-list">
+              <div v-if="configSlides.length === 0" class="empty-state">
+                <a-empty description="">
+                  <template #image>
+                    <FileImageOutlined :style="{ fontSize: '64px', color: '#d9d9d9' }" />
+                  </template>
+                  <template #description>
+                    <div class="empty-description">
+                      <p class="empty-title">暂无轮播页面</p>
+                      <p class="empty-text">点击下方按钮添加页面到轮播序列</p>
+                    </div>
+                  </template>
+                  <a-button type="primary" @click="showPageSelector">
+                    <template #icon>
+                      <PlusOutlined />
+                    </template>
+                    添加页面
+                  </a-button>
+                </a-empty>
+              </div>
+
+              <draggable
+                v-else
+                v-model="configSlides"
+                item-key="id"
+                handle=".drag-handle"
+                animation="200"
+                class="draggable-list"
+              >
+                <template #item="{ element, index }">
+                  <div class="slide-item">
+                    <div class="drag-handle">
+                      <HolderOutlined />
+                    </div>
+                    <div class="slide-index">{{ index + 1 }}</div>
+                    <div class="slide-thumb">
+                      <img v-if="element.thumbnail" :src="getImageUrl(element.thumbnail)" :alt="element.title" />
+                      <div v-else class="thumb-placeholder">
+                        <FileImageOutlined :style="{ fontSize: '24px', color: '#d9d9d9' }" />
+                      </div>
+                    </div>
+                    <div class="slide-info">
+                      <div class="slide-title">{{ element.title || '未命名页面' }}</div>
+                      <a-space :size="12" class="slide-meta">
+                        <a-tag size="small">
+                          {{ element.type === 'screen' ? '大屏' : '报表' }}
+                        </a-tag>
+                        <span class="meta-text">
+                          <ClockCircleOutlined />
+                          {{ element.duration || 10 }}秒
+                        </span>
+                      </a-space>
+                    </div>
+                    <div class="slide-actions">
+                      <a-button type="link" size="small" @click="handleEditSlide(element, index)">
+                        <EditOutlined />
+                      </a-button>
+                      <a-button type="link" size="small" danger @click="handleRemoveSlide(index)">
+                        <DeleteOutlined />
+                      </a-button>
+                    </div>
+                  </div>
+                </template>
+              </draggable>
+            </div>
+          </div>
+
+          <!-- 右侧：配置面板 -->
+          <div class="config-panel">
+            <div class="panel-header">
+              <h4>轮播设置</h4>
+            </div>
+            <div class="panel-body">
+              <a-form layout="vertical">
+                <a-form-item label="轮播名称">
+                  <a-input v-model:value="configFormData.name" placeholder="请输入轮播名称" />
+                </a-form-item>
+
+                <a-form-item label="分辨率">
+                  <a-select v-model:value="configFormData.resolution">
+                    <a-select-option value="1920x1080">1920x1080 (Full HD)</a-select-option>
+                    <a-select-option value="3840x2160">3840x2160 (4K)</a-select-option>
+                    <a-select-option value="1280x720">1280x720 (HD)</a-select-option>
+                    <a-select-option value="2560x1440">2560x1440 (2K)</a-select-option>
+                  </a-select>
+                </a-form-item>
+
+                <a-form-item label="切换效果">
+                  <a-select v-model:value="configFormData.transition">
+                    <a-select-option value="fade">淡入淡出</a-select-option>
+                    <a-select-option value="slide">滑动</a-select-option>
+                    <a-select-option value="zoom">缩放</a-select-option>
+                    <a-select-option value="none">无</a-select-option>
+                  </a-select>
+                </a-form-item>
+
+                <a-form-item label="默认切换间隔（秒）">
+                  <a-input-number
+                    v-model:value="configFormData.interval"
+                    :min="10"
+                    :max="300"
+                    style="width: 100%"
+                  />
+                </a-form-item>
+
+                <a-form-item label="描述">
+                  <a-textarea
+                    v-model:value="configFormData.description"
+                    :rows="4"
+                    placeholder="请输入描述"
+                  />
+                </a-form-item>
+              </a-form>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </a-drawer>
 
-    <!-- 新建/编辑轮播组模态框 -->
-    <CommonModal
-      v-model:visible="modalVisible"
-      :title="isEditMode ? '编辑轮播组' : '新建轮播组'"
-      width="600px"
-      :confirm-text="isEditMode ? '保存' : '创建'"
-      :loading="submitting"
-      @close="closeModal"
-      @confirm="handleSubmit"
+    <!-- 页面选择器弹窗 -->
+    <a-modal
+      v-model:open="pageSelectorVisible"
+      title="选择页面"
+      :width="800"
+      @cancel="pageSelectorVisible = false"
     >
-      <el-form :model="formData" label-position="top" :rules="formRules" ref="formRef">
-        <el-form-item label="轮播组名称" prop="name">
-          <el-input
-            v-model="formData.name"
-            placeholder="请输入轮播组名称，例如：公司大堂主屏"
-            maxlength="50"
-            show-word-limit
-            size="large"
-          />
-        </el-form-item>
+      <div class="page-selector-content">
+        <a-input
+          v-model:value="projectSearchKeyword"
+          placeholder="搜索项目..."
+          allow-clear
+          style="margin-bottom: 16px"
+        >
+          <template #prefix>
+            <SearchOutlined />
+          </template>
+        </a-input>
 
-        <el-form-item label="分辨率" prop="resolution">
-          <el-select
-            v-model="formData.resolution"
-            placeholder="请选择分辨率"
-            size="large"
-            style="width: 100%"
-          >
-            <el-option label="1920x1080 (Full HD)" value="1920x1080" />
-            <el-option label="3840x2160 (4K)" value="3840x2160 (4K)" />
-            <el-option label="2560x1440 (2K)" value="2560x1440 (2K)" />
-            <el-option label="1366x768 (HD)" value="1366x768 (HD)" />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="过渡效果" prop="transition">
-          <el-select
-            v-model="formData.transition"
-            placeholder="请选择过渡效果"
-            size="large"
-            style="width: 100%"
-          >
-            <el-option label="淡入淡出 (Fade)" value="fade" />
-            <el-option label="直接切换 (None)" value="none" />
-            <el-option label="滑动 (Slide)" value="slide" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-    </CommonModal>
-
-    <!-- 配置轮播模态框 -->
-    <el-dialog
-      v-model="configModalVisible"
-      :title="`配置轮播组: ${selectedPlaylist?.name}`"
-      width="900px"
-      :close-on-click-modal="false"
-    >
-      <div class="config-content">
-        <div class="config-toolbar">
-          <div class="toolbar-info">
-            <span class="info-label">总时长:</span>
-            <span class="info-value">{{ totalDuration }}</span>
-            <span class="info-label" style="margin-left: 24px">分辨率:</span>
-            <span class="info-value">{{ selectedPlaylist?.resolution }}</span>
-          </div>
-          <div class="toolbar-actions">
-            <el-button size="small" @click="copyPlaylistUrl">
-              <el-icon><Link /></el-icon>
-              复制链接
-            </el-button>
-          </div>
-        </div>
-
-        <div class="slides-list">
+        <div class="projects-grid">
           <div
-            v-for="(slide, index) in selectedPlaylist?.slides"
-            :key="slide.id"
-            class="slide-item"
+            v-for="project in filteredProjects"
+            :key="project.id"
+            class="project-item"
+            :class="{ selected: isProjectSelected(project.id) }"
+            @click="toggleProjectSelection(project)"
           >
-            <div class="slide-drag">
-              <el-icon><Rank /></el-icon>
+            <div class="project-thumb">
+              <img v-if="project.coverImage" :src="getImageUrl(project.coverImage)" :alt="project.title" />
+              <div v-else class="thumb-placeholder">
+                <FileImageOutlined :style="{ fontSize: '32px', color: '#d9d9d9' }" />
+              </div>
+              <div v-if="isProjectSelected(project.id)" class="selected-badge">
+                <CheckOutlined />
+              </div>
             </div>
-            <div class="slide-thumb">
-              <img :src="slide.thumbnail" />
+            <div class="project-info">
+              <div class="project-title">{{ project.title }}</div>
+              <a-tag size="small">{{ project.type === 'screen' ? '大屏' : '报表' }}</a-tag>
             </div>
-            <div class="slide-info">
-              <div class="slide-name">{{ slide.name }}</div>
-              <div class="slide-version">{{ slide.version }} • 已发布</div>
-            </div>
-            <div class="slide-duration">
-              <el-input-number
-                v-model="slide.duration"
-                :min="1"
-                :max="3600"
-                size="small"
-              />
-              <span class="duration-unit">秒</span>
-            </div>
-            <el-button
-              type="danger"
-              text
-              size="small"
-              @click="removeSlide(index)"
-            >
-              <el-icon><Delete /></el-icon>
-            </el-button>
           </div>
-
-          <el-button class="add-slide-btn" @click="addSlide">
-            <el-icon><Plus /></el-icon>
-            添加大屏页面
-          </el-button>
         </div>
       </div>
 
       <template #footer>
-        <el-button @click="configModalVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveConfig">保存配置</el-button>
+        <a-button @click="pageSelectorVisible = false">取消</a-button>
+        <a-button type="primary" @click="handleAddSelectedProjects" :disabled="selectedProjects.length === 0">
+          添加 {{ selectedProjects.length }} 个页面
+        </a-button>
       </template>
-    </el-dialog>
+    </a-modal>
+
+    <!-- 编辑页面弹窗 -->
+    <a-modal
+      v-model:open="editSlideVisible"
+      title="编辑页面"
+      :width="500"
+      @cancel="editSlideVisible = false"
+    >
+      <a-form layout="vertical">
+        <a-form-item label="页面标题">
+          <a-input v-model:value="editingSlide.title" placeholder="请输入页面标题" />
+        </a-form-item>
+        <a-form-item label="停留时长（秒）">
+          <a-input-number
+            v-model:value="editingSlide.duration"
+            :min="1"
+            :max="300"
+            style="width: 100%"
+          />
+        </a-form-item>
+      </a-form>
+
+      <template #footer>
+        <a-button @click="editSlideVisible = false">取消</a-button>
+        <a-button type="primary" @click="handleSaveSlideEdit">保存</a-button>
+      </template>
+    </a-modal>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Link, Rank, Delete } from '@element-plus/icons-vue'
-import PageHeader from '@/components/PageHeader.vue'
-import FilterBar from '@/components/FilterBar.vue'
-import CommonModal from '@/components/CommonModal.vue'
+import { ref, reactive, computed, onMounted, h } from 'vue'
+import { message, Empty } from 'ant-design-vue'
+import { useRouter } from 'vue-router'
 import {
-  getPlaylists,
+  PlusOutlined,
+  ReloadOutlined,
+  SettingOutlined,
+  LinkOutlined,
+  MoreOutlined,
+  EditOutlined,
+  SwapOutlined,
+  DeleteOutlined,
+  PlayCircleOutlined,
+  ClockCircleOutlined,
+  CalendarOutlined,
+  SearchOutlined,
+  FileImageOutlined,
+  CheckOutlined,
+  SaveOutlined,
+  HolderOutlined
+} from '@ant-design/icons-vue'
+import WorkspaceLayout from '@/components/workspace/WorkspaceLayout.vue'
+import PlaylistCard from '@/components/workspace/PlaylistCard.vue'
+import { usePlaylistOperations } from './usePlaylistOperations'
+import draggable from 'vuedraggable'
+import {
   createPlaylist,
   updatePlaylist,
-  deletePlaylist,
-  updateSlides,
-  removeSlide as removeSlideApi,
-  updatePlaylistStatus
+  getPlaylistDetail,
+  updateSlides
 } from '@/api/playlist'
+import { getProjectList } from '@/api/project'
 
-const searchKeyword = ref('')
-const selectedPlaylist = ref(null)
-const modalVisible = ref(false)
-const configModalVisible = ref(false)
-const isEditMode = ref(false)
-const submitting = ref(false)
-const formRef = ref(null)
-const editingPlaylistId = ref(null)
-const loading = ref(false)
-const activeFilter = ref('all')
+const router = useRouter()
+const formRef = ref()
 
-// 筛选选项
-const filters = [
-  { id: 'all', label: '全部轮播' },
-  { id: 'playing', label: '播放中' },
-  { id: 'idle', label: '闲置' }
+// 使用轮播操作 hook
+const {
+  playlists,
+  loading,
+  loadPlaylists,
+  copyPlaylistUrl,
+  handleToggleStatus,
+  handleDeletePlaylist
+} = usePlaylistOperations()
+
+// 面包屑
+const breadcrumbItems = [
+  { label: '首页', path: '/' },
+  { label: '工作台', path: '/workspace' },
+  { label: '轮播管理' }
 ]
 
-// 格式化时间
-const formatTime = (dateStr) => {
-  if (!dateStr) return '-'
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diff = now - date
-  const minutes = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
+// 筛选器
+const filters = [
+  { id: 'all', label: '全部', count: computed(() => playlists.value.length) },
+  { id: 'playing', label: '播放中', count: computed(() => playlists.value.filter(p => p.status === 'playing').length) },
+  { id: 'idle', label: '闲置', count: computed(() => playlists.value.filter(p => p.status === 'idle').length) }
+]
 
-  if (minutes < 1) return 'Just now'
-  if (minutes < 60) return `${minutes}m ago`
-  if (hours < 24) return `${hours}h ago`
-  if (days < 7) return `${days}d ago`
-  return date.toLocaleDateString()
+// 视图模式
+const viewModes = [
+  {
+    id: 'grid',
+    label: '网格视图',
+    tooltip: '网格视图',
+    icon: h('svg', { width: '16', height: '16', viewBox: '0 0 24 24', fill: 'currentColor' }, [
+      h('path', { d: 'M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z' })
+    ])
+  },
+  {
+    id: 'list',
+    label: '列表视图',
+    tooltip: '列表视图',
+    icon: h('svg', { width: '16', height: '16', viewBox: '0 0 24 24', fill: 'currentColor' }, [
+      h('path', { d: 'M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z' })
+    ])
+  }
+]
+
+// 当前筛选
+const currentFilter = ref('all')
+const searchKeyword = ref('')
+
+// 筛选和搜索函数
+const filterPlaylists = (items, filterValue) => {
+  if (filterValue === 'all') return items
+  return items.filter(item => item.status === filterValue)
 }
 
-// 表单数据
+const searchPlaylists = (items, keyword) => {
+  if (!keyword) return items
+  const lowerKeyword = keyword.toLowerCase()
+  return items.filter(item =>
+    item.name?.toLowerCase().includes(lowerKeyword) ||
+    item.description?.toLowerCase().includes(lowerKeyword)
+  )
+}
+
+// 处理筛选变化
+const handleFilterChange = (value) => {
+  currentFilter.value = value
+}
+
+// 处理搜索
+const handleSearch = (keyword) => {
+  searchKeyword.value = keyword
+}
+
+// 处理视图变化
+const handleViewChange = (view) => {
+  console.log('View changed to:', view)
+}
+
+// 弹窗相关
+const modalVisible = ref(false)
+const modalMode = ref('create')
+const currentPlaylist = ref(null)
+const submitting = ref(false)
+
+// 抽屉相关
+const configDrawerVisible = ref(false)
+const currentConfigPlaylist = ref(null)
+const configSlides = ref([])
+const savingConfig = ref(false)
+const drawerWidth = computed(() => {
+  return 'calc(100% - 240px)'
+})
+
+// 配置表单数据
+const configFormData = reactive({
+  name: '',
+  resolution: '1920x1080',
+  transition: 'fade',
+  interval: 60,
+  description: ''
+})
+
+// 页面选择器
+const pageSelectorVisible = ref(false)
+const projectSearchKeyword = ref('')
+const selectedProjects = ref([])
+const projects = ref([])
+
+// 编辑页面
+const editSlideVisible = ref(false)
+const editingSlide = ref({})
+const editingIndex = ref(-1)
+
 const formData = reactive({
   name: '',
   resolution: '1920x1080',
-  transition: 'fade'
+  transition: 'fade',
+  interval: 60,
+  description: ''
 })
 
-// 表单验证规则
 const formRules = {
-  name: [
-    { required: true, message: '请输入轮播组名称', trigger: 'blur' },
-    { min: 2, max: 50, message: '轮播组名称长度在 2 到 50 个字符', trigger: 'blur' }
-  ],
-  resolution: [
-    { required: true, message: '请选择分辨率', trigger: 'change' }
-  ],
-  transition: [
-    { required: true, message: '请选择过渡效果', trigger: 'change' }
-  ]
+  name: [{ required: true, message: '请输入轮播名称', trigger: 'blur' }],
+  resolution: [{ required: true, message: '请选择分辨率', trigger: 'change' }],
+  transition: [{ required: true, message: '请选择切换效果', trigger: 'change' }],
+  interval: [{ required: true, message: '请输入切换间隔', trigger: 'blur' }]
 }
 
-// 播放列表数据
-const playlists = ref([])
+// 打开创建弹窗
+const openCreateModal = () => {
+  modalMode.value = 'create'
+  currentPlaylist.value = null
+  Object.assign(formData, {
+    name: '',
+    resolution: '1920x1080',
+    transition: 'fade',
+    interval: 60,
+    description: ''
+  })
+  modalVisible.value = true
+}
 
-// 加载播放列表
-const loadPlaylists = async () => {
+// 编辑轮播
+const handleEditPlaylist = (playlist) => {
+  modalMode.value = 'edit'
+  currentPlaylist.value = playlist
+  Object.assign(formData, {
+    name: playlist.name,
+    resolution: playlist.resolution,
+    transition: playlist.transition,
+    interval: playlist.interval,
+    description: playlist.description || ''
+  })
+  modalVisible.value = true
+}
+
+// 配置轮播
+const handleConfigPlaylist = async (playlist) => {
+  currentConfigPlaylist.value = playlist
+  await loadConfigData(playlist.id)
+  configDrawerVisible.value = true
+}
+
+// 加载配置数据
+const loadConfigData = async (playlistId) => {
   try {
-    loading.value = true
-    const data = await getPlaylists()
-    playlists.value = data.map(playlist => ({
-      ...playlist,
-      slides: playlist.slides || [],
-      updatedAt: formatTime(playlist.updatedAt)
+    const data = await getPlaylistDetail(playlistId)
+    Object.assign(configFormData, {
+      name: data.name || '',
+      resolution: data.resolution || '1920x1080',
+      transition: data.transition || 'fade',
+      interval: data.interval || 10,
+      description: data.description || ''
+    })
+
+    configSlides.value = (data.slides || []).map((slide, index) => ({
+      id: slide.id || `slide_${Date.now()}_${index}`,
+      projectId: slide.projectId,
+      title: slide.name || slide.title || '未命名页面',
+      type: slide.type || 'screen',
+      thumbnail: slide.thumbnail || '',
+      duration: slide.duration || data.interval || 10
     }))
+
+    await loadProjects()
   } catch (error) {
-    console.error('加载轮播列表失败:', error)
-    ElMessage.error('加载轮播列表失败')
-  } finally {
-    loading.value = false
+    console.error('加载轮播详情失败:', error)
+    message.error('加载轮播详情失败')
   }
 }
 
-// 组件挂载时加载数据
-onMounted(() => {
-  loadPlaylists()
+// 加载项目列表
+const loadProjects = async () => {
+  try {
+    const data = await getProjectList()
+    projects.value = data.filter(p => p.status === 'published')
+
+    if (configSlides.value.length > 0 && projects.value.length > 0) {
+      configSlides.value = configSlides.value.map(slide => {
+        const project = projects.value.find(p => p.id === slide.projectId)
+        if (project && !slide.title) {
+          return {
+            ...slide,
+            title: project.title,
+            type: project.type,
+            thumbnail: project.coverImage
+          }
+        }
+        return slide
+      })
+    }
+  } catch (error) {
+    console.error('加载项目列表失败:', error)
+    message.error('加载项目列表失败')
+  }
+}
+
+// 保存配置
+const handleSaveConfig = async () => {
+  try {
+    savingConfig.value = true
+    const id = currentConfigPlaylist.value.id
+
+    await updatePlaylist(id, {
+      name: configFormData.name,
+      resolution: configFormData.resolution,
+      transition: configFormData.transition,
+      interval: configFormData.interval,
+      description: configFormData.description
+    })
+
+    const slidesData = configSlides.value.map(slide => ({
+      projectId: slide.projectId,
+      duration: slide.duration || configFormData.interval
+    }))
+    await updateSlides(id, slidesData)
+
+    message.success('配置已保存')
+    configDrawerVisible.value = false
+    await loadPlaylists()
+  } catch (error) {
+    console.error('保存配置失败:', error)
+    message.error('保存配置失败')
+  } finally {
+    savingConfig.value = false
+  }
+}
+
+// 预览
+const handlePreview = () => {
+  message.info('预览功能开发中')
+}
+
+// 显示页面选择器
+const showPageSelector = () => {
+  selectedProjects.value = []
+  pageSelectorVisible.value = true
+}
+
+// 过滤项目
+const filteredProjects = computed(() => {
+  if (!projectSearchKeyword.value) return projects.value
+  const keyword = projectSearchKeyword.value.toLowerCase()
+  return projects.value.filter(p =>
+    p.title?.toLowerCase().includes(keyword) ||
+    p.description?.toLowerCase().includes(keyword)
+  )
 })
 
-// 过滤后的播放列表
-const filteredPlaylists = computed(() => {
-  let result = playlists.value
+// 判断项目是否被选中
+const isProjectSelected = (projectId) => {
+  return selectedProjects.value.some(p => p.id === projectId)
+}
 
-  // 按状态筛选
-  if (activeFilter.value === 'playing') {
-    result = result.filter(p => p.status === 'playing')
-  } else if (activeFilter.value === 'idle') {
-    result = result.filter(p => p.status === 'idle')
+// 切换项目选择
+const toggleProjectSelection = (project) => {
+  const index = selectedProjects.value.findIndex(p => p.id === project.id)
+  if (index > -1) {
+    selectedProjects.value.splice(index, 1)
+  } else {
+    selectedProjects.value.push(project)
   }
+}
 
-  // 按关键词搜索
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase()
-    result = result.filter(p => p.name.toLowerCase().includes(keyword))
+// 添加选中的项目
+const handleAddSelectedProjects = () => {
+  selectedProjects.value.forEach(project => {
+    configSlides.value.push({
+      id: `slide_${Date.now()}_${Math.random()}`,
+      projectId: project.id,
+      title: project.title,
+      type: project.type,
+      thumbnail: project.coverImage,
+      duration: configFormData.interval
+    })
+  })
+  pageSelectorVisible.value = false
+  message.success(`已添加 ${selectedProjects.value.length} 个页面`)
+}
+
+// 编辑页面
+const handleEditSlide = (slide, index) => {
+  editingSlide.value = { ...slide }
+  editingIndex.value = index
+  editSlideVisible.value = true
+}
+
+// 保存页面编辑
+const handleSaveSlideEdit = () => {
+  if (editingIndex.value > -1) {
+    configSlides.value[editingIndex.value] = { ...editingSlide.value }
+    editSlideVisible.value = false
+    message.success('页面已更新')
   }
+}
 
-  return result
-})
+// 移除页面
+const handleRemoveSlide = (index) => {
+  configSlides.value.splice(index, 1)
+  message.success('页面已移除')
+}
 
-// 总时长
-const totalDuration = computed(() => {
-  if (!selectedPlaylist.value) return '0秒'
-  const total = selectedPlaylist.value.slides.reduce((sum, slide) => sum + slide.duration, 0)
-  if (total >= 60) {
-    const minutes = Math.floor(total / 60)
-    const seconds = total % 60
-    return `${minutes}分${seconds}秒`
+// 获取图片URL
+const getImageUrl = (path) => {
+  if (!path) return ''
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
+  // 如果路径以 / 开头，直接使用（由 vite proxy 处理）
+  if (path.startsWith('/')) return path
+  // 否则拼接完整路径
+  return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/${path}`
+}
+
+// 弹窗确认
+const handleModalOk = async () => {
+  try {
+    await formRef.value.validate()
+
+    submitting.value = true
+
+    if (modalMode.value === 'create') {
+      await createPlaylist(formData)
+      message.success('轮播组创建成功')
+    } else {
+      await updatePlaylist(currentPlaylist.value.id, formData)
+      message.success('轮播组更新成功')
+    }
+
+    submitting.value = false
+    modalVisible.value = false
+    await loadPlaylists()
+  } catch (error) {
+    submitting.value = false
+    if (error.errorFields) {
+      // 表单验证错误
+      return
+    }
+    console.error('操作失败:', error)
+    message.error('操作失败')
   }
-  return `${total}秒`
-})
+}
 
-// 获取过渡效果标签
+// 弹窗取消
+const handleModalCancel = () => {
+  modalVisible.value = false
+}
+
+// 菜单操作
+const handleMenuAction = (key, playlist) => {
+  switch (key) {
+    case 'edit':
+      handleEditPlaylist(playlist)
+      break
+    case 'toggle':
+      handleToggleStatus(playlist)
+      break
+    case 'copy':
+      copyPlaylistUrl(playlist)
+      break
+    case 'delete':
+      handleDeletePlaylist(playlist)
+      break
+  }
+}
+
+// 获取切换效果标签
 const getTransitionLabel = (transition) => {
   const labels = {
     fade: '淡入淡出',
     slide: '滑动',
-    none: '直接切换'
+    zoom: '缩放',
+    none: '无'
   }
   return labels[transition] || transition
 }
 
-// 打开配置轮播（网格视图）
-const handleConfigPlaylist = (playlist) => {
-  selectedPlaylist.value = playlist
-  configModalVisible.value = true
-}
-
-// 复制链接
-const copyPlaylistUrl = (playlist) => {
-  const url = playlist.url || `http://localhost:8000/playlist/${playlist.id}`
-  navigator.clipboard.writeText(url)
-  ElMessage.success('播放链接已复制到剪贴板')
-}
-
-// 处理下拉菜单命令
-const handleCommand = async (command, playlist) => {
-  switch (command) {
-    case 'edit':
-      openEditModal(playlist)
-      break
-    case 'toggle':
-      await togglePlaylistStatus(playlist)
-      break
-    case 'copy':
-      const url = playlist.url || `http://localhost:8000/playlist/${playlist.id}`
-      navigator.clipboard.writeText(url)
-      ElMessage.success('播放链接已复制到剪贴板')
-      break
-    case 'delete':
-      await handleDelete(playlist)
-      break
-  }
-}
-
-// 移除轮播项
-const removeSlide = async (index) => {
-  if (selectedPlaylist.value.slides.length === 1) {
-    ElMessage.warning('至少保留一个轮播项')
-    return
-  }
-
-  try {
-    const slide = selectedPlaylist.value.slides[index]
-    if (slide.id) {
-      await removeSlideApi(selectedPlaylist.value.id, slide.id)
-    }
-    selectedPlaylist.value.slides.splice(index, 1)
-    ElMessage.success('已移除')
-  } catch (error) {
-    console.error('移除轮播项失败:', error)
-    ElMessage.error('移除轮播项失败')
-  }
-}
-
-// 添加轮播项
-const addSlide = () => {
-  const newSlide = {
-    id: Date.now(),
-    name: '新增大屏页面',
-    version: 'v1.0',
-    duration: 30,
-    thumbnail: `https://picsum.photos/160/90?random=${Date.now()}`
-  }
-  selectedPlaylist.value.slides.push(newSlide)
-  ElMessage.success('已添加')
-}
-
-// 保存配置
-const saveConfig = async () => {
-  if (!selectedPlaylist.value) return
-
-  try {
-    await updateSlides(selectedPlaylist.value.id, selectedPlaylist.value.slides)
-    ElMessage.success('配置已保存')
-    if (viewMode.value === 'grid') {
-      configModalVisible.value = false
-    }
-    await loadPlaylists()
-  } catch (error) {
-    console.error('保存配置失败:', error)
-    ElMessage.error('保存配置失败')
-  }
-}
-
-// 打开新建模态框
-const openCreateModal = () => {
-  isEditMode.value = false
-  editingPlaylistId.value = null
-  resetForm()
-  modalVisible.value = true
-}
-
-// 打开编辑模态框
-const openEditModal = (playlist) => {
-  isEditMode.value = true
-  editingPlaylistId.value = playlist.id
-  formData.name = playlist.name
-  formData.resolution = playlist.resolution
-  formData.transition = playlist.transition
-  modalVisible.value = true
-}
-
-// 关闭模态框
-const closeModal = () => {
-  modalVisible.value = false
-  resetForm()
-}
-
-// 重置表单
-const resetForm = () => {
-  formData.name = ''
-  formData.resolution = '1920x1080'
-  formData.transition = 'fade'
-  if (formRef.value) {
-    formRef.value.resetFields()
-  }
-}
-
-// 提交表单
-const handleSubmit = async () => {
-  if (!formRef.value) return
-
-  await formRef.value.validate(async (valid) => {
-    if (!valid) return
-
-    submitting.value = true
-
-    try {
-      const playlistData = {
-        name: formData.name,
-        resolution: formData.resolution,
-        transition: formData.transition,
-        status: 'idle',
-        slides: []
-      }
-
-      if (isEditMode.value) {
-        await updatePlaylist(editingPlaylistId.value, playlistData)
-        ElMessage.success(`轮播组 "${formData.name}" 已更新`)
-      } else {
-        await createPlaylist(playlistData)
-        ElMessage.success(`轮播组 "${formData.name}" 创建成功`)
-      }
-
-      await loadPlaylists()
-      closeModal()
-    } catch (error) {
-      console.error('保存轮播组失败:', error)
-      ElMessage.error('保存轮播组失败')
-    } finally {
-      submitting.value = false
-    }
-  })
-}
-
-// 删除轮播组
-const handleDelete = async (playlist) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除轮播组 "${playlist.name}" 吗？此操作不可恢复。`,
-      '删除确认',
-      {
-        confirmButtonText: '删除',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    )
-
-    await deletePlaylist(playlist.id)
-    ElMessage.success('轮播组已删除')
-
-    // 如果删除的是当前选中的，清除选中
-    if (selectedPlaylist.value?.id === playlist.id) {
-      selectedPlaylist.value = null
-    }
-
-    await loadPlaylists()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除轮播组失败:', error)
-      ElMessage.error('删除轮播组失败')
-    }
-  }
-}
-
-// 切换轮播状态
-const togglePlaylistStatus = async (playlist) => {
-  try {
-    const newStatus = playlist.status === 'playing' ? 'idle' : 'playing'
-    await updatePlaylistStatus(playlist.id, newStatus)
-
-    playlist.status = newStatus
-    if (selectedPlaylist.value?.id === playlist.id) {
-      selectedPlaylist.value.status = newStatus
-    }
-
-    ElMessage.success(`已设为${newStatus === 'playing' ? '播放中' : '闲置'}`)
-    await loadPlaylists()
-  } catch (error) {
-    console.error('更新状态失败:', error)
-    ElMessage.error('更新播放状态失败')
-  }
-}
+// 初始化
+onMounted(() => {
+  loadPlaylists()
+})
 </script>
 
 <style scoped>
-/* Global Vars from root (implied) */
-.playlist-management {
-  height: 100%;
+/* 配置抽屉样式 */
+.config-drawer-content {
   display: flex;
   flex-direction: column;
-  background-color: var(--el-bg-color);
-  padding: 24px;
+  height: 100%;
+}
+
+.config-body {
+  flex: 1;
+  display: flex;
   overflow: hidden;
 }
 
-/* Content */
-.content-scroll {
+/* 左侧页面列表 */
+.slides-panel {
   flex: 1;
-  overflow-y: auto;
-  margin-top: 0px;
-}
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
-}
-
-/* Playlist Card */
-.playlist-card {
-  background: var(--el-bg-color); border: 1px solid var(--el-border-color); border-radius: 12px;
-  overflow: hidden; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  position: relative; display: flex; flex-direction: column;
-}
-.playlist-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 15px 30px rgba(0,0,0,0.4);
-  border-color: var(--el-text-color-secondary);
-}
-
-/* Image Header */
-.card-image-header {
-  height: 200px; width: 100%; position: relative; overflow: hidden;
-}
-
-.header-img {
-  width: 100%; height: 100%; object-fit: cover; transition: 0.4s;
-  filter: brightness(0.85);
-}
-.playlist-card:hover .header-img { transform: scale(1.05); filter: brightness(0.6); }
-
-/* Default Image */
-.header-img-default {
-  width: 100%; height: 100%; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 12px;
-  position: relative; overflow: hidden;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(109, 40, 217, 0.25) 100%);
-}
-
-.header-img-default::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
-  animation: rotate 20s linear infinite;
-}
-
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.default-icon {
-  width: 64px;
-  height: 64px;
-  opacity: 0.6;
-  position: relative;
-  z-index: 1;
-  color: #a78bfa;
-}
-
-.default-text {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--el-text-color-secondary);
-  position: relative;
-  z-index: 1;
-  letter-spacing: 0.5px;
-}
-
-/* Overlay */
-.card-overlay {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px;
-  opacity: 0; transition: 0.3s; transform: translateY(10px);
-}
-.playlist-card:hover .card-overlay { opacity: 1; transform: translateY(0); }
-
-.overlay-btn {
-  padding: 8px 24px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;
-  border: none; display: flex; align-items: center; gap: 6px; transition: 0.2s;
-}
-.btn-edit { background: #a78bfa; color: #fff; }
-.btn-edit:hover { filter: brightness(1.1); transform: scale(1.05); }
-
-.btn-preview { background: rgba(255,255,255,0.1); color: #fff; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); }
-.btn-preview:hover { background: rgba(255,255,255,0.2); }
-
-/* Card Body */
-.card-content { padding: 16px; flex: 1; display: flex; flex-direction: column; }
-.card-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.card-actions-menu { display: flex; align-items: center; gap: 12px; }
-.el-dropdown-link { cursor: pointer; color: var(--el-text-color-secondary); display: flex; align-items: center; }
-.el-dropdown-link:hover { color: var(--el-text-color-primary); }
-.card-title {
-  font-size: 15px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 6px;
-}
-.type-icon { width: 16px; height: 16px; color: #a78bfa; }
-
-.status-badge { font-size: 10px; padding: 2px 6px; border-radius: 3px; background: rgba(255,255,255,0.1); color: var(--el-text-color-secondary); }
-.status-badge.playing { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-
-.card-desc { font-size: 12px; color: var(--el-text-color-secondary); margin-bottom: 16px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-
-.card-footer {
-  margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05);
-  display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--el-text-color-secondary);
-}
-
-/* ========== 配置对话框 ========== */
-.config-content {
-  max-height: 600px;
-  overflow-y: auto;
-}
-
-.config-toolbar {
   display: flex;
+  flex-direction: column;
+  border-right: 1px solid #f0f0f0;
+  background: #fff;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
   padding: 16px;
-  background: var(--el-fill-color-light);
-  border-radius: 6px;
-  margin-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
 }
 
-.toolbar-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.panel-header h4 {
+  margin: 0;
   font-size: 14px;
-}
-
-.info-label {
-  color: var(--el-text-color-secondary);
-}
-
-.info-value {
-  color: var(--el-text-color-primary);
   font-weight: 500;
-}
-
-.toolbar-actions {
-  display: flex;
-  gap: 12px;
+  color: #262626;
 }
 
 .slides-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 300px;
+}
+
+.empty-description {
+  margin-bottom: 16px;
+}
+
+.empty-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #262626;
+  margin: 0 0 8px 0;
+}
+
+.empty-text {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin: 0;
+}
+
+.draggable-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .slide-item {
@@ -739,214 +951,41 @@ const togglePlaylistStatus = async (playlist) => {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: var(--el-fill-color-light);
-  border-radius: 6px;
-  border: 1px solid var(--el-border-color-lighter);
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
-.slide-drag {
+.slide-item:hover {
+  border-color: #d9d9d9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: #bfbfbf;
   cursor: grab;
-  color: var(--el-text-color-placeholder);
-}
-
-.slide-drag:active {
-  cursor: grabbing;
-}
-
-.slide-thumb {
-  width: 80px;
-  height: 45px;
-  border-radius: 4px;
-  overflow: hidden;
-  background: var(--el-fill-color);
-}
-
-.slide-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.slide-info {
-  flex: 1;
-}
-
-.slide-name {
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 4px;
-  color: var(--el-text-color-primary);
-}
-
-.slide-version {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-}
-
-.slide-duration {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.duration-unit {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-}
-
-.add-slide-btn {
-  width: 100%;
-  border-style: dashed;
-}
-
-/* ========== 分栏视图 ========== */
-.split-view {
-  display: grid;
-  grid-template-columns: 350px 1fr;
-  gap: 20px;
-  height: 100%;
-}
-
-/* 左侧列表 */
-.playlist-list {
-  background: var(--el-bg-color-overlay);
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-  overflow-y: auto;
-  padding: 8px;
-}
-
-.playlist-item {
-  padding: 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.playlist-item:hover {
-  background: var(--el-fill-color);
-}
-
-.playlist-item.selected {
-  background: var(--el-color-primary-light-9);
-  border-left: 3px solid var(--el-color-primary);
-}
-
-.item-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.item-title {
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 4px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: var(--el-text-color-primary);
-}
-
-.status-dot {
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: var(--el-text-color-secondary);
-}
-
-.status-dot.playing {
-  color: #10b981;
-}
-
-.item-meta {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  display: flex;
-  gap: 12px;
-}
-
-.item-actions {
-  display: flex;
-  gap: 4px;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.playlist-item:hover .item-actions {
-  opacity: 1;
-}
-
-/* 右侧配置面板 */
-.config-panel {
-  background: var(--el-bg-color-overlay);
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.panel-toolbar {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--el-border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   flex-shrink: 0;
 }
 
-.toolbar-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
+.drag-handle:active {
+  cursor: grabbing;
 }
 
-.toolbar-subtitle {
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--el-text-color-secondary);
-  margin-left: 12px;
-}
-
-.toolbar-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.slides-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-}
-
-.slide-card {
+.slide-index {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: var(--el-fill-color-light);
-  border-radius: 6px;
-  border: 1px solid var(--el-border-color-lighter);
-  margin-bottom: 12px;
-  transition: all 0.2s;
-}
-
-.slide-card:hover {
-  border-color: var(--el-border-color);
-  background: var(--el-fill-color);
-}
-
-.slide-drag {
-  cursor: grab;
-  color: var(--el-text-color-placeholder);
-}
-
-.slide-drag:active {
-  cursor: grabbing;
+  justify-content: center;
+  min-width: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #595959;
+  flex-shrink: 0;
 }
 
 .slide-thumb {
@@ -954,7 +993,7 @@ const togglePlaylistStatus = async (playlist) => {
   height: 45px;
   border-radius: 4px;
   overflow: hidden;
-  background: var(--el-fill-color);
+  background: #f5f5f5;
   flex-shrink: 0;
 }
 
@@ -964,65 +1003,249 @@ const togglePlaylistStatus = async (playlist) => {
   object-fit: cover;
 }
 
+.thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f5f5 0%, #fafafa 100%);
+}
+
 .slide-info {
   flex: 1;
   min-width: 0;
 }
 
-.slide-name {
+.slide-title {
   font-size: 14px;
   font-weight: 500;
+  color: #262626;
   margin-bottom: 4px;
-  color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.slide-version {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-}
-
-.slide-duration {
+.slide-meta {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.duration-unit {
+.meta-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 12px;
-  color: var(--el-text-color-secondary);
+  color: #8c8c8c;
 }
 
-.panel-footer {
-  padding: 16px 20px;
-  border-top: 1px solid var(--el-border-color);
+.meta-text :deep(.anticon) {
+  font-size: 12px;
+}
+
+.meta-number {
+  color: #1890ff;
+  font-size: 13px;
+}
+
+.slide-actions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: var(--el-fill-color-lighter);
+  gap: 4px;
   flex-shrink: 0;
 }
 
-.footer-info {
+/* 右侧配置面板 */
+.config-panel {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  background: #fafafa;
+}
+
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* 页面选择器样式 */
+.page-selector-content {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.project-item {
+  position: relative;
+  border: 2px solid #f0f0f0;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.project-item:hover {
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+}
+
+.project-item.selected {
+  border-color: #1890ff;
+  background: #e6f7ff;
+}
+
+.project-thumb {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+  background: #f5f5f5;
+}
+
+.project-thumb img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.selected-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background: #1890ff;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.project-info {
+  padding: 8px;
+  background: #fff;
+}
+
+.project-title {
+  font-size: 13px;
+  color: #262626;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 列表视图样式 */
+.playlist-list-item {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+}
+
+.playlist-list-item:hover {
+  border-color: #d9d9d9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.list-item-thumb {
+  width: 160px;
+  height: 90px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f5f5f5;
+  flex-shrink: 0;
+}
+
+.list-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.list-item-thumb-default {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f5f5 0%, #fafafa 100%);
+}
+
+.list-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.list-item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.list-item-title-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
-  color: var(--el-text-color-secondary);
+  flex: 1;
+  min-width: 0;
 }
 
-/* 右侧空状态 */
-.config-panel-empty {
-  background: var(--el-bg-color-overlay);
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
+.list-item-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #262626;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-item-actions {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
+.list-item-desc {
+  font-size: 13px;
+  color: #8c8c8c;
+  margin-bottom: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-item-meta {
+  margin-top: auto;
+}
+
+.draft-tag {
+  background: #fff7e6;
+  border-color: #ffd591;
+  color: #fa8c16;
+  font-weight: 500;
+}
 </style>
+
+

@@ -2,7 +2,8 @@
  * 全局错误处理器
  * 统一处理应用中的各种错误
  */
-import { ElMessage, ElNotification } from 'element-plus'
+import { message, notification } from 'ant-design-vue'
+import logger from './logger'
 
 /**
  * 错误类型枚举
@@ -98,30 +99,21 @@ function formatError(error) {
 function showErrorMessage(error) {
   if (!config.showMessage) return
 
-  const { message, type, level } = error
+  const { message: msg, type, level } = error
 
   // 根据错误级别选择提示方式
   if (level === ErrorLevel.FATAL) {
-    ElNotification.error({
-      title: '严重错误',
-      message,
+    notification.error({
+      message: '严重错误',
+      description: msg,
       duration: 0 // 不自动关闭
     })
   } else if (level === ErrorLevel.ERROR) {
-    ElMessage.error({
-      message,
-      duration: 3000
-    })
+    message.error(msg)
   } else if (level === ErrorLevel.WARNING) {
-    ElMessage.warning({
-      message,
-      duration: 3000
-    })
+    message.warning(msg)
   } else {
-    ElMessage.info({
-      message,
-      duration: 3000
-    })
+    message.info(msg)
   }
 }
 
@@ -132,9 +124,9 @@ function showErrorMessage(error) {
 function logError(error) {
   if (!config.logError) return
 
-  console.error('[Error Handler]', error)
+  logger.error('[Error Handler]', error)
 
-  // 存储错误日志（最多保存 100 条）
+  // 存储错误日志(最多保存 100 条)
   errorLogs.push(error)
   if (errorLogs.length > 100) {
     errorLogs.shift()
@@ -157,7 +149,7 @@ async function reportError(error) {
       body: JSON.stringify(error)
     })
   } catch (err) {
-    console.error('错误上报���败:', err)
+    logger.error('错误上报���败:', err)
   }
 }
 

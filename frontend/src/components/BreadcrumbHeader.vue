@@ -1,20 +1,17 @@
 <template>
   <div class="breadcrumb-header">
-    <div class="breadcrumb-nav">
-      <template v-for="(item, index) in items" :key="index">
-        <span v-if="index > 0" class="breadcrumb-separator">/</span>
-        <router-link
-          v-if="item.path && index < items.length - 1"
-          :to="item.path"
-          class="breadcrumb-item breadcrumb-link"
-        >
+    <a-breadcrumb>
+      <a-breadcrumb-item v-for="(item, index) in items" :key="index">
+        <router-link v-if="item.path && index < items.length - 1" :to="item.path">
+          <component v-if="item.icon" :is="item.icon" :style="{ marginRight: '4px' }" />
           {{ item.label }}
         </router-link>
-        <span v-else class="breadcrumb-item breadcrumb-current">
+        <span v-else>
+          <component v-if="item.icon" :is="item.icon" :style="{ marginRight: '4px' }" />
           {{ item.label }}
         </span>
-      </template>
-    </div>
+      </a-breadcrumb-item>
+    </a-breadcrumb>
   </div>
 </template>
 
@@ -28,7 +25,7 @@ defineProps({
     // [
     //   { label: '首页', path: '/' },
     //   { label: '设置', path: '/settings' },
-    //   { label: 'IP白名单' }  // 最后一项不需要 path
+    //   { label: 'IP白名单', icon: 'LockOutlined' }  // 最后一项不需要 path，可选 icon
     // ]
   }
 })
@@ -36,40 +33,9 @@ defineProps({
 
 <style scoped>
 .breadcrumb-header {
-  margin-bottom: 16px;
-}
-
-.breadcrumb-nav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: var(--el-text-color-regular);
-}
-
-.breadcrumb-item {
-  display: inline-flex;
-  align-items: center;
-  transition: color 0.2s;
-}
-
-.breadcrumb-link {
-  color: var(--el-text-color-secondary);
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.breadcrumb-link:hover {
-  color: var(--el-color-primary);
-}
-
-.breadcrumb-current {
-  color: var(--el-text-color-primary);
-  font-weight: 500;
-}
-
-.breadcrumb-separator {
-  color: var(--el-text-color-placeholder);
-  user-select: none;
+  width: 100%;
+  background: #fff;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
 }
 </style>

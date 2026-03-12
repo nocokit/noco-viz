@@ -1,4 +1,5 @@
 import { createApiService } from './base'
+import request from './http'
 
 /**
  * 模板管理API

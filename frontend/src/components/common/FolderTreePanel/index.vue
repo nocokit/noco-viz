@@ -9,7 +9,7 @@
       </div>
       <div class="header-right">
         <slot name="header-right">
-          <el-button
+          <a-button
             v-if="allowCreate"
             :icon="Plus"
             circle
@@ -37,9 +37,9 @@
         @dragend="handleDragEnd"
       >
         <!-- 文件夹图标 -->
-        <el-icon class="folder-icon" :class="{ open: isActive(folder) }">
+        
           <component :is="getFolderIcon(folder)" />
-        </el-icon>
+        
 
         <!-- 文件夹名称 -->
         <span class="folder-name">{{ folder.name }}</span>
@@ -51,36 +51,34 @@
 
         <!-- 操作按钮 -->
         <div v-if="!isDefaultFolder(folder)" class="folder-actions">
-          <el-dropdown
+          <a-dropdown
             v-if="allowEdit || allowDelete"
             trigger="click"
             @command="handleCommand($event, folder)"
           >
-            <el-icon class="action-icon" @click.stop>
-              <MoreFilled />
-            </el-icon>
+            <MoreFilled />
             <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item v-if="allowEdit" command="rename" :icon="Edit">
+              <a-dropdown-menu>
+                <a-dropdown-item v-if="allowEdit" command="rename" :icon="Edit">
                   重命名
-                </el-dropdown-item>
-                <el-dropdown-item
+                </a-menu-item>
+                <a-dropdown-item
                   v-if="allowDelete"
                   command="delete"
                   :icon="Delete"
                   divided
                 >
                   删除
-                </el-dropdown-item>
-              </el-dropdown-menu>
+                </a-menu-item>
+              </a-menu>
             </template>
-          </el-dropdown>
+          </a-dropdown>
         </div>
       </div>
 
       <!-- 空状态 -->
       <div v-if="folders.length === 0" class="empty-state">
-        <el-icon><FolderOpened /></el-icon>
+        <FolderOpened />
         <span>{{ emptyText }}</span>
       </div>
     </div>
@@ -94,15 +92,8 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import {
-  Folder,
-  FolderOpened,
-  Plus,
-  Edit,
-  Delete,
-  MoreFilled
-} from '@element-plus/icons-vue'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { FolderOutlined, FolderOpenOutlined, PlusOutlined, EditOutlined, DeleteOutlined, MoreOutlined } from '@ant-design/icons-vue'
+import { message, ElMessageBox } from '@/utils/ui'
 
 const props = defineProps({
   // 当前选中的文件夹
@@ -234,7 +225,7 @@ const handleCommand = async (command, folder) => {
     }
   } else if (command === 'delete') {
     try {
-      await ElMessageBox.confirm(
+      await Modal.confirm(
         `确定要删除文件夹"${folder.name}"吗？`,
         '删除确认',
         {
@@ -301,161 +292,3 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-.folder-tree-panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: var(--bg-card);
-  border-right: 1px solid var(--border);
-}
-
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--border);
-}
-
-.header-left {
-  flex: 1;
-  min-width: 0;
-}
-
-.panel-title {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-}
-
-.header-right {
-  flex-shrink: 0;
-}
-
-.folder-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--spacing-sm);
-}
-
-.folder-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-base);
-  user-select: none;
-  position: relative;
-}
-
-.folder-item:hover {
-  background: var(--bg-hover);
-}
-
-.folder-item.active {
-  background: var(--bg-active);
-  color: var(--color-primary);
-}
-
-.folder-item.dragging {
-  opacity: 0.5;
-}
-
-.folder-icon {
-  flex-shrink: 0;
-  font-size: 18px;
-  color: var(--text-secondary);
-  transition: all var(--transition-base);
-}
-
-.folder-item.active .folder-icon {
-  color: var(--color-primary);
-}
-
-.folder-icon.open {
-  transform: scale(1.1);
-}
-
-.folder-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--font-size-sm);
-}
-
-.folder-count {
-  flex-shrink: 0;
-  padding: 2px 8px;
-  background: var(--bg-elevated);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-}
-
-.folder-item.active .folder-count {
-  background: var(--color-primary);
-  color: #fff;
-}
-
-.folder-actions {
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity var(--transition-base);
-}
-
-.folder-item:hover .folder-actions {
-  opacity: 1;
-}
-
-.action-icon {
-  padding: 4px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-base);
-}
-
-.action-icon:hover {
-  background: var(--bg-elevated);
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-3xl) var(--spacing-lg);
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
-  text-align: center;
-}
-
-.empty-state .el-icon {
-  font-size: 48px;
-  opacity: 0.3;
-}
-
-.panel-footer {
-  padding: var(--spacing-lg);
-  border-top: 1px solid var(--border);
-}
-
-/* 滚动条 */
-.folder-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.folder-list::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: var(--radius-sm);
-}
-
-.folder-list::-webkit-scrollbar-thumb:hover {
-  background: var(--text-tertiary);
-}
-</style>

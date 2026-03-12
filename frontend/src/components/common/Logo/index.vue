@@ -39,7 +39,7 @@
     </svg>
 
     <!-- 预览对话框 -->
-    <el-dialog
+    <a-modal
       v-model="showPreview"
       title="Logo 预览"
       width="500px"
@@ -86,7 +86,7 @@
           <p class="info-item"><strong>格式：</strong>SVG</p>
         </div>
       </div>
-    </el-dialog>
+    </a-modal>
   </div>
 </template>
 
@@ -134,71 +134,3 @@ const handleClick = () => {
 }
 </script>
 
-<style scoped>
-.logo-wrapper {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo-wrapper.clickable {
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.logo-wrapper.clickable:hover {
-  transform: scale(1.05);
-}
-
-.logo-image,
-.logo-svg {
-  display: block;
-}
-
-.preview-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  padding: 20px;
-}
-
-.preview-image,
-.preview-svg {
-  width: 200px;
-  height: 200px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.preview-info {
-  width: 100%;
-  background: #f5f5f5;
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.info-item {
-  margin: 8px 0;
-  font-size: 14px;
-  color: #333;
-}
-
-.info-item strong {
-  color: #666;
-  margin-right: 8px;
-}
-
-/* 暗色主题适配 */
-:deep(.logo-preview-dialog) {
-  background: var(--bg-card, #fff);
-}
-
-:deep(.el-dialog__header) {
-  border-bottom: 1px solid var(--border, #e5e7eb);
-}
-
-:deep(.el-dialog__body) {
-  padding: 0;
-}
-</style>

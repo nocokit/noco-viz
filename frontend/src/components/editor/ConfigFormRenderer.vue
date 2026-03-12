@@ -1,42 +1,47 @@
 <!--
-  动态配置表单渲染器
+  动态配置表单渲染器 - 使用 EditorFormSection
   根据 JSON Schema 自动渲染配置表单
+
+  用途：专门用于渲染嵌套对象结构的配置（如 ECharts 配置）
+  Schema 格式：{ sectionKey: { properties: { propKey: propSchema } } }
+
+  如果需要更高级的功能（分段控制、网格布局等），请使用 EditorFormRenderer.vue
 -->
 <template>
   <div class="config-form-renderer">
-    <template v-for="(sectionSchema, sectionKey) in schema" :key="sectionKey">
-      <!-- 分组折叠区域 -->
-      <div :class="['group-section', { open: openSections[sectionKey] }]">
-        <div class="group-header" @click="toggleSection(sectionKey)">
-          <div class="group-arrow"></div>
-          <div class="group-title">{{ getSectionLabel(sectionKey) }}</div>
-        </div>
-
-        <div class="group-body" v-show="openSections[sectionKey]">
-          <template v-if="sectionSchema.properties">
-            <template v-for="(propSchema, propKey) in sectionSchema.properties" :key="propKey">
-              <component
-                :is="getFormControl(propSchema)"
-                :label="propSchema.label"
-                :modelValue="getNestedValue(modelValue, sectionKey, propKey)"
-                @update:modelValue="updateNestedValue(sectionKey, propKey, $event)"
-                :schema="propSchema"
-              />
-            </template>
-          </template>
-        </div>
-      </div>
-    </template>
+    <EditorFormSection
+      v-for="(sectionSchema, sectionKey) in schema"
+      :key="sectionKey"
+      :title="getSectionLabel(sectionKey)"
+      :collapsible="true"
+      :defaultCollapsed="false"
+      :divider="true"
+    >
+      <template v-if="sectionSchema.properties">
+        <template v-for="(propSchema, propKey) in sectionSchema.properties" :key="propKey">
+          <EditorFormField :label="propSchema.label" inline>
+            <component
+              :is="getFormControl(propSchema)"
+              :modelValue="getNestedValue(modelValue, sectionKey, propKey)"
+              @update:modelValue="updateNestedValue(sectionKey, propKey, $event)"
+              v-bind="getControlProps(propSchema)"
+            />
+          </EditorFormField>
+        </template>
+      </template>
+    </EditorFormSection>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
-import BooleanControl from './controls/BooleanControl.vue'
-import NumberControl from './controls/NumberControl.vue'
-import StringControl from './controls/StringControl.vue'
-import ColorControl from './controls/ColorControl.vue'
-import SelectControl from './controls/SelectControl.vue'
+import { ref, watch } from 'vue'
+import EditorFormSection from './EditorFormSection.vue'
+import EditorFormField from './EditorFormField.vue'
+import EditorSwitch from './EditorSwitch.vue'
+import EditorInputNumber from './EditorInputNumber.vue'
+import EditorInput from './EditorInput.vue'
+import EditorColorPicker from './EditorColorPicker.vue'
+import EditorSelect from './EditorSelect.vue'
 import ObjectControl from './controls/ObjectControl.vue'
 
 const props = defineProps({
@@ -51,22 +56,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
-
-// 默认展开所有分组
-const openSections = reactive({})
-
-// 初始化展开状态
-watch(() => props.schema, (newSchema) => {
-  Object.keys(newSchema).forEach(key => {
-    if (openSections[key] === undefined) {
-      openSections[key] = true
-    }
-  })
-}, { immediate: true })
-
-const toggleSection = (key) => {
-  openSections[key] = !openSections[key]
-}
 
 const getSectionLabel = (key) => {
   const labels = {
@@ -94,22 +83,27 @@ const getFormControl = (propSchema) => {
 
   switch (propSchema.type) {
     case 'boolean':
-      return BooleanControl
+      return EditorSwitch
     case 'number':
-      return NumberControl
+      return EditorInputNumber
     case 'string':
-      return StringControl
+      return EditorInput
     case 'color':
-      return ColorControl
+      return EditorColorPicker
     case 'select':
-      return SelectControl
+      return EditorSelect
     default:
-      return StringControl
+      return EditorInput
   }
 }
 
 const getNestedValue = (obj, ...keys) => {
   return keys.reduce((acc, key) => acc?.[key], obj)
+}
+
+const getControlProps = (propSchema) => {
+  const { label, type, ...controlProps } = propSchema
+  return controlProps
 }
 
 const updateNestedValue = (sectionKey, propKey, value) => {
@@ -126,68 +120,7 @@ const updateNestedValue = (sectionKey, propKey, value) => {
 
 <style scoped>
 .config-form-renderer {
-  width: 100%;
-}
-
-/* 优化后的分组样式 - 参考模板设计 */
-.group-section {
-  border: 1px solid #303033;
-  border-radius: 3px;
-  background: #202024;
-  margin-bottom: 10px;
-  overflow: hidden;
-}
-
-.group-section:last-child {
-  margin-bottom: 0;
-}
-
-.group-header {
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 8px;
-  cursor: pointer;
-  user-select: none;
-  background: #252529;
-  transition: background 0.2s;
-}
-
-.group-header:hover {
-  background: #2a2a2e;
-}
-
-.group-arrow {
-  width: 0;
-  height: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 5px solid #909399;
-  transition: transform 0.2s;
-  margin-right: 6px;
-}
-
-.group-section.open .group-arrow {
-  transform: rotate(0deg);
-}
-
-.group-section:not(.open) .group-arrow {
-  transform: rotate(-90deg);
-}
-
-.group-title {
-  font-size: 12px;
-  font-weight: 500;
-  color: #e5e5e5;
-  flex: 1;
-  display: flex;
-  align-items: center;
-}
-
-.group-body {
-  padding: 10px;
-  border-top: 1px solid #303033;
-  background: #18181c;
+  /* 样式由 EditorFormSection 组件提供 */
 }
 </style>
+

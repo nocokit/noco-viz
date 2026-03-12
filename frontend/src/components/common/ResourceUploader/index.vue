@@ -1,5 +1,5 @@
 <template>
-  <el-dialog
+  <a-modal
     v-model="visible"
     :title="title"
     :width="width"
@@ -7,7 +7,7 @@
     @close="handleClose"
   >
     <!-- 上传区域 -->
-    <el-upload
+    <a-upload
       ref="uploadRef"
       v-bind="uploadProps"
       :auto-upload="false"
@@ -19,7 +19,7 @@
       :on-exceed="handleExceed"
       drag
     >
-      <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
+      <UploadFilled />
       <div class="el-upload__text">
         拖拽文件到此处或 <em>点击上传</em>
       </div>
@@ -30,7 +30,7 @@
           </slot>
         </div>
       </template>
-    </el-upload>
+    </a-upload>
 
     <!-- 文件列表 -->
     <div v-if="fileList.length > 0" class="resource-uploader__list">
@@ -46,7 +46,7 @@
             :src="getFilePreview(file)"
             class="preview-image"
           />
-          <el-icon v-else class="preview-icon"><Document /></el-icon>
+          <FileOutlined v-else />
         </div>
 
         <!-- 文件信息 -->
@@ -57,7 +57,7 @@
 
         <!-- 自定义字段 -->
         <div v-if="allowRename || customFields.length > 0" class="resource-uploader__fields">
-          <el-input
+          <a-input
             v-if="allowRename"
             v-model="file.customName"
             placeholder="自定义文件名"
@@ -66,14 +66,14 @@
           />
 
           <template v-for="field in customFields" :key="field.name">
-            <el-input
+            <a-input
               v-if="field.type === 'input'"
               v-model="file[field.name]"
               :placeholder="field.label"
               size="small"
               class="field-input"
             />
-            <el-select
+            <a-select
               v-else-if="field.type === 'select'"
               v-model="file[field.name]"
               :placeholder="field.label"
@@ -83,25 +83,25 @@
               :allow-create="field.allowCreate"
               class="field-input"
             >
-              <el-option
+              <a-select-option
                 v-for="option in field.options"
                 :key="option.value"
                 :label="option.label"
                 :value="option.value"
               />
-            </el-select>
+            </a-select>
           </template>
         </div>
 
         <!-- 操作按钮 -->
-        <el-button
+        <a-button
           link
           type="danger"
           @click="handleRemoveFile(index)"
           class="resource-uploader__remove"
         >
-          <el-icon><Delete /></el-icon>
-        </el-button>
+          <DeleteOutlined />
+        </a-button>
       </div>
     </div>
 
@@ -114,25 +114,25 @@
           </span>
         </div>
         <div class="footer-actions">
-          <el-button @click="handleCancel" :disabled="uploading">取消</el-button>
-          <el-button
+          <a-button @click="handleCancel" :disabled="uploading">取消</a-button>
+          <a-button
             type="primary"
             @click="handleUpload"
             :loading="uploading"
             :disabled="fileList.length === 0"
           >
             {{ confirmText || '上传' }}
-          </el-button>
+          </a-button>
         </div>
       </div>
     </template>
-  </el-dialog>
+  </a-modal>
 </template>
 
 <script setup>
 import { ref, watch, computed } from 'vue'
-import { UploadFilled, Document, Delete } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { UploadFilled, FileOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+import { message } from 'ant-design-vue'
 
 const props = defineProps({
   modelValue: {
@@ -232,7 +232,7 @@ const formatFileSize = (bytes) => {
 const handleFileChange = (file, files) => {
   // 文件大小验证
   if (props.maxSize && file.size > props.maxSize) {
-    ElMessage.error(`文件 ${file.name} 大小超过限制 ${formatFileSize(props.maxSize)}`)
+    message.error(`文件 ${file.name} 大小超过限制 ${formatFileSize(props.maxSize)}`)
     uploadRef.value.handleRemove(file)
     return
   }
@@ -260,7 +260,7 @@ const handleFileChange = (file, files) => {
 }
 
 const handleExceed = (files, fileList) => {
-  ElMessage.warning(`最多只能上传 ${props.limit} 个文件`)
+  message.warning(`最多只能上传 ${props.limit} 个文件`)
 }
 
 const handleRemoveFile = (index) => {
@@ -274,7 +274,7 @@ const handleRemoveFile = (index) => {
 
 const handleUpload = async () => {
   if (fileList.value.length === 0) {
-    ElMessage.warning('请先选择文件')
+    message.warning('请先选择文件')
     return
   }
 
@@ -302,7 +302,7 @@ const handleUpload = async () => {
     visible.value = false
   } catch (error) {
     emit('error', error)
-    ElMessage.error('上传失败：' + (error.message || '未知错误'))
+    message.error('上传失败：' + (error.message || '未知错误'))
   } finally {
     uploading.value = false
   }
@@ -327,127 +327,3 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-.resource-uploader__list {
-  margin-top: 24px;
-  max-height: 400px;
-  overflow-y: auto;
-  border: 1px solid var(--border, #35363a);
-  border-radius: 6px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.resource-uploader__item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: var(--bg-card, #1a1b1e);
-  border-radius: 6px;
-  margin-bottom: 12px;
-  transition: all 0.3s;
-}
-
-.resource-uploader__item:last-child {
-  margin-bottom: 0;
-}
-
-.resource-uploader__item:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.resource-uploader__preview {
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.preview-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.preview-icon {
-  font-size: 24px;
-  color: var(--text-secondary, #9aa0a6);
-}
-
-.resource-uploader__info {
-  min-width: 120px;
-}
-
-.file-name {
-  font-size: 14px;
-  color: var(--text-primary, #e8eaed);
-  margin-bottom: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.file-size {
-  font-size: 12px;
-  color: var(--text-secondary, #9aa0a6);
-}
-
-.resource-uploader__fields {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-
-.field-input {
-  width: 100%;
-}
-
-.resource-uploader__remove {
-  flex-shrink: 0;
-}
-
-.resource-uploader__footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.footer-info {
-  font-size: 14px;
-  color: var(--text-secondary, #9aa0a6);
-}
-
-.file-count {
-  color: var(--el-color-primary);
-  font-weight: 500;
-}
-
-.footer-actions {
-  display: flex;
-  gap: 12px;
-}
-
-@media (max-width: 768px) {
-  .resource-uploader__item {
-    flex-wrap: wrap;
-  }
-
-  .resource-uploader__fields {
-    width: 100%;
-    order: 3;
-  }
-
-  .resource-uploader__remove {
-    order: 2;
-  }
-}
-</style>

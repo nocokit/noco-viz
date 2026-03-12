@@ -135,3 +135,29 @@ export function cloneRole(id, data) {
     data
   })
 }
+
+/**
+ * 获取角色权限
+ * @param {number|string} id - 角色ID
+ * @returns {Promise}
+ */
+export function getRolePermissions(id) {
+  return request({
+    url: `/api/roles/${id}/permissions`,
+    method: 'get'
+  })
+}
+
+/**
+ * 更新角色权限
+ * @param {number|string} id - 角色ID
+ * @param {Object} permissions - 权限数据
+ * @returns {Promise}
+ */
+export function updateRolePermissions(id, permissions) {
+  return request({
+    url: `/api/roles/${id}/permissions`,
+    method: 'put',
+    data: { permissions }
+  })
+}

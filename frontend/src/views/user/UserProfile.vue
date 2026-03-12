@@ -16,7 +16,7 @@
               class="avatar-image"
             />
             <div class="avatar-overlay" @click="handleAvatarClick">
-              <el-icon><Camera /></el-icon>
+              <CameraOutlined />
               <span>更换头像</span>
             </div>
           </div>
@@ -48,86 +48,86 @@
 
       <!-- 右侧：表单 -->
       <div class="profile-main">
-        <el-tabs v-model="activeTab" class="profile-tabs">
+        <a-tabs v-model:value="activeTab" class="profile-tabs">
           <!-- 基本信息 -->
-          <el-tab-pane label="基本信息" name="basic">
-            <el-form
+          <a-tab-pane label="基本信息" name="basic">
+            <a-form
               ref="basicFormRef"
               :model="basicForm"
               :rules="basicRules"
               label-width="100px"
               class="profile-form"
             >
-              <el-form-item label="用户名">
-                <el-input v-model="userProfile.username" disabled />
-              </el-form-item>
+              <a-form-item label="用户名">
+                <a-input v-model:value="userProfile.username" disabled />
+              </a-form-item>
 
-              <el-form-item label="真实姓名" prop="realName">
-                <el-input v-model="basicForm.realName" placeholder="请输入真实姓名" />
-              </el-form-item>
+              <a-form-item label="真实姓名" prop="realName">
+                <a-input v-model:value="basicForm.realName" placeholder="请输入真实姓名" />
+              </a-form-item>
 
-              <el-form-item label="邮箱" prop="email">
-                <el-input v-model="basicForm.email" placeholder="请输入邮箱" />
-              </el-form-item>
+              <a-form-item label="邮箱" prop="email">
+                <a-input v-model:value="basicForm.email" placeholder="请输入邮箱" />
+              </a-form-item>
 
-              <el-form-item label="手机号" prop="phone">
-                <el-input v-model="basicForm.phone" placeholder="请输入手机号" />
-              </el-form-item>
+              <a-form-item label="手机号" prop="phone">
+                <a-input v-model:value="basicForm.phone" placeholder="请输入手机号" />
+              </a-form-item>
 
-              <el-form-item>
-                <el-button type="primary" @click="handleSaveBasic" :loading="saving">
+              <a-form-item>
+                <a-button type="primary" @click="handleSaveBasic" :loading="saving">
                   保存修改
-                </el-button>
-                <el-button @click="handleResetBasic">重置</el-button>
-              </el-form-item>
-            </el-form>
-          </el-tab-pane>
+                </a-button>
+                <a-button @click="handleResetBasic">重置</a-button>
+              </a-form-item>
+            </a-form>
+          </a-tab-pane>
 
           <!-- 安全设置 -->
-          <el-tab-pane label="安全设置" name="security">
-            <el-form
+          <a-tab-pane label="安全设置" name="security">
+            <a-form
               ref="passwordFormRef"
               :model="passwordForm"
               :rules="passwordRules"
               label-width="100px"
               class="profile-form"
             >
-              <el-form-item label="旧密码" prop="oldPassword">
-                <el-input
-                  v-model="passwordForm.oldPassword"
+              <a-form-item label="旧密码" prop="oldPassword">
+                <a-input
+                  v-model:value="passwordForm.oldPassword"
                   type="password"
                   placeholder="请输入旧密码"
                   show-password
                 />
-              </el-form-item>
+              </a-form-item>
 
-              <el-form-item label="新密码" prop="newPassword">
-                <el-input
-                  v-model="passwordForm.newPassword"
+              <a-form-item label="新密码" prop="newPassword">
+                <a-input
+                  v-model:value="passwordForm.newPassword"
                   type="password"
                   placeholder="请输入新密码（至少6位）"
                   show-password
                 />
-              </el-form-item>
+              </a-form-item>
 
-              <el-form-item label="确认密码" prop="confirmPassword">
-                <el-input
-                  v-model="passwordForm.confirmPassword"
+              <a-form-item label="确认密码" prop="confirmPassword">
+                <a-input
+                  v-model:value="passwordForm.confirmPassword"
                   type="password"
                   placeholder="请再次输入新密码"
                   show-password
                 />
-              </el-form-item>
+              </a-form-item>
 
-              <el-form-item>
-                <el-button type="primary" @click="handleChangePassword" :loading="changingPassword">
+              <a-form-item>
+                <a-button type="primary" @click="handleChangePassword" :loading="changingPassword">
                   修改密码
-                </el-button>
-                <el-button @click="handleResetPassword">重置</el-button>
-              </el-form-item>
-            </el-form>
-          </el-tab-pane>
-        </el-tabs>
+                </a-button>
+                <a-button @click="handleResetPassword">重置</a-button>
+              </a-form-item>
+            </a-form>
+          </a-tab-pane>
+        </a-tabs>
       </div>
     </div>
   </div>
@@ -135,8 +135,8 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Camera } from '@element-plus/icons-vue'
+import { message } from 'ant-design-vue'
+import { CameraOutlined } from '@ant-design/icons-vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { getUserProfile, updateUserProfile, uploadAvatar, changePassword } from '@/api/user'
 
@@ -220,7 +220,7 @@ const loadUserProfile = async () => {
     basicForm.phone = data.phone || ''
   } catch (error) {
     console.error('加载用户资料失败:', error)
-    ElMessage.error('加载用户资料失败')
+    message.error('加载用户资料失败')
   }
 }
 
@@ -232,12 +232,12 @@ const handleSaveBasic = async () => {
     saving.value = true
     await updateUserProfile(basicForm)
 
-    ElMessage.success('保存成功！')
+    message.success('保存成功！')
     await loadUserProfile()
   } catch (error) {
     if (error !== false) { // 不是表单验证错误
       console.error('保存失败:', error)
-      ElMessage.error(error.response?.data?.message || '保存失败')
+      message.error(error.response?.data?.message || '保存失败')
     }
   } finally {
     saving.value = false
@@ -260,12 +260,12 @@ const handleChangePassword = async () => {
     changingPassword.value = true
     await changePassword(passwordForm.oldPassword, passwordForm.newPassword)
 
-    ElMessage.success('密码修改成功！')
+    message.success('密码修改成功！')
     handleResetPassword()
   } catch (error) {
     if (error !== false) {
       console.error('修改密码失败:', error)
-      ElMessage.error(error.response?.data?.message || '修改密码失败')
+      message.error(error.response?.data?.message || '修改密码失败')
     }
   } finally {
     changingPassword.value = false
@@ -292,17 +292,17 @@ const handleAvatarChange = async (event) => {
 
   // 验证文件类型
   if (!file.type.startsWith('image/')) {
-    ElMessage.error('请选择图片文件')
+    message.error('请选择图片文件')
     return
   }
 
   // 验证文件大小（2MB）
   if (file.size > 2 * 1024 * 1024) {
-    ElMessage.error('图片大小不能超过 2MB')
+    message.error('图片大小不能超过 2MB')
     return
   }
 
-  const loading = ElMessage({
+  const loading = message({
     message: '正在上传头像...',
     type: 'info',
     duration: 0
@@ -314,14 +314,14 @@ const handleAvatarChange = async (event) => {
     })
 
     loading.close()
-    ElMessage.success('头像上传成功！')
+    message.success('头像上传成功！')
 
     // 更新头像
     userProfile.value.avatar = result.url
   } catch (error) {
     loading.close()
     console.error('上传头像失败:', error)
-    ElMessage.error(error.response?.data?.message || '上传头像失败')
+    message.error(error.response?.data?.message || '上传头像失败')
   }
 
   // 清空 input
@@ -351,157 +351,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.user-profile {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  padding: 24px;
-  background: var(--el-bg-color);
-}
-
-.profile-content {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 24px;
-  margin-top: 24px;
-  overflow: hidden;
-}
-
-/* 左侧边栏 */
-.profile-sidebar {
-  background: var(--el-bg-color-page);
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-  padding: 32px 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.avatar-section {
-  margin-bottom: 24px;
-}
-
-.avatar-wrapper {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  overflow: hidden;
-  cursor: pointer;
-  border: 3px solid var(--el-border-color);
-}
-
-.avatar-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.avatar-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s;
-  color: #fff;
-  font-size: 12px;
-}
-
-.avatar-wrapper:hover .avatar-overlay {
-  opacity: 1;
-}
-
-.avatar-overlay .el-icon {
-  font-size: 24px;
-  margin-bottom: 4px;
-}
-
-.user-info {
-  text-align: center;
-  margin-bottom: 24px;
-}
-
-.username {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  margin-bottom: 8px;
-}
-
-.user-role {
-  font-size: 14px;
-  color: var(--el-text-color-secondary);
-  padding: 4px 12px;
-  background: var(--el-fill-color);
-  border-radius: 12px;
-  display: inline-block;
-}
-
-.stats-grid {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.stat-item {
-  text-align: center;
-  padding: 16px;
-  background: var(--el-fill-color);
-  border-radius: 8px;
-}
-
-.stat-value {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-}
-
-/* 右侧主内容 */
-.profile-main {
-  background: var(--el-bg-color-page);
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-  padding: 24px;
-  overflow-y: auto;
-}
-
-.profile-tabs {
-  height: 100%;
-}
-
-.profile-form {
-  max-width: 600px;
-  margin-top: 24px;
-}
-
-/* 滚动条 */
-.profile-main::-webkit-scrollbar {
-  width: 6px;
-}
-
-.profile-main::-webkit-scrollbar-thumb {
-  background: var(--el-fill-color-darker);
-  border-radius: 3px;
-}
-
-.profile-main::-webkit-scrollbar-track {
-  background: transparent;
-}
-</style>

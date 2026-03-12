@@ -1,58 +1,60 @@
 <template>
-  <div class="page-filter-bar">
+  <a-flex justify="space-between" align="center" :style="{ marginBottom: '16px' }">
     <!-- 左侧：筛选标签 -->
-    <div class="filter-tabs" v-if="filters && filters.length > 0">
-      <button
+    <a-space v-if="filters && filters.length > 0">
+      <a-button
         v-for="filter in filters"
         :key="filter.id"
-        :class="['filter-tab', { active: modelValue === filter.id }]"
+        :type="modelValue === filter.id ? 'primary' : 'default'"
         @click="handleFilterChange(filter.id)"
       >
         {{ filter.label }}
-      </button>
-    </div>
+      </a-button>
+    </a-space>
 
     <!-- 右侧：搜索和视图切换 -->
-    <div class="filter-controls">
+    <a-space>
       <!-- 搜索框 -->
-      <el-input
+      <a-input-search
         v-if="showSearch"
-        :model-value="searchValue"
-        @update:model-value="handleSearchChange"
-        class="search-input"
+        :value="searchValue"
+        @search="handleSearchChange"
+        @change="handleSearchChange"
         :placeholder="searchPlaceholder"
-        prefix-icon="Search"
-        clearable
+        allow-clear
         style="width: 240px"
       />
 
-      <!-- 自定义插槽 -->
-      <slot name="extra"></slot>
-
       <!-- 视图切换器 -->
-      <div v-if="viewModes && viewModes.length > 0" class="view-switcher">
-        <el-tooltip
+      <div v-if="viewModes && viewModes.length > 0" class="view-toggle">
+        <button
           v-for="mode in viewModes"
           :key="mode.id"
-          :content="mode.tooltip || mode.label"
-          placement="top"
+          :class="['toggle-btn', { active: currentView === mode.id }]"
+          :title="mode.tooltip || mode.label"
+          @click="handleViewChange(mode.id)"
         >
-          <button
-            :class="['view-btn', { active: currentView === mode.id }]"
-            @click="handleViewChange(mode.id)"
-          >
-            <el-icon v-if="mode.icon">
-              <component :is="mode.icon" />
-            </el-icon>
-            <span v-else>{{ mode.label }}</span>
-          </button>
-        </el-tooltip>
+          <svg v-if="mode.id === 'grid'" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/>
+          </svg>
+          <svg v-else-if="mode.id === 'list'" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+          </svg>
+          <svg v-else-if="mode.id === 'table'" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10 10.02h5V21h-5zM17 21h3c1.1 0 2-.9 2-2v-9h-5v11zm3-18H5c-1.1 0-2 .9-2 2v3h19V5c0-1.1-.9-2-2-2zM3 19c0 1.1.9 2 2 2h3V10.02H3V19z"/>
+          </svg>
+        </button>
       </div>
-    </div>
-  </div>
+
+      <!-- 自定义插槽 -->
+      <slot name="extra"></slot>
+    </a-space>
+  </a-flex>
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 const props = defineProps({
   // 筛选选项
   filters: {
@@ -97,7 +99,8 @@ const handleFilterChange = (filterId) => {
   emit('update:modelValue', filterId)
 }
 
-const handleSearchChange = (value) => {
+const handleSearchChange = (e) => {
+  const value = e.target ? e.target.value : e
   emit('search', value)
 }
 
@@ -107,78 +110,37 @@ const handleViewChange = (viewId) => {
 </script>
 
 <style scoped>
-.page-filter-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  gap: 20px;
-  padding-top: 16px;
-}
-
-.filter-tabs {
-  display: flex;
-  gap: 8px;
-}
-
-.filter-tab {
-  padding: 8px 16px;
-  font-size: 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--el-text-color-secondary);
-  transition: all 0.2s;
-  white-space: nowrap;
-  border: 1px solid transparent;
-  background: transparent;
-}
-
-.filter-tab:hover {
-  background: var(--el-fill-color);
-  color: var(--el-text-color-primary);
-}
-
-.filter-tab.active {
-  background: var(--el-color-primary);
-  color: #fff;
-  border-color: var(--el-color-primary);
-}
-
-.filter-controls {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.view-switcher {
+.view-toggle {
   display: flex;
   gap: 4px;
-  border: 1px solid var(--el-border-color);
+  padding: 2px;
+  background: #f5f5f5;
   border-radius: 6px;
-  padding: 4px;
-  background: var(--el-fill-color-lighter);
 }
 
-.view-btn {
-  padding: 6px 10px;
-  border: none;
-  background: transparent;
-  color: var(--el-text-color-secondary);
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
-  display: flex;
+.toggle-btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 32px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: #595959;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.view-btn:hover {
-  background: var(--el-fill-color);
-  color: var(--el-text-color-primary);
+.toggle-btn:hover {
+  background: #e6e6e6;
+  color: #262626;
 }
 
-.view-btn.active {
-  background: var(--el-color-primary);
-  color: #fff;
+.toggle-btn.active {
+  background: #fff;
+  color: #1890ff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 </style>
+

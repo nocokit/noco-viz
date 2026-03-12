@@ -1,97 +1,121 @@
 <template>
   <div class="simple-form">
     <div
-      v-for="field in config.fields"
-      :key="field.key"
+      v-for="field in (config?.fields || [])"
+      :key="field.name || field.key"
       class="form-item"
       :style="{ marginBottom: field.marginBottom || '16px' }"
     >
       <!-- Label -->
       <label class="form-label">
-        {{ field.label }}
         <span v-if="field.required" class="required-mark">*</span>
+        <span class="label-text">{{ field.label }}</span>
       </label>
 
-      <!-- Input Field -->
-      <input
-        v-if="field.type === 'text' || !field.type"
-        type="text"
-        class="form-input"
-        :class="{ 'input-error': errors[field.key] }"
-        :placeholder="field.placeholder"
-        :value="modelValue?.[field.key] || ''"
-        :maxlength="field.maxlength"
-        @input="handleInput(field.key, $event.target.value)"
-      >
+      <!-- Form Content -->
+      <div class="form-content">
+        <!-- Input Field (text, email, number) -->
+        <a-input
+          v-if="field.type === 'input' || field.type === 'text' || !field.type"
+          :placeholder="field.placeholder"
+          :value="modelValue?.[fieldKey(field)] || ''"
+          :maxlength="field.maxlength"
+          :status="errors[fieldKey(field)] ? 'error' : ''"
+          allow-clear
+          @update:value="handleInput(fieldKey(field), $event)"
+        />
 
-      <!-- Textarea Field -->
-      <textarea
-        v-else-if="field.type === 'textarea'"
-        class="form-textarea"
-        :class="{ 'input-error': errors[field.key] }"
-        :placeholder="field.placeholder"
-        :value="modelValue?.[field.key] || ''"
-        :maxlength="field.maxlength"
-        :rows="field.rows || 3"
-        @input="handleInput(field.key, $event.target.value)"
-      ></textarea>
+        <!-- Password Field -->
+        <a-input-password
+          v-else-if="field.type === 'password'"
+          :placeholder="field.placeholder"
+          :value="modelValue?.[fieldKey(field)] || ''"
+          :status="errors[fieldKey(field)] ? 'error' : ''"
+          @update:value="handleInput(fieldKey(field), $event)"
+        />
 
-      <!-- Error Message -->
-      <div v-if="errors[field.key]" class="error-text">
-        {{ errors[field.key] }}
-      </div>
-
-      <!-- Helper/Tip -->
-      <div v-if="field.tip" class="form-tip">
-        <a
-          v-if="typeof field.tip === 'object' && field.tip.type === 'fillLink'"
-          href="javascript:void(0)"
-          @click="handleFillValue(field.key, field.tip.value)"
+        <!-- Select Field -->
+        <a-select
+          v-else-if="field.type === 'select'"
+          :placeholder="field.placeholder || '请选择'"
+          :value="modelValue?.[fieldKey(field)] || ''"
+          :status="errors[fieldKey(field)] ? 'error' : ''"
+          allow-clear
+          style="width: 100%"
+          @update:value="handleInput(fieldKey(field), $event)"
         >
-          {{ field.tip.text }}
-        </a>
-        <component :is="field.tip" v-else-if="typeof field.tip === 'object'" />
-        <span v-else v-html="field.tip"></span>
+          <a-select-option
+            v-for="option in field.options"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ option.label }}
+          </a-select-option>
+        </a-select>
+
+        <!-- Switch Field -->
+        <a-switch
+          v-else-if="field.type === 'switch'"
+          :checked="modelValue?.[fieldKey(field)] !== undefined ? modelValue[fieldKey(field)] : field.defaultValue"
+          :checked-children="field.activeText || '启用'"
+          :un-checked-children="field.inactiveText || '禁用'"
+          @update:checked="handleInput(fieldKey(field), $event)"
+        />
+
+        <!-- Number Field -->
+        <a-input-number
+          v-else-if="field.type === 'number'"
+          :placeholder="field.placeholder"
+          :value="modelValue?.[fieldKey(field)] !== undefined ? modelValue[fieldKey(field)] : (field.defaultValue || '')"
+          :min="field.min"
+          :max="field.max"
+          :status="errors[fieldKey(field)] ? 'error' : ''"
+          style="width: 100%"
+          @update:value="handleInput(fieldKey(field), $event)"
+        />
+
+        <!-- Textarea Field -->
+        <a-textarea
+          v-else-if="field.type === 'textarea'"
+          :placeholder="field.placeholder"
+          :value="modelValue?.[fieldKey(field)] || ''"
+          :maxlength="field.maxlength"
+          :rows="field.rows || 3"
+          :status="errors[fieldKey(field)] ? 'error' : ''"
+          :show-count="!!field.maxlength"
+          @update:value="handleInput(fieldKey(field), $event)"
+        />
+
+        <!-- Error Message -->
+        <div v-if="errors[fieldKey(field)]" class="error-text">
+          {{ errors[fieldKey(field)] }}
+        </div>
+
+        <!-- Helper/Tip -->
+        <div v-if="field.tip" class="form-tip">
+          <a
+            v-if="typeof field.tip === 'object' && field.tip.type === 'fillLink'"
+            href="javascript:void(0)"
+            @click="handleFillValue(fieldKey(field), field.tip.value)"
+          >
+            {{ field.tip.text }}
+          </a>
+          <component :is="field.tip" v-else-if="typeof field.tip === 'object'" />
+          <span v-else v-html="field.tip"></span>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps({
   // JSON 配置
   config: {
     type: Object,
-    required: true,
-    // 配置示例：
-    // {
-    //   fields: [
-    //     {
-    //       key: 'ip',
-    //       label: 'IP 地址或网段',
-    //       type: 'text',
-    //       required: true,
-    //       placeholder: '例如：192.168.1.1 或 192.168.1.0/24',
-    //       maxlength: 100,
-    //       validator: (value) => {
-    //         if (!value) return '请输入IP地址或网段'
-    //         // custom validation logic
-    //         return ''
-    //       },
-    //       tip: '提示信息或 VNode'
-    //     },
-    //     {
-    //       key: 'description',
-    //       label: '备注说明',
-    //       type: 'textarea',
-    //       placeholder: '例如：研发部办公室 Wi-Fi',
-    //       maxlength: 200,
-    //       rows: 4
-    //     }
-    //   ]
-    // }
+    required: true
   },
   // 表单数据 (v-model)
   modelValue: {
@@ -105,11 +129,21 @@ const emit = defineEmits(['update:modelValue'])
 // 错误信息
 const errors = ref({})
 
+// 获取字段的 key（兼容 name 和 key）
+const fieldKey = (field) => field.name || field.key
+
 // 处理输入
 const handleInput = (key, value) => {
+  // 处理数字类型
+  let finalValue = value
+  const field = props.config.fields.find(f => fieldKey(f) === key)
+  if (field?.type === 'number' && value !== null && value !== undefined) {
+    finalValue = Number(value)
+  }
+
   emit('update:modelValue', {
     ...props.modelValue,
-    [key]: value
+    [key]: finalValue
   })
 
   // 清除该字段的错误
@@ -129,20 +163,52 @@ const validate = () => {
   let isValid = true
 
   props.config.fields.forEach(field => {
-    const value = props.modelValue[field.key]
+    const key = fieldKey(field)
+    const value = props.modelValue[key]
 
     // 必填验证
-    if (field.required && !value) {
-      newErrors[field.key] = `请输入${field.label}`
+    if (field.required && !value && value !== 0 && value !== false) {
+      newErrors[key] = `请输入${field.label}`
       isValid = false
       return
     }
 
-    // 自定义验证
+    // 自定义验证规则
+    if (field.rules && value) {
+      for (const rule of field.rules) {
+        if (rule.required && !value) {
+          newErrors[key] = rule.message || `请输入${field.label}`
+          isValid = false
+          break
+        }
+        if (rule.min && value.length < rule.min) {
+          newErrors[key] = rule.message || `长度不能少于${rule.min}个字符`
+          isValid = false
+          break
+        }
+        if (rule.max && value.length > rule.max) {
+          newErrors[key] = rule.message || `长度不能超过${rule.max}个字符`
+          isValid = false
+          break
+        }
+        if (rule.pattern && !rule.pattern.test(value)) {
+          newErrors[key] = rule.message || `格式不正确`
+          isValid = false
+          break
+        }
+        if (rule.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          newErrors[key] = rule.message || `请输入正确的邮箱地址`
+          isValid = false
+          break
+        }
+      }
+    }
+
+    // 自定义验证器
     if (field.validator && value) {
       const error = field.validator(value)
       if (error) {
-        newErrors[field.key] = error
+        newErrors[key] = error
         isValid = false
       }
     }
@@ -165,85 +231,34 @@ defineExpose({
 </script>
 
 <style scoped>
-.simple-form {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-item {
-  display: flex;
-  flex-direction: column;
-}
-
 .form-label {
-  display: block;
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  margin-bottom: 6px;
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.85);
 }
 
 .required-mark {
-  color: var(--el-color-danger);
-  margin-left: 2px;
+  color: #ff4d4f;
+  margin-right: 4px;
+  font-size: 14px;
+  line-height: 1;
 }
 
-.form-input,
-.form-textarea {
-  width: 100%;
-  background: var(--el-fill-color-blank);
-  border: 1px solid var(--el-border-color);
-  color: var(--el-text-color-primary);
-  padding: 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-family: inherit;
-  transition: border-color 0.2s;
-}
-
-.form-input {
-  height: 40px;
-}
-
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
-  line-height: 1.5;
-}
-
-.form-input:focus,
-.form-textarea:focus {
-  outline: none;
-  border-color: var(--el-color-primary);
-}
-
-.form-input::placeholder,
-.form-textarea::placeholder {
-  color: var(--el-text-color-placeholder);
-}
-
-.input-error {
-  border-color: var(--el-color-danger) !important;
+.label-text {
+  color: rgba(0, 0, 0, 0.85);
 }
 
 .error-text {
-  color: var(--el-color-danger);
+  color: #ff4d4f;
   font-size: 12px;
   margin-top: 4px;
 }
 
 .form-tip {
-  margin-top: 6px;
+  color: rgba(0, 0, 0, 0.45);
   font-size: 12px;
-  color: var(--el-text-color-secondary);
-}
-
-.form-tip :deep(a) {
-  color: var(--el-color-primary);
-  text-decoration: none;
-}
-
-.form-tip :deep(a:hover) {
-  text-decoration: underline;
+  margin-top: 4px;
 }
 </style>

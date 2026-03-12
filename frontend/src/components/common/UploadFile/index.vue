@@ -1,6 +1,6 @@
 <template>
   <div class="upload-file">
-    <el-upload
+    <a-upload
       ref="uploadRef"
       v-model:file-list="fileListModel"
       :action="action"
@@ -22,21 +22,21 @@
     >
       <slot>
         <div v-if="drag" class="upload-file__drag-area">
-          <el-icon class="upload-file__icon"><UploadFilled /></el-icon>
+          <UploadFilled />
           <div class="upload-file__text">
             <p class="upload-file__title">{{ dragText || '将文件拖到此处，或点击上传' }}</p>
             <p class="upload-file__hint">{{ hint }}</p>
           </div>
         </div>
-        <el-button v-else :icon="Upload" :disabled="disabled || uploading">
+        <a-button v-else :icon="Upload" :disabled="disabled || uploading">
           {{ buttonText || '选择文件' }}
-        </el-button>
+        </a-button>
       </slot>
-    </el-upload>
+    </a-upload>
 
     <!-- 上传进度 -->
     <div v-if="uploading && showProgress" class="upload-file__progress">
-      <el-progress :percentage="uploadProgress" :status="progressStatus" />
+      <a-progress :percentage="uploadProgress" :status="progressStatus" />
       <span class="upload-file__progress-text">{{ progressText }}</span>
     </div>
 
@@ -47,8 +47,8 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Upload, UploadFilled } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { UploadOutlined } from '@ant-design/icons-vue'
+import { message } from '@/utils/ui'
 
 const props = defineProps({
   modelValue: {
@@ -152,7 +152,7 @@ const handleBeforeUpload = (file) => {
   // 文件大小验证
   if (props.maxSize && file.size > props.maxSize) {
     const sizeMB = (props.maxSize / 1024 / 1024).toFixed(1)
-    ElMessage.error(`文件大小不能超过 ${sizeMB}MB`)
+    message.error(`文件大小不能超过 ${sizeMB}MB`)
     return false
   }
 
@@ -163,7 +163,7 @@ const handleBeforeUpload = (file) => {
     const acceptExts = props.accept.split(',').map(ext => ext.trim().toLowerCase())
 
     if (!acceptExts.includes(fileExt)) {
-      ElMessage.error(`只支持 ${props.accept} 格式的文件`)
+      message.error(`只支持 ${props.accept} 格式的文件`)
       return false
     }
   }
@@ -186,7 +186,7 @@ const handleRemove = (file, fileList) => {
 }
 
 const handleExceed = (files, fileList) => {
-  ElMessage.warning(`最多只能上传 ${props.limit} 个文件`)
+  message.warning(`最多只能上传 ${props.limit} 个文件`)
   emit('exceed', files, fileList)
 }
 
@@ -198,14 +198,14 @@ const handleSuccess = (response, file, fileList) => {
     uploadProgress.value = 0
   }, 2000)
 
-  ElMessage.success('上传成功')
+  message.success('上传成功')
   emit('success', response, file, fileList)
 }
 
 const handleError = (error, file, fileList) => {
   uploading.value = false
   uploadProgress.value = 0
-  ElMessage.error('上传失败')
+  message.error('上传失败')
   emit('error', error, file, fileList)
 }
 
@@ -234,71 +234,3 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-.upload-file {
-  width: 100%;
-}
-
-.upload-file__uploader {
-  width: 100%;
-}
-
-.upload-file__drag-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  text-align: center;
-}
-
-.upload-file__icon {
-  font-size: 48px;
-  color: var(--el-color-primary);
-  margin-bottom: 16px;
-}
-
-.upload-file__text {
-  color: var(--text-secondary, #9aa0a6);
-}
-
-.upload-file__title {
-  font-size: 14px;
-  margin: 0 0 8px 0;
-  color: var(--text-primary, #e8eaed);
-}
-
-.upload-file__hint {
-  font-size: 12px;
-  margin: 0;
-  color: var(--text-tertiary, #5f6368);
-}
-
-.upload-file__progress {
-  margin-top: 16px;
-}
-
-.upload-file__progress-text {
-  display: block;
-  margin-top: 8px;
-  font-size: 12px;
-  color: var(--text-secondary, #9aa0a6);
-  text-align: center;
-}
-
-.upload-file__tip {
-  margin-top: 8px;
-  font-size: 12px;
-  color: var(--text-tertiary, #5f6368);
-  line-height: 1.5;
-}
-
-:deep(.el-upload-dragger) {
-  background: var(--bg-card, #1a1b1e);
-  border-color: var(--border, #35363a);
-}
-
-:deep(.el-upload-dragger:hover) {
-  border-color: var(--el-color-primary);
-}
-</style>

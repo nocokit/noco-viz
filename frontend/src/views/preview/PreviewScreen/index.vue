@@ -66,7 +66,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { message } from 'ant-design-vue'
 import { getChartComponent } from '@/components/charts/index'
 
 const route = useRoute()
@@ -90,10 +90,10 @@ const loadProject = async () => {
       projectName.value = projectData.name || '大屏预览'
       components.value = projectData.components || []
     } else {
-      ElMessage.warning('未找到项目数据')
+      message.warning('未找到项目数据')
     }
   } catch (error) {
-    ElMessage.error(`加载失败: ${error.message}`)
+    message.error(`加载失败: ${error.message}`)
   }
 }
 
@@ -149,7 +149,7 @@ const toggleFullscreen = () => {
 // 刷新数据
 const handleRefresh = () => {
   loadProject()
-  ElMessage.success('数据已刷新')
+  message.success('数据已刷新')
 }
 
 // 退出预览
@@ -188,96 +188,3 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
-.preview-screen {
-  width: 100vw;
-  height: 100vh;
-  background: #0a0e27;
-  overflow: hidden;
-}
-
-/* 工具栏 */
-.preview-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 60px;
-  padding: 0 20px;
-  background: rgba(0, 0, 0, 0.8);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-}
-
-.toolbar-left .project-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #fff;
-}
-
-.toolbar-right {
-  display: flex;
-  gap: 8px;
-}
-
-.tool-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.tool-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.tool-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-/* 预览容器 */
-.preview-container {
-  position: relative;
-}
-
-.preview-canvas {
-  position: relative;
-  overflow: hidden;
-}
-
-.preview-component {
-  position: absolute;
-  overflow: hidden;
-}
-
-/* 全屏退出按钮 */
-.exit-fullscreen-btn {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 12px 24px;
-  background: rgba(0, 0, 0, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  color: #fff;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-  z-index: 1000;
-  backdrop-filter: blur(10px);
-}
-
-.exit-fullscreen-btn:hover {
-  background: rgba(0, 0, 0, 0.9);
-  border-color: rgba(255, 255, 255, 0.5);
-}
-</style>

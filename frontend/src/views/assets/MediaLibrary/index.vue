@@ -1,87 +1,142 @@
 <template>
   <div class="media-layout">
-    <!-- 1. 文件夹树 (Left Sidebar) -->
-    <aside class="folder-panel">
-      <div class="panel-header">
-        文件夹
-        <div class="icon-btn" title="新建文件夹" @click="openCreateFolderDialog">+</div>
-      </div>
-      <div class="folder-list">
-        <div
-          v-for="folder in folders"
-          :key="folder.id"
-          :class="['folder-item', { active: activeFolder === folder.id }]"
-          @click="activeFolder = folder.id"
-        >
-          <svg class="folder-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"></path></svg>
-          {{ folder.name }}
-          <span class="folder-count">{{ folder.count }}</span>
+    <!-- 面包屑导航 -->
+    <BreadcrumbHeader :items="[
+      { label: '首页', path: '/' },
+      { label: '资产管理', path: '/media' },
+      { label: '媒体资源库' }
+    ]" />
+
+    <!-- 主内容区 -->
+    <div class="media-content">
+      <!-- 左侧筛选面板 -->
+      <aside class="filter-panel">
+        <div class="filter-header">类型筛选</div>
+        <div class="filter-list">
           <div
-            v-if="!isDefaultFolder(folder.id)"
-            class="folder-delete-btn"
-            @click.stop="handleDeleteFolder(folder)"
-            title="删除文件夹"
+            :class="['filter-item', { active: activeTypeFilter === 'all' }]"
+            @click="activeTypeFilter = 'all'"
           >
-            ✕
+            <svg class="filter-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+            </svg>
+            <span>全部资源</span>
+            <span class="filter-count">{{ mockMediaList.length }}</span>
+          </div>
+          <div
+            :class="['filter-item', { active: activeTypeFilter === 'image' }]"
+            @click="activeTypeFilter = 'image'"
+          >
+            <svg class="filter-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+            </svg>
+            <span>图片</span>
+            <span class="filter-count">{{ getTypeCount('image') }}</span>
+          </div>
+          <div
+            :class="['filter-item', { active: activeTypeFilter === 'video' }]"
+            @click="activeTypeFilter = 'video'"
+          >
+            <svg class="filter-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+            </svg>
+            <span>视频</span>
+            <span class="filter-count">{{ getTypeCount('video') }}</span>
+          </div>
+          <div
+            :class="['filter-item', { active: activeTypeFilter === '3d' }]"
+            @click="activeTypeFilter = '3d'"
+          >
+            <svg class="filter-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18-.21 0-.41-.06-.57-.18l-7.9-4.44A.991.991 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18.21 0 .41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9M12 4.15L6.04 7.5 12 10.85l5.96-3.35L12 4.15M5 15.91l6 3.38v-6.71L5 9.21v6.7m14 0v-6.7l-6 3.37v6.71l6-3.38z"/>
+            </svg>
+            <span>3D模型</span>
+            <span class="filter-count">{{ getTypeCount('3d') }}</span>
+          </div>
+          <div
+            :class="['filter-item', { active: activeTypeFilter === 'audio' }]"
+            @click="activeTypeFilter = 'audio'"
+          >
+            <svg class="filter-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/>
+            </svg>
+            <span>音频</span>
+            <span class="filter-count">{{ getTypeCount('audio') }}</span>
           </div>
         </div>
-      </div>
-      
-      <div class="storage-box">
-        <div class="storage-info">
-          <span>存储空间</span>
-          <span>{{ storageStats.usedFormatted }} / {{ storageStats.totalFormatted }}</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: storageStats.percentage + '%' }"></div>
-        </div>
-      </div>
-    </aside>
+      </aside>
 
-    <!-- 2. 资源网格 (Main Content) -->
-    <section class="asset-container">
-      <div class="toolbar">
-        <div class="breadcrumb">
-          资源库 <span>/</span> {{ currentFolderName }}
-        </div>
-        <div class="tool-actions">
-          <div class="search-box">
-             <el-input
-              v-model="searchQuery"
-              class="search-input"
-              placeholder="搜索文件名..."
-              prefix-icon="Search"
-              clearable
-            />
+      <!-- 右侧内容区 -->
+      <div class="content-main">
+        <!-- 工具栏 -->
+        <div class="toolbar">
+          <div class="tool-actions">
+            <div class="toolbar-left">
+              <div class="search-box">
+                <input
+                  v-model="searchQuery"
+                  class="search-input"
+                  type="text"
+                  placeholder="搜索文件名..."
+                />
+              </div>
+
+              <!-- 批量删除按钮 -->
+              <button
+                v-if="selectedAssets.length > 0"
+                class="btn btn-danger"
+                @click="handleBatchDelete"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+                删除选中 ({{ selectedAssets.length }})
+              </button>
+            </div>
+
+            <div class="toolbar-right">
+              <!-- 刷新按钮 -->
+              <button
+                class="btn btn-default"
+                @click="handleRefresh"
+                title="刷新"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                </svg>
+              </button>
+
+              <!-- 视图切换 -->
+              <div class="view-toggle">
+                <button
+                  :class="['toggle-btn', { active: viewMode === 'grid' }]"
+                  @click="viewMode = 'grid'"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/>
+                  </svg>
+                </button>
+                <button
+                  :class="['toggle-btn', { active: viewMode === 'list' }]"
+                  @click="viewMode = 'list'"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                  </svg>
+                </button>
+              </div>
+
+              <button class="btn btn-primary" @click="showUploadDialog">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+                </svg>
+              上传文件
+            </button>
+            </div>
           </div>
-
-          <!-- 批量删除按钮 -->
-          <el-button
-            v-if="selectedAssets.length > 0"
-            type="danger"
-            @click="handleBatchDelete"
-          >
-            <el-icon><Delete /></el-icon>
-            删除选中 ({{ selectedAssets.length }})
-          </el-button>
-
-          <!-- 视图切换 -->
-          <el-radio-group v-model="viewMode" size="small">
-            <el-radio-button value="grid">
-              <el-icon><Grid /></el-icon>
-            </el-radio-button>
-            <el-radio-button value="list">
-              <el-icon><List /></el-icon>
-            </el-radio-button>
-          </el-radio-group>
-
-          <el-button type="primary" @click="showUploadDialog">
-            <el-icon><UploadFilled /></el-icon>
-            上传文件
-          </el-button>
         </div>
-      </div>
 
+      <!-- 资源网格 -->
       <div class="grid-scroll">
         <!-- 网格视图 -->
         <div v-if="viewMode === 'grid'" class="asset-grid">
@@ -126,52 +181,60 @@
 
         <!-- 列表视图 -->
         <div v-else class="asset-list">
-          <el-table
-            :data="filteredMedia"
-            style="width: 100%"
-            @row-click="selectAsset"
-            :row-class-name="({ row }) => selectedAsset?.id === row.id ? 'selected-row' : ''"
-          >
-            <el-table-column width="80">
-              <template #default="{ row }">
-                <div class="list-thumb">
-                  <img :src="getMediaUrl(row)" @error="handleImageError" />
-                  <span v-if="row.type === '3d'" class="type-badge badge-3d">GLB</span>
-                  <span v-else-if="row.type === 'video'" class="type-badge badge-video">MP4</span>
-                </div>
-              </template>
-            </el-table-column>
-            <el-table-column prop="name" label="文件名" min-width="200" />
-            <el-table-column prop="type" label="类型" width="100">
-              <template #default="{ row }">
-                <el-tag size="small">{{ getMimeType(row.type) }}</el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="meta1" label="尺寸/分辨率" width="120" />
-            <el-table-column label="大小" width="100">
-              <template #default="{ row }">
-                {{ formatSize(row.size) }}
-              </template>
-            </el-table-column>
-            <el-table-column label="上传时间" width="180">
-              <template #default="{ row }">
-                {{ formatDate(row.uploadTime) }}
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="180" fixed="right">
-              <template #default="{ row }">
-                <el-button link type="primary" size="small" @click.stop="showEditDialog(row)">
-                  <el-icon><Edit /></el-icon> 编辑
-                </el-button>
-                <el-button link type="danger" size="small" @click.stop="handleDelete(row)">
-                  <el-icon><Delete /></el-icon> 删除
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+          <table class="media-table">
+            <thead>
+              <tr>
+                <th style="width: 80px">预览</th>
+                <th style="min-width: 200px">文件名</th>
+                <th style="width: 100px">类型</th>
+                <th style="width: 120px">尺寸/分辨率</th>
+                <th style="width: 100px">大小</th>
+                <th style="width: 180px">上传时间</th>
+                <th style="width: 180px">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="row in filteredMedia"
+                :key="row.id"
+                :class="{ 'selected-row': selectedAssets.some(a => a.id === row.id) }"
+                @click="toggleAssetSelection(row, $event)"
+              >
+                <td>
+                  <div class="list-thumb">
+                    <img :src="getMediaUrl(row)" @error="handleImageError" />
+                    <span v-if="row.type === '3d'" class="type-badge badge-3d">GLB</span>
+                    <span v-else-if="row.type === 'video'" class="type-badge badge-video">MP4</span>
+                  </div>
+                </td>
+                <td>{{ row.name }}</td>
+                <td>
+                  <span class="type-tag">{{ getMimeType(row.type) }}</span>
+                </td>
+                <td>{{ row.meta1 }}</td>
+                <td>{{ formatSize(row.size) }}</td>
+                <td>{{ formatDate(row.uploadTime) }}</td>
+                <td>
+                  <button class="btn-link btn-primary" @click.stop="showEditDialog(row)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                    </svg>
+                    编辑
+                  </button>
+                  <button class="btn-link btn-danger" @click.stop="handleDelete(row)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                    </svg>
+                    删除
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-    </section>
+      </div>
+    </div>
 
     <!-- 3. 详情面板 (Right Sidebar) -->
     <aside class="detail-panel" v-if="selectedAsset">
@@ -233,143 +296,140 @@
     </aside>
 
     <!-- 上传对话框 -->
-    <el-dialog
-      v-model="uploadDialogVisible"
-      title="上传文件"
-      width="600px"
-      :close-on-click-modal="false"
-    >
-      <el-upload
-        ref="uploadRef"
-        :auto-upload="false"
-        :on-change="handleFileChange"
-        :file-list="uploadFileList"
-        drag
-        multiple
-      >
-        <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
-        <div class="el-upload__text">
-          拖拽文件到此处或 <em>点击上传</em>
+    <div v-if="uploadDialogVisible" class="modal-overlay" @click.self="uploadDialogVisible = false">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>上传文件</h3>
+          <button class="modal-close" @click="uploadDialogVisible = false">✕</button>
         </div>
-        <template #tip>
-          <div class="el-upload__tip">
-            支持 jpg/png/gif/mp4/glb 等格式，单个文件不超过 50MB
+        <div class="modal-body">
+          <div class="upload-area" @click="triggerFileInput">
+            <input
+              ref="fileInput"
+              type="file"
+              multiple
+              accept="image/*,video/*,.glb,.gltf"
+              style="display: none"
+              @change="handleFileInputChange"
+            />
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" style="color: var(--text-secondary)">
+              <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+            </svg>
+            <div class="upload-text">
+              拖拽文件到此处或 <span style="color: var(--primary)">点击上传</span>
+            </div>
+            <div class="upload-tip">
+              支持 jpg/png/gif/mp4/glb 等格式，单个文件不超过 50MB
+            </div>
           </div>
-        </template>
-      </el-upload>
 
-      <!-- 文件列表及名称编辑 -->
-      <div v-if="uploadFileList.length > 0" class="upload-file-list">
-        <div v-for="(file, index) in uploadFileList" :key="index" class="upload-file-item">
-          <div class="file-info">
-            <el-icon><Document /></el-icon>
-            <span class="original-name">{{ file.name }}</span>
+          <!-- 文件列表 -->
+          <div v-if="uploadFileList.length > 0" class="upload-file-list">
+            <div v-for="(file, index) in uploadFileList" :key="index" class="upload-file-item">
+              <div class="file-info">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/>
+                </svg>
+                <span class="original-name">{{ file.name }}</span>
+              </div>
+              <input
+                v-model="file.customName"
+                class="file-name-input"
+                placeholder="自定义文件名"
+              />
+              <button class="btn-icon btn-danger" @click="removeUploadFile(index)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+              </button>
+            </div>
           </div>
-          <el-input
-            v-model="file.customName"
-            placeholder="自定义文件名"
-            style="flex: 1; margin: 0 12px"
-          />
-          <el-button link type="danger" @click="removeUploadFile(index)">
-            <el-icon><Delete /></el-icon>
-          </el-button>
+        </div>
+        <div class="modal-footer">
+          <button class="btn" @click="uploadDialogVisible = false">取消</button>
+          <button class="btn btn-primary" @click="handleUpload" :disabled="uploading">
+            {{ uploading ? '上传中...' : `上传 (${uploadFileList.length})` }}
+          </button>
         </div>
       </div>
-
-      <template #footer>
-        <el-button @click="uploadDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleUpload" :loading="uploading">
-          上传 ({{ uploadFileList.length }})
-        </el-button>
-      </template>
-    </el-dialog>
+    </div>
 
     <!-- 编辑对话框 -->
-    <el-dialog
-      v-model="editDialogVisible"
-      title="编辑资源"
-      width="500px"
-      :close-on-click-modal="false"
-    >
-      <el-form :model="editForm" label-width="100px">
-        <el-form-item label="文件名">
-          <el-input v-model="editForm.name" placeholder="请输入文件名" />
-        </el-form-item>
-        <el-form-item label="标签">
-          <el-select
-            v-model="editForm.tags"
-            multiple
-            filterable
-            allow-create
-            placeholder="请选择或输入标签"
-            style="width: 100%"
-          >
-            <el-option label="背景" value="背景" />
-            <el-option label="科技风" value="科技风" />
-            <el-option label="装饰" value="装饰" />
-            <el-option label="工业" value="工业" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="所属文件夹">
-          <el-select v-model="editForm.folderId" placeholder="请选择文件夹" style="width: 100%">
-            <el-option
-              v-for="folder in folders.filter(f => f.id !== 0)"
-              :key="folder.id"
-              :label="folder.name"
-              :value="folder.id"
-            />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="editDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleEdit">保存</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 新建文件夹对话框 -->
-    <el-dialog
-      v-model="folderDialogVisible"
-      title="新建文件夹"
-      width="400px"
-      :close-on-click-modal="false"
-    >
-      <el-form :model="folderForm" :rules="folderRules" ref="folderFormRef" label-width="80px">
-        <el-form-item label="文件夹名" prop="name">
-          <el-input
-            v-model="folderForm.name"
-            placeholder="请输入文件夹名称"
-            maxlength="20"
-            show-word-limit
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="folderDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleCreateFolder" :loading="folderSubmitting">
-          创建
-        </el-button>
-      </template>
-    </el-dialog>
+    <div v-if="editDialogVisible" class="modal-overlay" @click.self="editDialogVisible = false">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>编辑资源</h3>
+          <button class="modal-close" @click="editDialogVisible = false">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>文件名</label>
+            <input v-model="editForm.name" class="form-input" placeholder="请输入文件名" />
+          </div>
+          <div class="form-group">
+            <label>标签</label>
+            <div class="tag-input-wrapper">
+              <div class="selected-tags">
+                <span v-for="tag in editForm.tags" :key="tag" class="selected-tag">
+                  {{ tag }}
+                  <button class="tag-remove" @click="removeTag(tag)">✕</button>
+                </span>
+              </div>
+              <input
+                v-model="newTag"
+                class="form-input"
+                placeholder="输入标签后按回车添加"
+                @keyup.enter="addTag"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn" @click="editDialogVisible = false">取消</button>
+          <button class="btn btn-primary" @click="handleEdit">保存</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, UploadFilled, Grid, List, Edit, Delete, Document } from '@element-plus/icons-vue'
+import BreadcrumbHeader from '@/components/BreadcrumbHeader.vue'
 import {
   getMediaList,
   uploadMedia,
   updateMedia,
   deleteMedia,
-  getMediaCategories,
-  getMediaStats,
   batchDeleteMedia
 } from '@/api/media'
 
+// 简单的消息提示函数
+const showMessage = (message, type = 'info') => {
+  const toast = document.createElement('div')
+  toast.className = `toast toast-${type}`
+  toast.textContent = message
+  document.body.appendChild(toast)
+  setTimeout(() => toast.classList.add('show'), 10)
+  setTimeout(() => {
+    toast.classList.remove('show')
+    setTimeout(() => document.body.removeChild(toast), 300)
+  }, 3000)
+}
+
+// 简单的确认对话框
+const showConfirm = (message) => {
+  return new Promise((resolve) => {
+    if (window.confirm(message)) {
+      resolve(true)
+    } else {
+      resolve(false)
+    }
+  })
+}
+
 // State
-const activeFolder = ref(0) // 0 = All
+const activeTypeFilter = ref('all') // 类型筛选
 const searchQuery = ref('')
 const selectedAsset = ref(null)
 const selectedAssets = ref([]) // 批量选择
@@ -378,118 +438,17 @@ const viewMode = ref('grid') // 'grid' or 'list'
 // Upload Dialog
 const uploadDialogVisible = ref(false)
 const uploadFileList = ref([])
-const uploadRef = ref(null)
+const fileInput = ref(null)
 const uploading = ref(false)
 
 // Edit Dialog
 const editDialogVisible = ref(false)
+const newTag = ref('')
 const editForm = ref({
   id: null,
   name: '',
   tags: [],
   folderId: null
-})
-
-// Storage Stats
-const storageStats = ref({
-  used: 0,
-  total: 10737418240, // 10GB
-  usedFormatted: '0 GB',
-  totalFormatted: '10 GB',
-  percentage: 0
-})
-
-// Folders Data
-const folders = ref([])
-
-// Folder Dialog
-const folderDialogVisible = ref(false)
-const folderSubmitting = ref(false)
-const folderFormRef = ref(null)
-const folderForm = ref({
-  name: ''
-})
-
-const folderRules = {
-  name: [
-    { required: true, message: '请输入文件夹名称', trigger: 'blur' },
-    { min: 2, max: 20, message: '文件夹名称长度在 2 到 20 个字符', trigger: 'blur' }
-  ]
-}
-
-// 判断是否为默认文件夹
-const isDefaultFolder = (folderId) => {
-  const folder = folders.value.find(f => f.id === folderId)
-  return folder?.isDefault === true
-}
-
-// 打开新建文件夹对话框
-const openCreateFolderDialog = () => {
-  folderForm.value.name = ''
-  if (folderFormRef.value) {
-    folderFormRef.value.resetFields()
-  }
-  folderDialogVisible.value = true
-}
-
-// 创建文件夹
-const handleCreateFolder = () => {
-  if (!folderFormRef.value) return
-
-  folderFormRef.value.validate((valid) => {
-    if (!valid) return
-
-    folderSubmitting.value = true
-
-    // 模拟异步创建
-    setTimeout(() => {
-      const newFolder = {
-        id: Date.now(), // 使用时间戳作为ID
-        name: folderForm.value.name,
-        count: 0,
-        isDefault: false
-      }
-      folders.value.push(newFolder)
-      ElMessage.success(`文件夹 "${folderForm.value.name}" 创建成功`)
-      folderSubmitting.value = false
-      folderDialogVisible.value = false
-    }, 500)
-  })
-}
-
-// 删除文件夹
-const handleDeleteFolder = (folder) => {
-  if (folder.isDefault) {
-    ElMessage.warning('默认文件夹不能删除')
-    return
-  }
-
-  ElMessageBox.confirm(
-    `确定要删除文件夹 "${folder.name}" 吗？文件夹内的资源将移至"全部资源"。`,
-    '删除确认',
-    {
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }
-  )
-    .then(() => {
-      const index = folders.value.findIndex(f => f.id === folder.id)
-      if (index !== -1) {
-        folders.value.splice(index, 1)
-        // 如果删除的是当前选中的文件夹，则切换到"全部资源"
-        if (activeFolder.value === folder.id) {
-          activeFolder.value = 0
-        }
-        ElMessage.success(`文件夹 "${folder.name}" 已删除`)
-      }
-    })
-    .catch(() => {})
-}
-
-const currentFolderName = computed(() => {
-  const f = folders.value.find(i => i.id === activeFolder.value)
-  return f ? f.name : '全部资源'
 })
 
 // Assets Data
@@ -504,86 +463,36 @@ const loadMediaList = async () => {
     const mediaData = response.data || response || []
     mockMediaList.value = mediaData.map(item => ({
       ...item,
-      // 使用类型映射获取 folderId
-      folderId: (window._mediaTypeMap && window._mediaTypeMap[item.type]) || 0,
       meta1: item.metadata?.resolution || item.metadata?.dimensions || 'N/A',
       uploadTime: new Date(item.createdAt).getTime(),
       tags: item.tags || []
     }))
   } catch (error) {
     console.error('加载媒体列表失败:', error)
-    ElMessage.error('加载媒体列表失败')
+    showMessage('加载媒体列表失败', 'error')
   } finally {
     loading.value = false
   }
 }
 
-// 加载存储统计
-const loadStorageStats = async () => {
-  try {
-    const stats = await getMediaStats()
-    const usedGB = (stats.totalSize / 1024 / 1024 / 1024).toFixed(2)
-    const totalGB = (storageStats.value.total / 1024 / 1024 / 1024).toFixed(0)
-    storageStats.value = {
-      used: stats.totalSize,
-      total: storageStats.value.total,
-      usedFormatted: `${usedGB} GB`,
-      totalFormatted: `${totalGB} GB`,
-      percentage: Math.round((stats.totalSize / storageStats.value.total) * 100)
-    }
-  } catch (error) {
-    console.error('加载存储统计失败:', error)
-  }
-}
-
-// 加载分类列表
-const loadCategories = async () => {
-  try {
-    const categories = await getMediaCategories()
-    // 存储类型映射，便于后续使用
-    window._mediaTypeMap = {}
-    categories.forEach(cat => {
-      window._mediaTypeMap[cat.type] = cat.id
-    })
-
-    folders.value = [
-      { id: 0, name: '全部资源', count: categories.reduce((sum, c) => sum + c.count, 0), isDefault: true },
-      ...categories.map(cat => ({
-        id: cat.id,
-        name: cat.name,
-        type: cat.type,
-        count: cat.count,
-        isDefault: true
-      }))
-    ]
-  } catch (error) {
-    console.error('加载分类失败:', error)
-    // 使用默认分类
-    folders.value = [
-      { id: 0, name: '全部资源', count: 0, isDefault: true }
-    ]
-  }
-}
-
 // 组件挂载时加载数据
 onMounted(async () => {
-  // 先加载分类，然后加载媒体列表（因为需要类型映射）
-  await loadCategories()
-  await Promise.all([
-    loadMediaList(),
-    loadStorageStats()
-  ])
+  await loadMediaList()
 })
+
+// 刷新媒体列表
+const handleRefresh = async () => {
+  showMessage('正在刷新...', 'info')
+  await loadMediaList()
+  showMessage('刷新成功', 'success')
+}
 
 // Filtering Logic
 const filteredMedia = computed(() => {
   return mockMediaList.value.filter(item => {
-    // Folder Filter
-    if (activeFolder.value !== 0) {
-      // Simple mapping for demo:
-      // If logic is strict: item.folderId === activeFolder.value
-      // But for demo, we might want to show some items in multiple 'categories' or just keep it simple
-      if (item.folderId !== activeFolder.value) return false
+    // Type Filter
+    if (activeTypeFilter.value !== 'all' && item.type !== activeTypeFilter.value) {
+      return false
     }
 
     // Search Filter
@@ -593,6 +502,11 @@ const filteredMedia = computed(() => {
     return true
   })
 })
+
+// 获取指定类型的资源数量
+const getTypeCount = (type) => {
+  return mockMediaList.value.filter(item => item.type === type).length
+}
 
 // 获取媒体URL（优先使用thumbnail，其次url）
 const getMediaUrl = (media) => {
@@ -669,8 +583,8 @@ const toggleAssetSelection = (item, event) => {
     }
   }
 
-  // 更新单选状态
-  selectedAsset.value = selectedAssets.value[0] || null
+  // 不再自动显示详情面板
+  // selectedAsset.value = selectedAssets.value[0] || null
 }
 
 // 批量删除
@@ -678,58 +592,45 @@ const handleBatchDelete = async () => {
   if (selectedAssets.value.length === 0) return
 
   try {
-    await ElMessageBox.confirm(
-      `确定要删除选中的 ${selectedAssets.value.length} 个文件吗？此操作不可恢复。`,
-      '批量删除确认',
-      {
-        confirmButtonText: '删除',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
+    const confirmed = await showConfirm(
+      `确定要删除选中的 ${selectedAssets.value.length} 个文件吗？此操作不可恢复。`
     )
+
+    if (!confirmed) return
 
     const ids = selectedAssets.value.map(item => item.id)
     await batchDeleteMedia(ids)
 
-    ElMessage.success(`成功删除 ${ids.length} 个文件`)
+    showMessage(`成功删除 ${ids.length} 个文件`, 'success')
 
     // 清除选中状态
     selectedAssets.value = []
     selectedAsset.value = null
 
-    // 重新加载列表和统计
-    await Promise.all([
-      loadMediaList(),
-      loadStorageStats()
-    ])
+    // 重新加载列表
+    await loadMediaList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('批量删除失败:', error)
-      ElMessage.error('批量删除失败')
+      showMessage('批量删除失败', 'error')
     }
   }
 }
 
 const handleDelete = async (item) => {
   try {
-    await ElMessageBox.confirm(
-      `确定要删除资源 "${item.name}" 吗？`,
-      '删除确认',
-      {
-        confirmButtonText: '删除',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    )
+    const confirmed = await showConfirm(`确定要删除资源 "${item.name}" 吗？`)
+
+    if (!confirmed) return
 
     await deleteMedia(item.id)
     mockMediaList.value = mockMediaList.value.filter(i => i.id !== item.id)
     selectedAsset.value = null
-    ElMessage.success('删除成功')
+    showMessage('删除成功', 'success')
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除失败:', error)
-      ElMessage.error('删除失败')
+      showMessage('删除失败', 'error')
     }
   }
 }
@@ -773,6 +674,23 @@ const showUploadDialog = () => {
   uploadDialogVisible.value = true
 }
 
+const triggerFileInput = () => {
+  fileInput.value?.click()
+}
+
+const handleFileInputChange = (event) => {
+  const files = Array.from(event.target.files || [])
+  files.forEach(file => {
+    uploadFileList.value.push({
+      name: file.name,
+      customName: file.name,
+      raw: file,
+      uid: Date.now() + Math.random()
+    })
+  })
+  event.target.value = '' // 清空input以便重复选择
+}
+
 const handleFileChange = (file) => {
   const existingFile = uploadFileList.value.find(f => f.uid === file.uid)
   if (!existingFile) {
@@ -789,7 +707,7 @@ const removeUploadFile = (index) => {
 
 const handleUpload = async () => {
   if (uploadFileList.value.length === 0) {
-    ElMessage.warning('请先选择文件')
+    showMessage('请先选择文件', 'warning')
     return
   }
 
@@ -817,7 +735,7 @@ const handleUpload = async () => {
 
     await Promise.all(uploadPromises)
 
-    ElMessage.success(`成功上传 ${uploadFileList.value.length} 个文件`)
+    showMessage(`成功上传 ${uploadFileList.value.length} 个文件`, 'success')
     uploadDialogVisible.value = false
     uploadFileList.value = []
 
@@ -825,7 +743,7 @@ const handleUpload = async () => {
     await loadMediaList()
   } catch (error) {
     console.error('上传失败:', error)
-    ElMessage.error('部分文件上传失败')
+    showMessage('部分文件上传失败', 'error')
   } finally {
     uploading.value = false
   }
@@ -847,7 +765,23 @@ const showEditDialog = (item) => {
     tags: [...(item.tags || [])],
     folderId: item.folderId
   }
+  newTag.value = ''
   editDialogVisible.value = true
+}
+
+const addTag = () => {
+  const tag = newTag.value.trim()
+  if (tag && !editForm.value.tags.includes(tag)) {
+    editForm.value.tags.push(tag)
+    newTag.value = ''
+  }
+}
+
+const removeTag = (tag) => {
+  const index = editForm.value.tags.indexOf(tag)
+  if (index > -1) {
+    editForm.value.tags.splice(index, 1)
+  }
 }
 
 const handleEdit = async () => {
@@ -873,243 +807,435 @@ const handleEdit = async () => {
       }
     }
 
-    ElMessage.success('保存成功')
+    showMessage('保存成功', 'success')
     editDialogVisible.value = false
   } catch (error) {
     console.error('保存失败:', error)
-    ElMessage.error('保存失败')
+    showMessage('保存失败', 'error')
   }
 }
 </script>
 
 <style scoped>
-/* =========================================
-   Styles from Prototype
-   ========================================= */
-:deep(*) {
-  box-sizing: border-box;
-  outline: none;
-}
-
+/* 整体布局 */
 .media-layout {
-  /* Local Vars */
-  --bg-body: #0a0b0d;
-  --bg-sidebar: #141519;
-  --bg-card: #1c1d21;
-  --bg-input: #0f1012;
-  --bg-hover: #26272c;
-  
-  --primary: #3b82f6;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --purple: #8b5cf6;
-  
-  --text-main: #ffffff;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --border: #2d2e33;
-  
-  --folder-width: 260px;
-  --detail-width: 300px;
-
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: var(--text-main);
-  height: 100%;
   display: flex;
-  overflow: hidden;
-  background-color: var(--bg-body);
-}
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-
-/* 1. Folder Panel */
-.folder-panel {
-  width: var(--folder-width); 
-  background: var(--bg-body); 
-  border-right: 1px solid var(--border);
-  display: flex; 
   flex-direction: column;
-  flex-shrink: 0;
+  height: 100vh;
+  background: #f5f5f5;
 }
-.panel-header {
-  height: 60px; 
-  padding: 0 20px; 
-  border-bottom: 1px solid var(--border);
-  display: flex; 
-  align-items: center; 
-  justify-content: space-between; 
+
+/* 主内容区 */
+.media-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 左侧筛选面板 */
+.filter-panel {
+  width: 240px;
+  background: #fff;
+  border-right: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-header {
+  padding: 16px 20px;
+  font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: #262626;
+  border-bottom: 1px solid #f0f0f0;
 }
-.icon-btn { 
-  width: 28px; height: 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--text-secondary); transition: 0.2s;
-}
-.icon-btn:hover { background: var(--bg-hover); color: var(--text-main); }
 
-.folder-list { flex: 1; overflow-y: auto; padding: 12px; }
-.folder-item {
-  display: flex; align-items: center; padding: 10px 12px; border-radius: 6px; cursor: pointer;
-  color: var(--text-secondary); font-size: 13px; margin-bottom: 2px;
+.filter-list {
+  flex: 1;
+  padding: 8px;
+  overflow-y: auto;
 }
-.folder-item:hover { background: var(--bg-hover); color: var(--text-main); }
-.folder-item.active { background: rgba(59,130,246,0.1); color: var(--primary); font-weight: 500; }
-.folder-icon { margin-right: 10px; color: #6b7280; }
-.folder-item.active .folder-icon { color: var(--primary); }
-.folder-count { margin-left: auto; font-size: 11px; color: var(--text-muted); }
 
-.folder-delete-btn {
-  display: none;
-  width: 20px;
-  height: 20px;
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #595959;
+  font-size: 14px;
+}
+
+.filter-item:hover {
+  background: #f5f5f5;
+  color: #262626;
+}
+
+.filter-item.active {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.filter-icon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.filter-item.active .filter-icon {
+  opacity: 1;
+}
+
+.filter-count {
+  margin-left: auto;
+  padding: 2px 8px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.filter-item.active .filter-count {
+  background: rgba(24, 144, 255, 0.1);
+  color: #1890ff;
+}
+
+/* 右侧内容区 */
+.content-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  overflow: hidden;
+}
+
+/* 工具栏 */
+.toolbar {
+  padding: 16px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff;
+}
+
+.tool-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 200px;
+  max-width: 400px;
+}
+
+.search-input {
+  width: 100%;
+  height: 32px;
+  padding: 4px 11px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.search-input:hover {
+  border-color: #40a9ff;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
-  margin-left: 8px;
-  color: #9ca3af;
+  gap: 6px;
+  height: 32px;
+  padding: 4px 15px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background: #fff;
   font-size: 14px;
-  line-height: 1;
+  color: #262626;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+.btn-default {
+  min-width: 32px;
+  padding: 4px 8px;
+}
+
+.btn-primary {
+  background: #1890ff;
+  border-color: #1890ff;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #40a9ff;
+  border-color: #40a9ff;
+  color: #fff;
+}
+
+.btn-danger {
+  background: #ff4d4f;
+  border-color: #ff4d4f;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #ff7875;
+  border-color: #ff7875;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 4px;
+  padding: 2px;
+  background: #f5f5f5;
+  border-radius: 6px;
+}
+
+.toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: #595959;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.folder-item:hover .folder-delete-btn {
-  display: flex;
+.toggle-btn:hover {
+  background: #e6e6e6;
+  color: #262626;
 }
 
-.folder-delete-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+.toggle-btn.active {
+  background: #fff;
+  color: #1890ff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Storage Widget */
-.storage-box { padding: 20px; border-top: 1px solid var(--border); }
-.storage-info { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
-.progress-bar { height: 6px; background: #333; border-radius: 3px; overflow: hidden; }
-.progress-fill { height: 100%; background: var(--primary); width: 75%; }
-
-/* 2. Asset Grid Area */
-.asset-container {
-  flex: 1; display: flex; flex-direction: column; background: var(--bg-card); position: relative; overflow: hidden;
+/* 资源网格 */
+.grid-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
 }
 
-.toolbar {
-  height: 60px; padding: 0 24px; border-bottom: 1px solid var(--border);
-  display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
-}
-.breadcrumb { font-size: 14px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
-.breadcrumb span { color: var(--text-muted); }
-
-.tool-actions { display: flex; gap: 12px; align-items: center; }
-.search-box { width: 200px; }
-/* .search-input removed (global) */
-/* .btn-upload removed (global) */
-
-/* Grid Scroll */
-.grid-scroll { flex: 1; overflow-y: auto; padding: 24px; }
 .asset-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
 }
 
-/* Asset Card */
 .asset-card {
-  background: var(--bg-body); border: 1px solid var(--border); border-radius: 8px;
-  overflow: hidden; cursor: pointer; transition: 0.2s; position: relative;
-  display: flex; flex-direction: column;
+  position: relative;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: #fff;
 }
-.asset-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); border-color: var(--text-secondary); }
-.asset-card.selected { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(59,130,246,0.3); }
 
-/* Thumb Wrapper */
+.asset-card:hover {
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.asset-card.selected {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
 .thumb-wrapper {
-  width: 100%; aspect-ratio: 16/9; background: #111; position: relative;
-  display: flex; align-items: center; justify-content: center; overflow: hidden;
+  position: relative;
+  width: 100%;
+  padding-top: 75%;
+  background: #fafafa;
+  overflow: hidden;
 }
-/* Transparency Grid for PNG */
+
 .thumb-wrapper.transparent {
-  background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
-  background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  background:
+    linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+    linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+    linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 }
 
-.asset-img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
-.asset-card:hover .asset-img { opacity: 0.8; }
+.thumb-wrapper img,
+.thumb-wrapper video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
-/* Type Badges */
+.thumb-wrapper .placeholder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #bfbfbf;
+}
+
+.thumb-wrapper .placeholder svg {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+}
+
+.thumb-wrapper .placeholder-text {
+  font-size: 12px;
+}
+
 .type-badge {
-  position: absolute; top: 8px; left: 8px; font-size: 10px; font-weight: 700;
-  padding: 2px 6px; border-radius: 3px; color: #fff; text-transform: uppercase;
-  z-index: 2;
-}
-.badge-3d { background: var(--purple); }
-.badge-video { background: var(--danger); }
-
-/* Checkbox Overlay */
-.select-check {
-  position: absolute; top: 8px; right: 8px; width: 18px; height: 18px;
-  background: var(--primary); border-radius: 4px; display: none;
-  align-items: center; justify-content: center; color: #fff; font-size: 12px;
-  z-index: 2;
-}
-.asset-card:hover .select-check, .asset-card.selected .select-check { display: flex; }
-
-/* Info Footer */
-.asset-info { padding: 10px 12px; }
-.asset-name { font-size: 13px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
-.asset-meta { font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; }
-
-/* 3. Detail Panel */
-.detail-panel {
-  width: var(--detail-width); background: var(--bg-body); border-left: 1px solid var(--border);
-  display: flex; flex-direction: column;
-  flex-shrink: 0;
-}
-.detail-header {
-  padding: 20px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 600;
-  display: flex; justify-content: space-between; align-items: center;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  background: rgba(0, 0, 0, 0.6);
   color: #fff;
+  backdrop-filter: blur(4px);
 }
-.close-detail { cursor: pointer; color: var(--text-secondary); }
 
-.detail-body { flex: 1; padding: 20px; overflow-y: auto; }
-
-.preview-box {
-  width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; border: 1px solid var(--border);
-  margin-bottom: 20px; display: flex; align-items: center; justify-content: center; overflow: hidden;
+.badge-3d {
+  background: rgba(82, 196, 26, 0.9);
 }
-.preview-img { max-width: 100%; max-height: 100%; }
 
-.prop-row { margin-bottom: 16px; }
-.prop-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
-.prop-value { font-size: 13px; color: var(--text-main); word-break: break-all; }
-
-.tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.tag { background: var(--bg-card); border: 1px solid var(--border); padding: 4px 10px; border-radius: 12px; font-size: 11px; color: var(--text-secondary); }
-
-.detail-footer {
-  padding: 20px; border-top: 1px solid var(--border); display: flex; gap: 12px;
+.badge-video {
+  background: rgba(24, 144, 255, 0.9);
 }
-.btn-full { flex: 1; padding: 8px; border-radius: 6px; font-size: 13px; cursor: pointer; text-align: center; }
-.btn-edit { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main); }
-.btn-delete { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--danger); }
 
-/* List View Styles */
+.play-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+
+.asset-info {
+  padding: 12px;
+}
+
+.asset-name {
+  font-size: 14px;
+  color: #262626;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asset-meta {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+/* 列表视图 */
 .asset-list {
   width: 100%;
 }
 
+.media-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.media-table thead {
+  background: #fafafa;
+}
+
+.media-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.media-table tbody tr {
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.media-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.media-table tbody tr.selected-row {
+  background: #e6f7ff;
+}
+
+.media-table td {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #595959;
+}
+
 .list-thumb {
+  position: relative;
   width: 60px;
-  height: 40px;
-  background: #111;
+  height: 45px;
   border-radius: 4px;
+  overflow: hidden;
+  background: #fafafa;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  position: relative;
 }
 
 .list-thumb img {
@@ -1118,83 +1244,59 @@ const handleEdit = async () => {
   object-fit: cover;
 }
 
-.list-thumb .type-badge {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  font-size: 8px;
-  padding: 1px 4px;
-}
-
-:deep(.selected-row) {
-  background-color: rgba(59, 130, 246, 0.1) !important;
-}
-
-:deep(.el-table) {
-  background-color: transparent;
-  color: var(--text-main);
-}
-
-:deep(.el-table th) {
-  background-color: var(--bg-body);
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border);
-}
-
-:deep(.el-table td),
-:deep(.el-table th.is-leaf) {
-  border-bottom: 1px solid var(--border);
-}
-
-:deep(.el-table tr) {
-  background-color: transparent;
-}
-
-:deep(.el-table__body tr:hover > td) {
-  background-color: var(--bg-hover) !important;
-}
-
-/* Upload Dialog Styles */
-.upload-file-list {
-  margin-top: 20px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.upload-file-item {
+.list-actions {
   display: flex;
-  align-items: center;
-  padding: 12px;
-  background: var(--el-fill-color-lighter);
-  border-radius: 6px;
-  margin-bottom: 8px;
-}
-
-.file-info {
-  display: flex;
-  align-items: center;
   gap: 8px;
-  min-width: 200px;
 }
 
-.original-name {
+.action-btn {
+  padding: 4px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  background: #fff;
   font-size: 13px;
-  color: var(--el-text-color-secondary);
+  color: #595959;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-:deep(.el-upload-dragger) {
-  border: 2px dashed var(--el-border-color);
-  background: var(--el-fill-color-lighter);
-  border-radius: 8px;
+.action-btn:hover {
+  color: #1890ff;
+  border-color: #1890ff;
 }
 
-:deep(.el-upload-dragger:hover) {
-  border-color: var(--el-color-primary);
+/* Toast 消息 */
+.toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  padding: 12px 24px;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+  color: #262626;
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 9999;
 }
 
-:deep(.el-icon--upload) {
-  font-size: 48px;
-  color: var(--el-text-color-secondary);
-  margin-bottom: 16px;
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.toast-success {
+  border-left: 4px solid #52c41a;
+}
+
+.toast-error {
+  border-left: 4px solid #ff4d4f;
+}
+
+.toast-info {
+  border-left: 4px solid #1890ff;
 }
 </style>
+

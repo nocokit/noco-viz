@@ -1,286 +1,283 @@
 <template>
-  <div class="data-source-selector">
+  <a-space direction="vertical" :size="16" :style="{ width: '100%' }">
     <!-- 数据源类型选择 -->
-    <el-form-item label="数据源类型" required>
-      <el-select
-        v-model="localType"
+    <a-form-item label="数据源类型" required>
+      <a-select
+        v-model:value="localType"
         placeholder="请选择数据源类型"
         @change="handleTypeChange"
         :disabled="disabled"
       >
-        <el-option
+        <a-select-option
           v-for="type in availableTypes"
           :key="type.value"
-          :label="type.label"
           :value="type.value"
           :disabled="type.disabled"
         >
-          <div class="type-option">
-            <el-icon v-if="type.icon">
-              <component :is="type.icon" />
-            </el-icon>
+          <a-space :size="8">
+            <component v-if="type.icon" :is="type.icon" />
             <span>{{ type.label }}</span>
-            <el-tag v-if="type.tag" size="small" :type="type.tagType">
+            <a-tag v-if="type.tag" size="small" :color="type.tagType">
               {{ type.tag }}
-            </el-tag>
-          </div>
-        </el-option>
-      </el-select>
-    </el-form-item>
+            </a-tag>
+          </a-space>
+        </a-select-option>
+      </a-select>
+    </a-form-item>
 
     <!-- 数据源配置表单 -->
-    <div v-if="localType" class="config-form">
+    <div v-if="localType">
       <!-- SQL 数据源 -->
       <template v-if="localType === 'sql'">
-        <el-form-item label="连接" required>
-          <el-select
-            v-model="localConfig.connectionId"
-            placeholder="请选择数据库连接"
-            filterable
-            @change="handleConnectionChange"
-          >
-            <el-option
-              v-for="conn in connections"
-              :key="conn.id"
-              :label="conn.name"
-              :value="conn.id"
+        <a-form-item label="连接" required>
+          <a-space direction="vertical" :size="8" :style="{ width: '100%' }">
+            <a-select
+              v-model:value="localConfig.connectionId"
+              placeholder="请选择数据库连接"
+              show-search
+              @change="handleConnectionChange"
+              :style="{ width: '100%' }"
             >
-              <div class="connection-option">
-                <span>{{ conn.name }}</span>
-                <el-tag size="small">{{ conn.type }}</el-tag>
-              </div>
-            </el-option>
-          </el-select>
-          <el-button
-            v-if="allowCreateConnection"
-            link
-            type="primary"
-            @click="handleCreateConnection"
-          >
-            新建连接
-          </el-button>
-        </el-form-item>
+              <a-select-option
+                v-for="conn in connections"
+                :key="conn.id"
+                :value="conn.id"
+              >
+                <a-space :size="8">
+                  <span>{{ conn.name }}</span>
+                  <a-tag size="small">{{ conn.type }}</a-tag>
+                </a-space>
+              </a-select-option>
+            </a-select>
+            <a-button
+              v-if="allowCreateConnection"
+              type="link"
+              @click="handleCreateConnection"
+              :style="{ padding: 0 }"
+            >
+              新建连接
+            </a-button>
+          </a-space>
+        </a-form-item>
 
-        <el-form-item label="SQL 查询" required>
-          <div class="sql-editor">
-            <el-input
-              v-model="localConfig.sqlQuery"
-              type="textarea"
+        <a-form-item label="SQL 查询" required>
+          <a-space direction="vertical" :size="8" :style="{ width: '100%' }">
+            <a-textarea
+              v-model:value="localConfig.sqlQuery"
               :rows="8"
               placeholder="SELECT * FROM table_name"
               @blur="handleSqlChange"
             />
-            <div class="sql-actions">
-              <el-button
+            <a-space :size="8">
+              <a-button
                 size="small"
                 @click="formatSql"
                 :loading="formatting"
               >
                 格式化
-              </el-button>
-              <el-button
+              </a-button>
+              <a-button
                 size="small"
                 type="primary"
                 @click="validateSql"
                 :loading="validating"
               >
                 验证 SQL
-              </el-button>
-              <el-button
+              </a-button>
+              <a-button
                 size="small"
-                type="success"
                 @click="testQuery"
                 :loading="testing"
               >
                 测试查询
-              </el-button>
-            </div>
-          </div>
-        </el-form-item>
+              </a-button>
+            </a-space>
+          </a-space>
+        </a-form-item>
 
         <!-- SQL 验证结果 -->
-        <el-alert
+        <a-alert
           v-if="sqlValidation.message"
           :type="sqlValidation.valid ? 'success' : 'error'"
-          :title="sqlValidation.message"
-          :closable="false"
+          :message="sqlValidation.message"
           show-icon
+          closable
         />
       </template>
 
       <!-- API 数据源 -->
       <template v-else-if="localType === 'api'">
-        <el-form-item label="API 地址" required>
-          <el-input
-            v-model="localConfig.apiUrl"
+        <a-form-item label="API 地址" required>
+          <a-input
+            v-model:value="localConfig.apiUrl"
             placeholder="https://api.example.com/data"
           />
-        </el-form-item>
+        </a-form-item>
 
-        <el-form-item label="请求方法">
-          <el-select v-model="localConfig.method">
-            <el-option label="GET" value="GET" />
-            <el-option label="POST" value="POST" />
-            <el-option label="PUT" value="PUT" />
-            <el-option label="DELETE" value="DELETE" />
-          </el-select>
-        </el-form-item>
+        <a-form-item label="请求方法">
+          <a-select v-model:value="localConfig.method">
+            <a-select-option value="GET">GET</a-select-option>
+            <a-select-option value="POST">POST</a-select-option>
+            <a-select-option value="PUT">PUT</a-select-option>
+            <a-select-option value="DELETE">DELETE</a-select-option>
+          </a-select>
+        </a-form-item>
 
-        <el-form-item label="请求头">
-          <el-input
-            v-model="localConfig.headers"
-            type="textarea"
+        <a-form-item label="请求头">
+          <a-textarea
+            v-model:value="localConfig.headers"
             :rows="4"
             placeholder='{"Authorization": "Bearer token"}'
           />
-        </el-form-item>
+        </a-form-item>
 
-        <el-form-item label="请求体">
-          <el-input
-            v-model="localConfig.body"
-            type="textarea"
+        <a-form-item label="请求体">
+          <a-textarea
+            v-model:value="localConfig.body"
             :rows="4"
             placeholder='{"key": "value"}'
           />
-        </el-form-item>
+        </a-form-item>
 
-        <el-form-item>
-          <el-button
+        <a-form-item>
+          <a-button
             type="primary"
             @click="testApiConnection"
             :loading="testing"
           >
             测试连接
-          </el-button>
-        </el-form-item>
+          </a-button>
+        </a-form-item>
       </template>
 
       <!-- Excel 数据源 -->
       <template v-else-if="localType === 'excel'">
-        <el-form-item label="上传文件" required>
-          <el-upload
-            ref="uploadRef"
-            :file-list="fileList"
-            :on-change="handleFileChange"
-            :on-remove="handleFileRemove"
+        <a-form-item label="上传文件" required>
+          <a-upload-dragger
+            v-model:file-list="fileList"
             :before-upload="beforeUpload"
-            :auto-upload="false"
+            :custom-request="handleFileChange"
             accept=".xlsx,.xls,.csv"
-            drag
+            :max-count="1"
           >
-            <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
-            <div class="el-upload__text">
-              拖拽文件到此处或 <em>点击上传</em>
-            </div>
-            <template #tip>
-              <div class="el-upload__tip">
-                支持 .xlsx, .xls, .csv 格式，文件大小不超过 10MB
-              </div>
-            </template>
-          </el-upload>
-        </el-form-item>
+            <p class="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
+            <p class="ant-upload-text">拖拽文件到此处或点击上传</p>
+            <p class="ant-upload-hint">
+              支持 .xlsx, .xls, .csv 格式，文件大小不超过 10MB
+            </p>
+          </a-upload-dragger>
+        </a-form-item>
 
-        <el-form-item label="工作表" v-if="sheets.length > 0">
-          <el-select v-model="localConfig.sheetName" placeholder="请选择工作表">
-            <el-option
+        <a-form-item label="工作表" v-if="sheets.length > 0">
+          <a-select v-model:value="localConfig.sheetName" placeholder="请选择工作表">
+            <a-select-option
               v-for="sheet in sheets"
               :key="sheet"
-              :label="sheet"
               :value="sheet"
-            />
-          </el-select>
-        </el-form-item>
+            >
+              {{ sheet }}
+            </a-select-option>
+          </a-select>
+        </a-form-item>
 
-        <el-form-item label="起始行">
-          <el-input-number
-            v-model="localConfig.startRow"
+        <a-form-item label="起始行">
+          <a-input-number
+            v-model:value="localConfig.startRow"
             :min="1"
             :max="1000"
+            :style="{ width: '100%' }"
           />
-        </el-form-item>
+        </a-form-item>
       </template>
 
       <!-- JSON 数据源 -->
       <template v-else-if="localType === 'json'">
-        <el-form-item label="JSON 数据" required>
-          <el-input
-            v-model="localConfig.jsonData"
-            type="textarea"
+        <a-form-item label="JSON 数据" required>
+          <a-textarea
+            v-model:value="localConfig.jsonData"
             :rows="10"
             placeholder='[{"id": 1, "name": "示例"}]'
           />
-        </el-form-item>
+        </a-form-item>
 
-        <el-form-item>
-          <el-button
-            type="primary"
-            @click="validateJson"
-            :loading="validating"
-          >
-            验证 JSON
-          </el-button>
-          <el-button @click="formatJson">格式化</el-button>
-        </el-form-item>
+        <a-form-item>
+          <a-space>
+            <a-button
+              type="primary"
+              @click="validateJson"
+              :loading="validating"
+            >
+              验证 JSON
+            </a-button>
+            <a-button @click="formatJson">格式化</a-button>
+          </a-space>
+        </a-form-item>
 
         <!-- JSON 验证结果 -->
-        <el-alert
+        <a-alert
           v-if="jsonValidation.message"
           :type="jsonValidation.valid ? 'success' : 'error'"
-          :title="jsonValidation.message"
-          :closable="false"
+          :message="jsonValidation.message"
           show-icon
+          closable
         />
       </template>
     </div>
 
     <!-- 高级配置 -->
-    <el-collapse v-if="showAdvanced && localType" v-model="activeAdvanced">
-      <el-collapse-item title="高级配置" name="advanced">
-        <el-form-item label="更新策略">
-          <el-radio-group v-model="localConfig.updateStrategy">
-            <el-radio label="realtime">实时</el-radio>
-            <el-radio label="scheduled">定时</el-radio>
-            <el-radio label="manual">手动</el-radio>
-          </el-radio-group>
-        </el-form-item>
+    <a-collapse v-if="showAdvanced && localType" v-model:active-key="activeAdvanced">
+      <a-collapse-panel key="advanced" header="高级配置">
+        <a-space direction="vertical" :size="16" :style="{ width: '100%' }">
+          <a-form-item label="更新策略">
+            <a-radio-group v-model:value="localConfig.updateStrategy">
+              <a-radio value="realtime">实时</a-radio>
+              <a-radio value="scheduled">定时</a-radio>
+              <a-radio value="manual">手动</a-radio>
+            </a-radio-group>
+          </a-form-item>
 
-        <el-form-item
-          v-if="localConfig.updateStrategy === 'scheduled'"
-          label="更新频率"
-        >
-          <el-select v-model="localConfig.updateInterval">
-            <el-option label="每分钟" :value="60" />
-            <el-option label="每5分钟" :value="300" />
-            <el-option label="每15分钟" :value="900" />
-            <el-option label="每小时" :value="3600" />
-            <el-option label="每天" :value="86400" />
-          </el-select>
-        </el-form-item>
+          <a-form-item
+            v-if="localConfig.updateStrategy === 'scheduled'"
+            label="更新频率"
+          >
+            <a-select v-model:value="localConfig.updateInterval">
+              <a-select-option :value="60">每分钟</a-select-option>
+              <a-select-option :value="300">每5分钟</a-select-option>
+              <a-select-option :value="900">每15分钟</a-select-option>
+              <a-select-option :value="3600">每小时</a-select-option>
+              <a-select-option :value="86400">每天</a-select-option>
+            </a-select>
+          </a-form-item>
 
-        <el-form-item label="缓存时间（秒）">
-          <el-input-number
-            v-model="localConfig.cacheTime"
-            :min="0"
-            :max="86400"
-          />
-        </el-form-item>
+          <a-form-item label="缓存时间（秒）">
+            <a-input-number
+              v-model:value="localConfig.cacheTime"
+              :min="0"
+              :max="86400"
+              :style="{ width: '100%' }"
+            />
+          </a-form-item>
 
-        <el-form-item label="超时时间（秒）">
-          <el-input-number
-            v-model="localConfig.timeout"
-            :min="1"
-            :max="300"
-          />
-        </el-form-item>
-      </el-collapse-item>
-    </el-collapse>
-  </div>
+          <a-form-item label="超时时间（秒）">
+            <a-input-number
+              v-model:value="localConfig.timeout"
+              :min="1"
+              :max="300"
+              :style="{ width: '100%' }"
+            />
+          </a-form-item>
+        </a-space>
+      </a-collapse-panel>
+    </a-collapse>
+  </a-space>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { ElMessage } from 'element-plus'
-import { UploadFilled } from '@element-plus/icons-vue'
+import { ref, watch } from 'vue'
+import { message } from 'ant-design-vue'
+import { InboxOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps({
   type: {
@@ -476,11 +473,11 @@ const beforeUpload = (file) => {
   const isLt10M = file.size / 1024 / 1024 < 10
 
   if (!isExcel) {
-    ElMessage.error('只能上传 Excel 文件！')
+    message.error('只能上传 Excel 文件！')
     return false
   }
   if (!isLt10M) {
-    ElMessage.error('文件大小不能超过 10MB！')
+    message.error('文件大小不能超过 10MB！')
     return false
   }
   return true
@@ -511,7 +508,7 @@ const formatJson = () => {
     const parsed = JSON.parse(localConfig.value.jsonData)
     localConfig.value.jsonData = JSON.stringify(parsed, null, 2)
   } catch (error) {
-    ElMessage.error('JSON 格式错误，无法格式化')
+    message.error('JSON 格式错误，无法格式化')
   }
 }
 
@@ -521,33 +518,3 @@ watch(() => localConfig.value, (newVal) => {
 }, { deep: true })
 </script>
 
-<style scoped lang="scss">
-.data-source-selector {
-  .type-option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .connection-option {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-
-  .config-form {
-    margin-top: 16px;
-  }
-
-  .sql-editor {
-    width: 100%;
-
-    .sql-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-  }
-}
-</style>

@@ -4,7 +4,7 @@
  */
 
 import { ref, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from 'ant-design-vue'
 
 /**
  * @param {Function} apiFunc - API请求函数
@@ -87,7 +87,7 @@ export function useTableData(apiFunc, options = {}) {
       onSuccess && onSuccess(responseData)
     } catch (error) {
       console.error('加载数据失败:', error)
-      ElMessage.error(error.message || '加载数据失败')
+      message.error(error.message || '加载数据失败')
       onError && onError(error)
     } finally {
       loading.value = false

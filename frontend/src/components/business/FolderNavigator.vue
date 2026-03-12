@@ -3,29 +3,29 @@
     <!-- 头部 -->
     <div class="navigator-header">
       <span class="header-title">{{ title }}</span>
-      <el-button
+      <a-button
         v-if="allowCreate"
         link
         type="primary"
         @click="handleCreate"
         class="btn-create"
       >
-        <el-icon><Plus /></el-icon>
-      </el-button>
+        <Plus />
+      </a-button>
     </div>
 
     <!-- 搜索框 -->
-    <el-input
+    <a-input
       v-if="searchable"
-      v-model="searchQuery"
+      v-model:value="searchQuery"
       placeholder="搜索文件夹..."
       clearable
       class="search-input"
     >
       <template #prefix>
-        <el-icon><Search /></el-icon>
+        <Search />
       </template>
-    </el-input>
+    </a-input>
 
     <!-- 文件夹列表 -->
     <div class="folder-list">
@@ -37,11 +37,11 @@
         @click="handleSelect(folder)"
       >
         <div class="folder-content">
-          <el-icon class="folder-icon">
+          
             <component :is="folder.icon || 'Folder'" />
-          </el-icon>
+          
           <span class="folder-name">{{ folder.name }}</span>
-          <el-badge
+          <a-badge
             v-if="showCount && folder.count !== undefined"
             :value="folder.count"
             :max="99"
@@ -50,7 +50,7 @@
         </div>
       </div>
 
-      <el-divider v-if="defaultFolders.length > 0 && filteredFolders.length > 0" />
+      <a-divider v-if="defaultFolders.length > 0 && filteredFolders.length > 0" />
 
       <!-- 自定义文件夹 -->
       <draggable
@@ -67,14 +67,10 @@
             @click="handleSelect(folder)"
           >
             <div class="folder-content">
-              <el-icon v-if="draggable" class="drag-handle">
-                <DCaret />
-              </el-icon>
-              <el-icon class="folder-icon" :style="{ color: folder.color }">
-                <Folder />
-              </el-icon>
+              <DCaret />
+              <Folder />
               <span class="folder-name">{{ folder.name }}</span>
-              <el-badge
+              <a-badge
                 v-if="showCount && folder.count !== undefined"
                 :value="folder.count"
                 :max="99"
@@ -82,21 +78,21 @@
               />
             </div>
             <div v-if="allowEdit || allowDelete" class="folder-actions">
-              <el-dropdown @command="(cmd) => handleAction(cmd, folder)">
-                <el-icon class="action-icon"><MoreFilled /></el-icon>
+              <a-dropdown @command="(cmd) => handleAction(cmd, folder)">
+                <MoreFilled />
                 <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item v-if="allowEdit" command="edit">
-                      <el-icon><Edit /></el-icon>
+                  <a-dropdown-menu>
+                    <a-dropdown-item v-if="allowEdit" command="edit">
+                      <Edit />
                       编辑
-                    </el-dropdown-item>
-                    <el-dropdown-item v-if="allowDelete" command="delete" divided>
-                      <el-icon><Delete /></el-icon>
+                    </a-menu-item>
+                    <a-dropdown-item v-if="allowDelete" command="delete" divided>
+                      <Delete />
                       删除
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
+                    </a-menu-item>
+                  </a-menu>
                 </template>
-              </el-dropdown>
+              </a-dropdown>
             </div>
           </div>
         </template>
@@ -111,11 +107,9 @@
           @click="handleSelect(folder)"
         >
           <div class="folder-content">
-            <el-icon class="folder-icon" :style="{ color: folder.color }">
-              <Folder />
-            </el-icon>
+            <Folder />
             <span class="folder-name">{{ folder.name }}</span>
-            <el-badge
+            <a-badge
               v-if="showCount && folder.count !== undefined"
               :value="folder.count"
               :max="99"
@@ -123,27 +117,27 @@
             />
           </div>
           <div v-if="allowEdit || allowDelete" class="folder-actions">
-            <el-dropdown @command="(cmd) => handleAction(cmd, folder)">
-              <el-icon class="action-icon"><MoreFilled /></el-icon>
+            <a-dropdown @command="(cmd) => handleAction(cmd, folder)">
+              <MoreFilled />
               <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item v-if="allowEdit" command="edit">
-                    <el-icon><Edit /></el-icon>
+                <a-dropdown-menu>
+                  <a-dropdown-item v-if="allowEdit" command="edit">
+                    <Edit />
                     编辑
-                  </el-dropdown-item>
-                  <el-dropdown-item v-if="allowDelete" command="delete" divided>
-                    <el-icon><Delete /></el-icon>
+                  </a-menu-item>
+                  <a-dropdown-item v-if="allowDelete" command="delete" divided>
+                    <Delete />
                     删除
-                  </el-dropdown-item>
-                </el-dropdown-menu>
+                  </a-menu-item>
+                </a-menu>
               </template>
-            </el-dropdown>
+            </a-dropdown>
           </div>
         </div>
       </template>
 
       <!-- 空状态 -->
-      <el-empty
+      <a-empty
         v-if="filteredFolders.length === 0 && defaultFolders.length === 0"
         :description="emptyText"
         :image-size="80"
@@ -151,52 +145,44 @@
     </div>
 
     <!-- 创建/编辑文件夹对话框 -->
-    <el-dialog
+    <a-modal
       v-model="dialogVisible"
       :title="dialogMode === 'create' ? '新建文件夹' : '编辑文件夹'"
       width="400px"
     >
-      <el-form :model="folderForm" label-width="80px">
-        <el-form-item label="名称" required>
-          <el-input
+      <a-form :model="folderForm" label-width="80px">
+        <a-form-item label="名称" required>
+          <a-input
             v-model="folderForm.name"
             placeholder="请输入文件夹名称"
             maxlength="20"
             show-word-limit
           />
-        </el-form-item>
-        <el-form-item label="颜色">
-          <el-color-picker v-model="folderForm.color" />
-        </el-form-item>
-        <el-form-item label="图标">
-          <el-select v-model="folderForm.icon" placeholder="选择图标">
-            <el-option label="文件夹" value="Folder" />
-            <el-option label="文档" value="Document" />
-            <el-option label="收藏" value="Star" />
-            <el-option label="标签" value="Collection" />
-          </el-select>
-        </el-form-item>
-      </el-form>
+        </a-form-item>
+        <a-form-item label="颜色">
+          <input type="color" v-model="folderForm.color" style="width: 100%; height: 32px; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer;" />
+        </a-form-item>
+        <a-form-item label="图标">
+          <a-select v-model="folderForm.icon" placeholder="选择图标">
+            <a-select-option label="文件夹" value="Folder" />
+            <a-select-option label="文档" value="Document" />
+            <a-select-option label="收藏" value="Star" />
+            <a-select-option label="标签" value="Collection" />
+          </a-select>
+        </a-form-item>
+      </a-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSave">保存</el-button>
+        <a-button @click="dialogVisible = false">取消</a-button>
+        <a-button type="primary" @click="handleSave">保存</a-button>
       </template>
-    </el-dialog>
+    </a-modal>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Plus,
-  Search,
-  Folder,
-  Edit,
-  Delete,
-  MoreFilled,
-  DCaret
-} from '@element-plus/icons-vue'
+import { message, Modal } from 'ant-design-vue'
+import { PlusOutlined, SearchOutlined, FolderOutlined, EditOutlined, DeleteOutlined, MoreOutlined, DownOutlined } from '@ant-design/icons-vue'
 import draggable from 'vuedraggable'
 
 const props = defineProps({
@@ -322,7 +308,7 @@ const handleEdit = (folder) => {
 
 const handleDelete = async (folder) => {
   try {
-    await ElMessageBox.confirm(
+    await Modal.confirm(
       `确定要删除文件夹 "${folder.name}" 吗？`,
       '确认删除',
       {
@@ -339,7 +325,7 @@ const handleDelete = async (folder) => {
 
 const handleSave = () => {
   if (!folderForm.value.name.trim()) {
-    ElMessage.warning('请输入文件夹名称')
+    message.warning('请输入文件夹名称')
     return
   }
 
@@ -362,116 +348,3 @@ defineExpose({
 })
 </script>
 
-<style scoped lang="scss">
-.folder-navigator {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
-
-  .navigator-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px;
-    border-bottom: 1px solid #e4e7ed;
-
-    .header-title {
-      font-size: 16px;
-      font-weight: 500;
-      color: #303133;
-    }
-
-    .btn-create {
-      padding: 4px;
-    }
-  }
-
-  .search-input {
-    margin: 12px 16px;
-  }
-
-  .folder-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 8px;
-
-    .folder-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 12px;
-      margin-bottom: 4px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      &:hover {
-        background: #f5f7fa;
-
-        .folder-actions {
-          opacity: 1;
-        }
-      }
-
-      &.active {
-        background: #ecf5ff;
-        color: #409eff;
-
-        .folder-icon {
-          color: #409eff;
-        }
-      }
-
-      .folder-content {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex: 1;
-        min-width: 0;
-
-        .drag-handle {
-          cursor: move;
-          color: #909399;
-          font-size: 14px;
-        }
-
-        .folder-icon {
-          font-size: 18px;
-          color: #606266;
-          flex-shrink: 0;
-        }
-
-        .folder-name {
-          flex: 1;
-          font-size: 14px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .folder-count {
-          flex-shrink: 0;
-        }
-      }
-
-      .folder-actions {
-        opacity: 0;
-        transition: opacity 0.2s;
-
-        .action-icon {
-          font-size: 16px;
-          color: #909399;
-          cursor: pointer;
-
-          &:hover {
-            color: #409eff;
-          }
-        }
-      }
-    }
-  }
-}
-</style>

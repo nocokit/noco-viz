@@ -14,6 +14,7 @@ import { Role } from '../../roles/entities/role.entity';
 import { Project } from '../../projects/entities/project.entity';
 import { Dataset } from '../../datasets/entities/dataset.entity';
 import { Connection } from '../../datasets/entities/connection.entity';
+import { Department } from '../../departments/entities/department.entity';
 
 @Entity('users')
 @Index(['isActive'])
@@ -65,6 +66,14 @@ export class User {
 
   @Column({ name: 'role_id', nullable: true })
   roleId: number;
+
+  // 部门关联
+  @ManyToOne(() => Department, { nullable: true })
+  @JoinColumn({ name: 'department_id' })
+  department: Department;
+
+  @Column({ name: 'department_id', nullable: true })
+  departmentId: number;
 
   // 创建的项目
   @OneToMany(() => Project, (project) => project.createdBy)

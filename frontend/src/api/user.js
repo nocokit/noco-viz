@@ -7,7 +7,30 @@ import request from './http'
 const userApi = createApiService('users')
 
 /**
- * 获取用户列表
+ * 获取用户列表（用于用户管理页面）
+ * @param {Object} params - { PageNumber, PageSize, Filters }
+ */
+export function getUsersAsDataSet(params = {}) {
+  const requestData = {
+    $id: null,
+    $type: "Nkd.Foundation.BusinessOrchestration.SecurityManagement.InputObjects.GetUsersAsDataSetInput, Nkd.Foundation.BusinessOrchestration",
+    Filters: params.Filters || [],
+    IgnoreLastServiceId: true,
+    PageNumber: params.PageNumber || 1,
+    PageSize: params.PageSize || 15
+  }
+
+  // 使用完整路径，不经过 baseURL
+  return request({
+    url: '/api/Security/GetUsersAsDataSet?_allow_anonymous=true',
+    method: 'post',
+    data: requestData,
+    baseURL: '' // 覆盖默认的 baseURL
+  })
+}
+
+/**
+ * 获取用户列表（通用接口）
  * @param {Object} params - { page, limit, search, role, status }
  */
 export function getUserList(params) {

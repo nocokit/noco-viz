@@ -1,0 +1,7 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#f3f4f6"/>
+  <rect x="20" y="20" width="360" height="60" rx="8" fill="#e5e7eb"/>
+  <circle cx="100" cy="180" r="60" fill="#dbeafe"/>
+  <rect x="180" y="120" width="200" height="120" rx="8" fill="#fef3c7"/>
+  <text x="200" y="160" font-family="Arial" font-size="16" fill="#6b7280" text-anchor="middle">华东区销售周报</text>
+</svg>

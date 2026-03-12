@@ -25,7 +25,7 @@ export function getAuditLogStatistics() {
  * 导出审计日志
  */
 export function exportAuditLogs(params) {
-  return request.get('/audit-logs', {
+  return request.get('/audit-logs/export', {
     params,
     responseType: 'blob'
   })

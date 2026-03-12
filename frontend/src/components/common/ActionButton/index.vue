@@ -3,7 +3,7 @@
     <!-- 文本按钮组 -->
     <template v-if="displayType === 'text'">
       <template v-for="(action, index) in visibleActions" :key="action.label">
-        <el-button
+        <a-button
           :type="action.type || 'primary'"
           :disabled="isDisabled(action)"
           :icon="action.icon"
@@ -11,8 +11,8 @@
           @click="handleAction(action)"
         >
           {{ action.label }}
-        </el-button>
-        <el-divider
+        </a-button>
+        <a-divider
           v-if="index < visibleActions.length - 1"
           direction="vertical"
         />
@@ -20,35 +20,35 @@
 
       <!-- 更多操作下拉 -->
       <template v-if="hasMore">
-        <el-divider direction="vertical" />
-        <el-dropdown @command="handleDropdownAction" trigger="click">
-          <el-button link type="primary">
+        <a-divider direction="vertical" />
+        <a-dropdown @command="handleDropdownAction" trigger="click">
+          <a-button link type="primary">
             更多
-            <el-icon class="el-icon--right"><ArrowDown /></el-icon>
-          </el-button>
+            <ArrowDown />
+          </a-button>
           <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item
+            <a-menu>
+              <a-menu-item
                 v-for="action in moreActions"
                 :key="action.label"
                 :command="action"
                 :disabled="isDisabled(action)"
                 :divided="action.divided"
               >
-                <el-icon v-if="action.icon">
+                
                   <component :is="action.icon" />
-                </el-icon>
+                
                 {{ action.label }}
-              </el-dropdown-item>
-            </el-dropdown-menu>
+              </a-menu-item>
+            </a-menu>
           </template>
-        </el-dropdown>
+        </a-dropdown>
       </template>
     </template>
 
     <!-- 普通按钮组 -->
     <template v-else-if="displayType === 'button'">
-      <el-button
+      <a-button
         v-for="action in visibleActions"
         :key="action.label"
         :type="action.type || 'default'"
@@ -58,36 +58,36 @@
         @click="handleAction(action)"
       >
         {{ action.label }}
-      </el-button>
+      </a-button>
 
       <!-- 更多操作下拉 -->
-      <el-dropdown v-if="hasMore" @command="handleDropdownAction" trigger="click">
-        <el-button :size="size">
+      <a-dropdown v-if="hasMore" @command="handleDropdownAction" trigger="click">
+        <a-button :size="size">
           更多
-          <el-icon class="el-icon--right"><ArrowDown /></el-icon>
-        </el-button>
+          <ArrowDown />
+        </a-button>
         <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item
+          <a-menu>
+            <a-menu-item
               v-for="action in moreActions"
               :key="action.label"
               :command="action"
               :disabled="isDisabled(action)"
               :divided="action.divided"
             >
-              <el-icon v-if="action.icon">
+              
                 <component :is="action.icon" />
-              </el-icon>
+              
               {{ action.label }}
-            </el-dropdown-item>
-          </el-dropdown-menu>
+            </a-menu-item>
+          </a-menu>
         </template>
-      </el-dropdown>
+      </a-dropdown>
     </template>
 
     <!-- 仅下拉菜单 -->
     <template v-else-if="displayType === 'dropdown'">
-      <el-dropdown @command="handleDropdownAction" trigger="click">
+      <a-dropdown @command="handleDropdownAction" trigger="click">
         <span class="action-button__trigger">
           <slot name="trigger">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -96,29 +96,29 @@
           </slot>
         </span>
         <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item
+          <a-menu>
+            <a-menu-item
               v-for="action in actions"
               :key="action.label"
               :command="action"
               :disabled="isDisabled(action)"
               :divided="action.divided"
             >
-              <el-icon v-if="action.icon">
+              
                 <component :is="action.icon" />
-              </el-icon>
+              
               {{ action.label }}
-            </el-dropdown-item>
-          </el-dropdown-menu>
+            </a-menu-item>
+          </a-menu>
         </template>
-      </el-dropdown>
+      </a-dropdown>
     </template>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { ArrowDown } from '@element-plus/icons-vue'
+import { DownOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps({
   // 操作列表
@@ -213,46 +213,3 @@ const handleDropdownAction = (action) => {
 }
 </script>
 
-<style scoped>
-.action-button {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.action-button--text {
-  gap: 0;
-}
-
-.action-button--button {
-  gap: var(--spacing-sm);
-}
-
-.action-button--dropdown .action-button__trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  color: var(--text-secondary);
-  transition: all var(--transition-fast);
-}
-
-.action-button--dropdown .action-button__trigger:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-/* 调整Element Plus按钮间距 */
-.action-button :deep(.el-button + .el-button) {
-  margin-left: 0;
-}
-
-/* 调整分隔线样式 */
-.action-button :deep(.el-divider--vertical) {
-  margin: 0 var(--spacing-xs);
-  height: 14px;
-}
-</style>

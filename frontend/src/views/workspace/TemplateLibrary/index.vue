@@ -1,808 +1,560 @@
 <template>
-  <div class="template-library">
-    <!-- 头部区域 -->
-    <PageHeader
-      title="企业模板库"
-      description="浏览并使用企业内部标准化的数据大屏模板。所有模板均已通过安全审计，适配公司标准数据源。"
-      :actions="headerActions"
-    />
-
-    <!-- 筛选和视图切换 -->
-    <FilterBar
-      v-model="activeFilter"
+  <div class="template-library-page">
+    <WorkspaceLayout
+      :breadcrumb-items="breadcrumbItems"
       :filters="filters"
-      :search-value="searchKeyword"
-      search-placeholder="搜索模板..."
+      :search-placeholder="'搜索模板...'"
       :view-modes="viewModes"
-      :current-view="viewMode"
-      @search="searchKeyword = $event"
-      @view-change="viewMode = $event"
-    />
+      :default-view="'grid'"
+      :items="templates"
+      :filter-function="filterTemplates"
+      :search-function="searchTemplates"
+      @filter-change="handleFilterChange"
+      @search="handleSearch"
+      @view-change="handleViewChange"
+    >
+      <template #toolbar-extra>
+        <a-button @click="loadTemplates" title="刷新">
+          <template #icon>
+            <ReloadOutlined />
+          </template>
+        </a-button>
+        <a-button type="primary" @click="openCreateModal">
+          <template #icon>
+            <PlusOutlined />
+          </template>
+          新增模板
+        </a-button>
+      </template>
 
-    <!-- 内容区域 -->
-    <div class="template-content">
-      <!-- 网格视图 -->
-      <div v-if="viewMode === 'grid'" class="template-grid-view">
-        <EmptyState
-          v-if="filteredTemplates.length === 0"
-          title="暂无模板"
-          description="暂时没有找到符合条件的模板"
-        />
-        <div v-else class="template-grid">
+      <!-- Grid 视图 -->
+      <template #grid="{ items }">
         <TemplateCard
-          v-for="template in filteredTemplates"
+          v-for="template in items"
           :key="template.id"
           :template="template"
-          :show-review="isAdmin"
           @use="handleUseTemplate"
           @preview="handlePreviewTemplate"
           @edit="handleEditTemplate"
           @delete="handleDeleteTemplate"
-          @review="handleReviewTemplate"
         />
-      </div>
-    </div>
+      </template>
 
-    <!-- 列表视图 -->
-    <div v-else-if="viewMode === 'list'" class="template-list-view">
-      <EmptyState
-        v-if="filteredTemplates.length === 0"
-        title="暂无模板"
-        description="暂时没有找到符合条件的模板"
-      />
-      <div
-        v-for="template in filteredTemplates"
-        :key="template.id"
-        class="template-list-item"
+      <!-- List 视图 -->
+      <template #list="{ items }">
+        <div
+          v-for="template in items"
+          :key="template.id"
+          class="template-list-item"
+        >
+          <div class="list-item-thumb">
+            <img
+              v-if="template.thumbnail || template.thumbnailMedia?.url"
+              :src="getImageUrl(template.thumbnail || template.thumbnailMedia?.url)"
+              :alt="template.title"
+              @error="handleImageError"
+            />
+            <div v-else class="list-item-thumb-default">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" class="thumb-icon">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 19V5h12v14H6zm2-4h8v2H8v-2zm0-4h8v2H8v-2zm0-4h8v2H8V7z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="list-item-content">
+            <div class="list-item-header">
+              <div class="list-item-title-row">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="title-icon">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 19V5h12v14H6zm2-4h8v2H8v-2zm0-4h8v2H8v-2zm0-4h8v2H8V7z"/>
+                </svg>
+                <span class="list-item-title">{{ template.title }}</span>
+                <a-tag color="blue" :bordered="false">
+                  {{ getCategoryLabel(template.category) }}
+                </a-tag>
+              </div>
+              <div class="list-item-actions">
+                <a-button size="small" type="primary" @click="handleUseTemplate(template)">
+                  <template #icon><CheckOutlined /></template>
+                  使用模板
+                </a-button>
+                <a-button size="small" @click="handlePreviewTemplate(template)">
+                  <template #icon><EyeOutlined /></template>
+                  预览
+                </a-button>
+                <a-dropdown>
+                  <a-button size="small">
+                    <template #icon><MoreOutlined /></template>
+                  </a-button>
+                  <template #overlay>
+                    <a-menu @click="({ key }) => handleMenuAction(key, template)">
+                      <a-menu-item key="edit">
+                        <EditOutlined />
+                        编辑
+                      </a-menu-item>
+                      <a-menu-item key="duplicate">
+                        <CopyOutlined />
+                        复制
+                      </a-menu-item>
+                      <a-menu-divider />
+                      <a-menu-item key="delete" danger>
+                        <DeleteOutlined />
+                        删除
+                      </a-menu-item>
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+              </div>
+            </div>
+            <div class="list-item-desc">{{ template.description || '暂无描述' }}</div>
+            <div class="list-item-meta">
+              <a-space :size="16">
+                <span class="meta-text">
+                  <FireOutlined />
+                  <span class="meta-number">{{ template.usageCount || 0 }}</span> 次使用
+                </span>
+                <span class="meta-text">
+                  <ClockCircleOutlined />
+                  更新于 <span v-html="formatTimeWithColor(template.updatedAt)"></span>
+                </span>
+              </a-space>
+            </div>
+          </div>
+        </div>
+      </template>
+    </WorkspaceLayout>
+
+    <!-- 创建/编辑模板弹窗 -->
+    <a-modal
+      v-model:open="modalVisible"
+      :title="modalMode === 'create' ? '新增模板' : '编辑模板'"
+      :width="600"
+      @cancel="handleModalCancel"
+    >
+      <a-form
+        ref="formRef"
+        :model="formData"
+        :rules="formRules"
+        layout="vertical"
       >
-        <div class="list-item-thumb">
-          <img :src="getImageUrl(template.thumbnail)" :alt="template.title || template.name" />
-        </div>
-        <div class="list-item-content">
-          <div class="list-item-header">
-            <div class="list-item-title">
-              {{ template.title || template.name }}
-              <TemplateBadge :category="template.category" />
-            </div>
-            <TemplateActions
-              :is-system="template.isSystem"
-              @use="handleUseTemplate(template)"
-              @preview="handlePreviewTemplate(template)"
-              @edit="handleEditTemplate(template)"
-              @delete="handleDeleteTemplate(template)"
-            />
-          </div>
-          <div class="list-item-desc">{{ template.description || '暂无描述' }}</div>
-          <TemplateMetadata
-            :resolution="template.metadata?.resolution"
-            :usage-count="template.usageCount"
-            :department="template.metadata?.department"
+        <a-form-item label="模板名称" name="title">
+          <a-input
+            v-model:value="formData.title"
+            placeholder="请输入模板名称"
+            :maxlength="100"
           />
-        </div>
-      </div>
-    </div>
+        </a-form-item>
 
-    <!-- 详情视图（分栏模式） -->
-    <div v-else-if="viewMode === 'detail'" class="layout-grid">
-      <!-- 左侧：模板列表 -->
-      <div class="template-list">
-        <div class="list-header">
-          <input
-            v-model="searchKeyword"
-            type="text"
-            class="search-mini"
-            placeholder="搜索模板..."
-          >
-        </div>
+        <a-form-item label="分类" name="category">
+          <a-select v-model:value="formData.category" placeholder="请选择分类">
+            <a-select-option value="dashboard">数据看板</a-select-option>
+            <a-select-option value="report">数据报表</a-select-option>
+            <a-select-option value="screen">数据大屏</a-select-option>
+            <a-select-option value="chart">图表组件</a-select-option>
+            <a-select-option value="other">其他</a-select-option>
+          </a-select>
+        </a-form-item>
 
-        <!-- 分类筛选标签 -->
-        <div class="filter-tabs-mini">
-          <div
-            v-for="filter in filters"
-            :key="filter.id"
-            :class="['filter-tab-mini', { active: activeFilter === filter.id }]"
-            @click="activeFilter = filter.id"
-          >
-            {{ filter.label }}
-          </div>
-        </div>
+        <a-form-item label="分辨率" name="resolution">
+          <a-select v-model:value="formData.resolution" placeholder="请选择分辨率">
+            <a-select-option value="1920x1080">1920x1080 (Full HD)</a-select-option>
+            <a-select-option value="3840x2160">3840x2160 (4K)</a-select-option>
+            <a-select-option value="1280x720">1280x720 (HD)</a-select-option>
+            <a-select-option value="2560x1440">2560x1440 (2K)</a-select-option>
+          </a-select>
+        </a-form-item>
 
-        <!-- 模板列表项 -->
-        <div class="template-items">
-          <div
-            v-for="template in filteredTemplates"
-            :key="template.id"
-            class="template-item"
-            :class="{ selected: selectedTemplate?.id === template.id }"
-            @click="selectTemplate(template)"
-          >
-            <div class="item-thumb">
-              <img :src="getImageUrl(template.thumbnail)" :alt="template.title || template.name" />
-            </div>
-            <div class="item-content">
-              <div class="item-title">
-                {{ template.title || template.name }}
-                <TemplateBadge :category="template.category" />
-              </div>
-              <div class="item-meta">
-                <span>{{ template.usageCount || 0 }} 次使用</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 空状态 -->
-          <EmptyState
-            v-if="filteredTemplates.length === 0"
-            title="暂无模板"
-            :size="48"
+        <a-form-item label="描述" name="description">
+          <a-textarea
+            v-model:value="formData.description"
+            placeholder="请输入模板描述"
+            :rows="4"
+            :maxlength="500"
+            show-count
           />
-        </div>
-      </div>
+        </a-form-item>
+      </a-form>
 
-      <!-- 右侧：预览详情区 -->
-      <div class="preview-panel">
-        <div v-if="selectedTemplate" class="preview-content">
-          <div class="preview-toolbar">
-            <div class="toolbar-title">{{ selectedTemplate.title || selectedTemplate.name }}</div>
-            <TemplateActions
-              :is-system="selectedTemplate.isSystem"
-              :show-more="false"
-              :show-edit="true"
-              :show-delete="true"
-              @use="handleUseTemplate(selectedTemplate)"
-              @edit="handleEditTemplate(selectedTemplate)"
-              @delete="handleDeleteTemplate(selectedTemplate)"
-            />
-          </div>
+      <template #footer>
+        <a-button @click="handleModalCancel">取消</a-button>
+        <a-button type="primary" @click="handleModalOk" :loading="submitting">
+          {{ modalMode === 'create' ? '创建' : '保存' }}
+        </a-button>
+      </template>
+    </a-modal>
 
-          <div class="preview-image-container">
-            <img :src="getImageUrl(selectedTemplate.thumbnail)" :alt="selectedTemplate.title || selectedTemplate.name" class="preview-image" />
-          </div>
-
-          <div class="preview-details">
-            <div class="detail-section">
-              <div class="detail-label">描述</div>
-              <div class="detail-value">{{ selectedTemplate.description || '暂无描述' }}</div>
-            </div>
-            <TemplateMetadata
-              layout="vertical"
-              :resolution="selectedTemplate.metadata?.resolution"
-              :usage-count="selectedTemplate.usageCount"
-              :department="selectedTemplate.metadata?.department"
-            />
-          </div>
-        </div>
-
-        <!-- 未选择状态 -->
-        <EmptyState
-          v-else
-          title="选择一个模板查看详情"
-          description="点击左侧列表中的模板卡片"
-        />
-      </div>
-    </div>
-    </div>
-
-    <!-- 预览对话框 -->
-    <el-dialog
-      v-model="previewDialogVisible"
-      :title="previewTemplate?.title || previewTemplate?.name"
-      width="80%"
-      top="5vh"
+    <!-- 预览弹窗 -->
+    <a-modal
+      v-model:open="previewVisible"
+      title="模板预览"
+      :width="1200"
+      :footer="null"
     >
       <div class="preview-container">
         <img
           v-if="previewTemplate?.thumbnail"
           :src="getImageUrl(previewTemplate.thumbnail)"
-          :alt="previewTemplate.title || previewTemplate.name"
-          class="preview-dialog-image"
+          :alt="previewTemplate.title"
+          class="preview-image"
         />
         <div class="preview-info">
-          <p><strong>描述：</strong>{{ previewTemplate?.description }}</p>
-          <p><strong>分辨率：</strong>{{ previewTemplate?.metadata?.resolution || '1920 x 1080' }}</p>
-          <p><strong>使用次数：</strong>{{ previewTemplate?.usageCount || 0 }}</p>
+          <h3>{{ previewTemplate?.title }}</h3>
+          <p>{{ previewTemplate?.description }}</p>
         </div>
       </div>
-      <template #footer>
-        <el-button @click="previewDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleUseTemplate(previewTemplate)">使用模板</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 发布模板对话框 -->
-    <PublishTemplateDialog
-      v-model="publishDialogVisible"
-      @success="handlePublishSuccess"
-    />
-
-    <!-- 编辑模板对话框 -->
-    <el-dialog
-      v-model="editDialogVisible"
-      title="编辑模板"
-      width="600px"
-    >
-      <el-form v-if="editingTemplate" label-width="80px">
-        <el-form-item label="模板名称">
-          <el-input v-model="editingTemplate.title" placeholder="请输入模板名称" />
-        </el-form-item>
-        <el-form-item label="模板描述">
-          <el-input
-            v-model="editingTemplate.description"
-            type="textarea"
-            :rows="4"
-            placeholder="请输入模板描述"
-          />
-        </el-form-item>
-        <el-form-item label="模板分类">
-          <el-select v-model="editingTemplate.category" placeholder="请选择分类">
-            <el-option label="官方预置" value="official" />
-            <el-option label="部门共享" value="shared" />
-            <el-option label="其他" value="other" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="editDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveEdit">保存</el-button>
-      </template>
-    </el-dialog>
+    </a-modal>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Check, Edit, Delete, View, Monitor, OfficeBuilding, MoreFilled } from '@element-plus/icons-vue'
-import PageHeader from '@/components/PageHeader.vue'
-import FilterBar from '@/components/FilterBar.vue'
-import EmptyState from '@/components/EmptyState.vue'
-import TemplateBadge from '@/components/TemplateBadge.vue'
-import TemplateMetadata from '@/components/TemplateMetadata.vue'
-import TemplateActions from '@/components/TemplateActions.vue'
-import PublishTemplateDialog from '@/components/PublishTemplateDialog.vue'
-import TemplateCard from '@/components/TemplateCard.vue'
-import { getTemplates, deleteTemplate as deleteTemplateApi, incrementUsageCount, reviewTemplate, importTemplate, updateTemplate } from '@/api/template'
-import { createProjectFromTemplate } from '@/api/project'
-import { useUserStore } from '@/store/modules/user'
+import { ref, computed, onMounted, h } from 'vue'
+import { message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
+import {
+  PlusOutlined,
+  ReloadOutlined,
+  CheckOutlined,
+  EyeOutlined,
+  MoreOutlined,
+  EditOutlined,
+  CopyOutlined,
+  DeleteOutlined,
+  FireOutlined,
+  ClockCircleOutlined
+} from '@ant-design/icons-vue'
+import { confirm } from '@/utils/confirm'
+import WorkspaceLayout from '@/components/workspace/WorkspaceLayout.vue'
+import TemplateCard from './components/TemplateCard.vue'
+import {
+  getTemplates,
+  createTemplate,
+  updateTemplate,
+  deleteTemplate
+} from '@/api/template'
 
-// 获取用户信息
-const userStore = useUserStore()
 const router = useRouter()
-const isAdmin = computed(() => userStore.userInfo?.role === 'admin' || userStore.userInfo?.isAdmin)
+const formRef = ref()
 
-// 视图模式: grid(网格), list(列表), detail(详情分栏)
-const viewMode = ref('grid')
-
-// 视图模式配置
-const viewModes = [
-  { id: 'grid', label: '网格视图', icon: 'Grid', tooltip: '网格视图' },
-  { id: 'list', label: '列表视图', icon: 'Menu', tooltip: '列表视图' },
-  { id: 'detail', label: '详情视图', icon: 'List', tooltip: '详情视图' }
-]
-
-// 筛选器配置
-const filters = [
-  { id: 'all', label: '全部推荐' },
-  { id: 'official', label: '官方预置' },
-  { id: 'shared', label: '部门共享' },
-  { id: 'mobile', label: '移动端报表' }
-]
-
-// 当前激活的筛选器
-const activeFilter = ref('all')
-
-// 搜索关键词
-const searchKeyword = ref('')
-
-// 选中的模板
-const selectedTemplate = ref(null)
-
-// 预览对话框
-const previewDialogVisible = ref(false)
-const previewTemplate = ref(null)
-
-// 发布模板对话框
-const publishDialogVisible = ref(false)
-
-// 模板数据
-const allTemplates = ref([])
+// 数据
+const templates = ref([])
 const loading = ref(false)
 
-// 处理导入模板
-const handleImportTemplate = () => {
-  // 创建文件输入元素
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = '.zip,.json'
+// 面包屑
+const breadcrumbItems = [
+  { label: '首页', path: '/' },
+  { label: '工作台', path: '/workspace' },
+  { label: '企业模板库' }
+]
 
-  input.onchange = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
+// 筛选器
+const filters = [
+  { id: 'all', label: '全部', count: computed(() => templates.value.length) },
+  { id: 'dashboard', label: '数据看板', count: computed(() => templates.value.filter(t => t.category === 'dashboard').length) },
+  { id: 'report', label: '数据报表', count: computed(() => templates.value.filter(t => t.category === 'report').length) },
+  { id: 'screen', label: '数据大屏', count: computed(() => templates.value.filter(t => t.category === 'screen').length) },
+  { id: 'chart', label: '图表组件', count: computed(() => templates.value.filter(t => t.category === 'chart').length) },
+  { id: 'other', label: '其他', count: computed(() => templates.value.filter(t => t.category === 'other').length) }
+]
 
-    const loading = ElMessage({
-      message: '正在导入模板...',
-      type: 'info',
-      duration: 0
-    })
-
-    try {
-      await importTemplate(file, (progress) => {
-        loading.message = `正在导入模板... ${progress}%`
-      })
-
-      loading.close()
-      ElMessage.success('模板导入成功！')
-      // 重新加载模板列表
-      loadTemplates()
-    } catch (error) {
-      loading.close()
-      console.error('导入模板失败:', error)
-      ElMessage.error(error.response?.data?.message || '导入模板失败')
-    }
-  }
-
-  input.click()
-}
-
-// 处理发布模板
-const handlePublishTemplate = () => {
-  publishDialogVisible.value = true
-}
-
-// 头部操作按钮配置
-const headerActions = [
+// 视图模式
+const viewModes = [
   {
-    text: '导入模板包',
-    icon: 'Upload',
-    handler: handleImportTemplate
+    id: 'grid',
+    label: '网格视图',
+    tooltip: '网格视图',
+    icon: h('svg', { width: '16', height: '16', viewBox: '0 0 24 24', fill: 'currentColor' }, [
+      h('path', { d: 'M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z' })
+    ])
   },
   {
-    text: '发布我的模板',
-    icon: 'Plus',
-    type: 'primary',
-    handler: handlePublishTemplate
+    id: 'list',
+    label: '列表视图',
+    tooltip: '列表视图',
+    icon: h('svg', { width: '16', height: '16', viewBox: '0 0 24 24', fill: 'currentColor' }, [
+      h('path', { d: 'M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z' })
+    ])
   }
 ]
+
+// 筛选和搜索函数
+const filterTemplates = (items, filterValue) => {
+  if (filterValue === 'all') return items
+  return items.filter(item => item.category === filterValue)
+}
+
+const searchTemplates = (items, keyword) => {
+  if (!keyword) return items
+  const lowerKeyword = keyword.toLowerCase()
+  return items.filter(item =>
+    item.title?.toLowerCase().includes(lowerKeyword) ||
+    item.description?.toLowerCase().includes(lowerKeyword)
+  )
+}
+
+// 事件处理
+const handleFilterChange = (value) => {
+  console.log('Filter changed:', value)
+}
+
+const handleSearch = (keyword) => {
+  console.log('Search:', keyword)
+}
+
+const handleViewChange = (view) => {
+  console.log('View changed:', view)
+}
 
 // 加载模板列表
 const loadTemplates = async () => {
   try {
     loading.value = true
     const data = await getTemplates()
-    allTemplates.value = data || []
+    // 不在这里格式化时间，保留原始数据
+    templates.value = data
   } catch (error) {
-    console.error('加载模板失败:', error)
-    ElMessage.error('加载模板列表失败')
+    console.error('加载模板列表失败:', error)
+    message.error('加载模板列表失败')
   } finally {
     loading.value = false
   }
 }
 
-// 统一的筛选模板列表
-const filteredTemplates = computed(() => {
-  let templates = []
+// 格式化时间
+const formatTime = (dateStr) => {
+  if (!dateStr) return '-'
 
-  // 根据筛选器选择模板
-  if (activeFilter.value === 'all') {
-    templates = allTemplates.value.filter(t => t.status === 'published')
-  } else if (activeFilter.value === 'official') {
-    templates = allTemplates.value.filter(t => t.status === 'published' && t.category === 'official')
-  } else if (activeFilter.value === 'shared') {
-    templates = allTemplates.value.filter(t => t.status === 'published' && t.category === 'shared')
-  } else if (activeFilter.value === 'mobile') {
-    templates = allTemplates.value.filter(t => t.status === 'published' && t.metadata?.isMobile)
-  }
-
-  // 根据搜索关键词过滤
-  if (searchKeyword.value.trim()) {
-    const keyword = searchKeyword.value.toLowerCase()
-    templates = templates.filter(t =>
-      (t.title && t.title.toLowerCase().includes(keyword)) ||
-      (t.name && t.name.toLowerCase().includes(keyword)) ||
-      (t.description && t.description.toLowerCase().includes(keyword))
-    )
-  }
-
-  return templates
-})
-
-// 选择模板
-const selectTemplate = (template) => {
-  selectedTemplate.value = template
-}
-
-// 获取图片完整URL
-const getImageUrl = (url) => {
-  if (!url) return getDefaultThumbnail()
-  // 如果是完整URL,直接返回
-  if (url.startsWith('http')) return url
-  // 如果是相对路径,直接使用(由vite proxy处理)
-  return url
-}
-
-// 获取默认缩略图
-const getDefaultThumbnail = () => {
-  // 返回一个默认的占位图
-  return '/images/template-placeholder.svg'
-}
-
-// 组件挂载时加载数据
-onMounted(() => {
-  loadTemplates()
-})
-
-// 发布成功回调
-const handlePublishSuccess = (template) => {
-  // 重新加载模板列表
-  loadTemplates()
-  ElMessage.success('模板已成功发布！')
-}
-
-// 处理使用模板
-const handleUseTemplate = async (template) => {
   try {
-    // 弹出对话框让用户输入项目名称
-    const { value: projectName } = await ElMessageBox.prompt(
-      '请输入新项目的名称',
-      '创建项目',
-      {
-        confirmButtonText: '创建',
-        cancelButtonText: '取消',
-        inputPlaceholder: '项目名称',
-        inputValue: `${template.title || template.name} - 副本`,
-        inputValidator: (value) => {
-          if (!value || value.trim() === '') {
-            return '请输入项目名称'
-          }
-          if (value.length > 100) {
-            return '项目名称不能超过100个字符'
-          }
-          if (!/^[\u4e00-\u9fa5a-zA-Z0-9_\-\s]+$/.test(value)) {
-            return '项目名称只能包含中文、字母、数字、下划线、连字符和空格'
-          }
-          return true
-        }
-      }
-    )
+    const date = new Date(dateStr)
 
-    const loading = ElMessage({
-      message: '正在创建项目...',
-      type: 'info',
-      duration: 0
-    })
-
-    try {
-      // 从模板创建项目
-      const project = await createProjectFromTemplate(template.id, {
-        name: projectName,
-        description: `基于模板"${template.title || template.name}"创建`
-      })
-
-      // 增加使用次数统计
-      await incrementUsageCount(template.id)
-
-      // 更新本地数据
-      const templateInList = allTemplates.value.find(t => t.id === template.id)
-      if (templateInList) {
-        templateInList.usageCount = (templateInList.usageCount || 0) + 1
-      }
-
-      loading.close()
-      ElMessage.success('项目创建成功！')
-
-      // 跳转到项目编辑页面
-      router.push(`/screen-editor/${project.id}`)
-    } catch (error) {
-      loading.close()
-      console.error('创建项目失败:', error)
-      ElMessage.error(error.response?.data?.message || '创建项目失败')
+    // 检查日期是否有效
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date:', dateStr)
+      return '-'
     }
+
+    const now = new Date()
+    const diff = now - date
+    const minutes = Math.floor(diff / 60000)
+    const hours = Math.floor(diff / 3600000)
+    const days = Math.floor(diff / 86400000)
+
+    if (minutes < 1) return 'Just now'
+    if (minutes < 60) return `${minutes}m ago`
+    if (hours < 24) return `${hours}h ago`
+    if (days < 7) return `${days}d ago`
+
+    // 返回格式化的日期
+    return date.toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
   } catch (error) {
-    // 用户取消操作
-    if (error !== 'cancel') {
-      console.error('操作失败:', error)
+    console.error('Error formatting date:', dateStr, error)
+    return '-'
+  }
+}
+
+// 格式化时间并给数字添加颜色
+const formatTimeWithColor = (dateStr) => {
+  const timeStr = formatTime(dateStr)
+  // 使用正则表达式匹配数字，并给数字添加颜色样式
+  return timeStr.replace(/(\d+)/g, '<span class="meta-number">$1</span>')
+}
+
+// 获取图片URL
+const getImageUrl = (path) => {
+  if (!path) return ''
+  if (path.startsWith('http')) return path
+  // 如果路径以 /uploads 开头，说明是静态资源，直接使用
+  if (path.startsWith('/uploads')) return path
+  // 否则拼接 API 基础路径
+  return `${import.meta.env.VITE_API_BASE_URL || ''}${path}`
+}
+
+// 处理图片加载错误
+const handleImageError = (e) => {
+  e.target.style.display = 'none'
+  const parent = e.target.parentElement
+  if (parent) {
+    const defaultDiv = parent.querySelector('.list-item-thumb-default')
+    if (defaultDiv) {
+      defaultDiv.style.display = 'flex'
     }
   }
 }
 
-// 处理预览模板
+// 获取分类标签
+const getCategoryLabel = (category) => {
+  const labels = {
+    dashboard: '数据看板',
+    report: '数据报表',
+    screen: '数据大屏',
+    chart: '图表组件',
+    other: '其他'
+  }
+  return labels[category] || category
+}
+
+// 模态框相关
+const modalVisible = ref(false)
+const modalMode = ref('create')
+const currentTemplate = ref(null)
+const submitting = ref(false)
+
+const formData = ref({
+  title: '',
+  category: '',
+  resolution: '1920x1080',
+  description: ''
+})
+
+const formRules = {
+  title: [{ required: true, message: '请输入模板名称', trigger: 'blur' }],
+  category: [{ required: true, message: '请选择分类', trigger: 'change' }],
+  resolution: [{ required: true, message: '请选择分辨率', trigger: 'change' }]
+}
+
+// 打开创建弹窗
+const openCreateModal = () => {
+  modalMode.value = 'create'
+  currentTemplate.value = null
+  formData.value = {
+    title: '',
+    category: '',
+    resolution: '1920x1080',
+    description: ''
+  }
+  modalVisible.value = true
+}
+
+// 编辑模板
+const handleEditTemplate = (template) => {
+  modalMode.value = 'edit'
+  currentTemplate.value = template
+  formData.value = {
+    title: template.title,
+    category: template.category,
+    resolution: template.resolution || '1920x1080',
+    description: template.description || ''
+  }
+  modalVisible.value = true
+}
+
+// 弹窗确认
+const handleModalOk = async () => {
+  try {
+    await formRef.value.validate()
+
+    submitting.value = true
+
+    if (modalMode.value === 'create') {
+      await createTemplate(formData.value)
+      message.success('模板创建成功')
+    } else {
+      await updateTemplate(currentTemplate.value.id, formData.value)
+      message.success('模板更新成功')
+    }
+
+    submitting.value = false
+    modalVisible.value = false
+    await loadTemplates()
+  } catch (error) {
+    submitting.value = false
+    if (error.errorFields) {
+      return
+    }
+    console.error('操作失败:', error)
+    message.error('操作失败')
+  }
+}
+
+// 弹窗取消
+const handleModalCancel = () => {
+  modalVisible.value = false
+}
+
+// 使用模板
+const handleUseTemplate = (template) => {
+  message.info('使用模板功能开发中')
+}
+
+// 预览模板
+const previewVisible = ref(false)
+const previewTemplate = ref(null)
+
 const handlePreviewTemplate = (template) => {
   previewTemplate.value = template
-  previewDialogVisible.value = true
+  previewVisible.value = true
 }
 
-// 编辑模板对话框
-const editDialogVisible = ref(false)
-const editingTemplate = ref(null)
-
-// 处理编辑模板
-const handleEditTemplate = (template) => {
-  editingTemplate.value = { ...template }
-  editDialogVisible.value = true
-}
-
-// 保存编辑的模板
-const handleSaveEdit = async () => {
-  try {
-    await updateTemplate(editingTemplate.value.id, {
-      title: editingTemplate.value.title,
-      description: editingTemplate.value.description,
-      category: editingTemplate.value.category
-    })
-
-    ElMessage.success('模板更新成功！')
-    editDialogVisible.value = false
-    // 重新加载模板列表
-    loadTemplates()
-  } catch (error) {
-    console.error('更新模板失败:', error)
-    ElMessage.error('更新模板失败')
-  }
-}
-
-// 处理删除模板
+// 删除模板
 const handleDeleteTemplate = async (template) => {
   try {
-    await ElMessageBox.confirm(
+    await confirm(
       `确定要删除模板 "${template.title}" 吗？此操作不可恢复。`,
       '删除确认',
       {
         confirmButtonText: '删除',
         cancelButtonText: '取消',
-        type: 'warning',
+        type: 'warning'
       }
     )
 
-    await deleteTemplateApi(template.id)
-    ElMessage.success('模板已删除')
-    // 重新加载模板列表
-    loadTemplates()
+    await deleteTemplate(template.id)
+    message.success('模板已删除')
+    await loadTemplates()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除模板失败:', error)
-      ElMessage.error('删除模板失败')
+      message.error('删除模板失败')
     }
   }
 }
 
-// 处理审核模板
-const handleReviewTemplate = async (template) => {
-  try {
-    const { value: reviewAction } = await ElMessageBox.prompt(
-      `审核模板 "${template.title || template.name}"`,
-      '模板审核',
-      {
-        confirmButtonText: '通过',
-        cancelButtonText: '拒绝',
-        inputPlaceholder: '请输入审核意见（可选）',
-        inputType: 'textarea',
-        distinguishCancelAndClose: true
-      }
-    )
-
-    // 通过审核
-    await reviewTemplate(template.id, {
-      status: 'approved',
-      comments: reviewAction || '审核通过'
-    })
-
-    ElMessage.success('模板审核通过')
-    // 重新加载模板列表
-    await loadTemplates()
-  } catch (error) {
-    if (error === 'cancel') {
-      // 用户点击了"拒绝"按钮
-      try {
-        const { value: rejectReason } = await ElMessageBox.prompt(
-          `请输入拒绝原因`,
-          '拒绝模板',
-          {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            inputPlaceholder: '请输入拒绝原因',
-            inputType: 'textarea',
-            inputValidator: (value) => {
-              if (!value || value.trim() === '') {
-                return '请输入拒绝原因'
-              }
-              return true
-            }
-          }
-        )
-
-        await reviewTemplate(template.id, {
-          status: 'rejected',
-          comments: rejectReason
-        })
-
-        ElMessage.success('已拒绝该模板')
-        await loadTemplates()
-      } catch (rejectError) {
-        if (rejectError !== 'cancel' && rejectError !== 'close') {
-          console.error('拒绝模板失败:', rejectError)
-          ElMessage.error('操作失败')
-        }
-      }
-    } else if (error !== 'close') {
-      console.error('审核模板失败:', error)
-      ElMessage.error('审核失败')
-    }
+// 菜单操作
+const handleMenuAction = (key, template) => {
+  switch (key) {
+    case 'edit':
+      handleEditTemplate(template)
+      break
+    case 'duplicate':
+      message.info('复制功能开发中')
+      break
+    case 'delete':
+      handleDeleteTemplate(template)
+      break
   }
 }
+
+// 初始化
+onMounted(() => {
+  loadTemplates()
+})
 </script>
 
 <style scoped>
-/* =========================================
-   全局样式变量 (Enterprise Dark Theme)
-   ========================================= */
-.template-library {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--el-bg-color);
-  padding: 24px;
-}
-
-/* 内容区域 */
-.template-content {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Header Area */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--el-border-color);
-}
-
-.header h2 {
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--el-text-color-primary);
-}
-
-.header p {
-  color: var(--el-text-color-secondary);
-  font-size: 14px;
-  min-width: 600px;
-  line-height: 1.6;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-/* 筛选和视图切换头部 */
-.filter-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  gap: 20px;
-}
-
-.filter-tabs {
-  display: flex;
-  gap: 8px;
-}
-
-.filter-tab {
-  padding: 8px 16px;
-  font-size: 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--el-text-color-secondary);
-  transition: all 0.2s;
-  white-space: nowrap;
-  border: 1px solid transparent;
-}
-
-.filter-tab:hover {
-  background: var(--el-fill-color);
-  color: var(--el-text-color-primary);
-}
-
-.filter-tab.active {
-  background: var(--el-color-primary);
-  color: #fff;
-  border-color: var(--el-color-primary);
-}
-
-.view-controls {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.search-input {
-  width: 260px;
-}
-
-.view-switcher {
-  display: flex;
-  gap: 4px;
-  background: var(--el-fill-color);
-  border-radius: 6px;
-  padding: 4px;
-}
-
-.view-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
-  border-radius: 4px;
-  cursor: pointer;
-  color: var(--el-text-color-secondary);
-  transition: all 0.2s;
-}
-
-.view-btn:hover {
-  background: var(--el-fill-color-darker);
-  color: var(--el-text-color-primary);
-}
-
-.view-btn.active {
-  background: var(--el-color-primary);
-  color: #fff;
-}
-
-/* 网格视图 */
-.template-grid-view {
-  flex: 1;
-  overflow-y: auto;
-  padding: 4px;
-}
-
-.template-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
-}
-
-/* 列表视图 */
-.template-list-view {
-  flex: 1;
-  overflow-y: auto;
-  padding: 4px;
-}
-
+/* 列表视图样式 */
 .template-list-item {
   display: flex;
-  gap: 20px;
-  padding: 20px;
-  margin-bottom: 16px;
-  background: var(--el-bg-color-page);
-  border: 1px solid var(--el-border-color);
-  border-radius: 12px;
+  gap: 16px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
   transition: all 0.3s;
 }
 
 .template-list-item:hover {
-  border-color: var(--el-color-primary);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-color: #d9d9d9;
 }
 
 .list-item-thumb {
-  width: 200px;
-  height: 150px;
-  border-radius: 8px;
-  overflow: hidden;
+  width: 120px;
+  height: 80px;
   flex-shrink: 0;
-  background: var(--el-fill-color-darker);
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fafafa;
 }
 
 .list-item-thumb img {
@@ -811,389 +563,96 @@ const handleReviewTemplate = async (template) => {
   object-fit: cover;
 }
 
+.list-item-thumb-default {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.thumb-icon {
+  width: 32px;
+  height: 32px;
+  color: #fff;
+}
+
 .list-item-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
 }
 
 .list-item-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
   gap: 16px;
 }
 
-.list-item-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
+.list-item-title-row {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.list-item-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.list-item-desc {
-  font-size: 14px;
-  color: var(--el-text-color-secondary);
-  line-height: 1.6;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.list-item-meta {
-  display: flex;
-  gap: 20px;
-  font-size: 13px;
-  color: var(--el-text-color-secondary);
-  margin-top: auto;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.item-badge {
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-
-.badge-official {
-  background: rgba(59, 130, 246, 0.15);
-  color: #3b82f6;
-}
-
-.badge-shared {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
-}
-
-/* 空状态 */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-  color: var(--el-text-color-secondary);
-  text-align: center;
-}
-
-.empty-title {
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: var(--el-text-color-primary);
-}
-
-.empty-desc {
-  font-size: 14px;
-  color: var(--el-text-color-secondary);
-}
-
-/* 布局网格 (详情视图) */
-.layout-grid {
-  display: grid;
-  grid-template-columns: 380px 1fr;
-  gap: 24px;
-  height: calc(100% - 180px);
-  overflow: hidden;
-}
-
-/* 左侧模板列表 (详情视图) */
-.template-list {
-  display: flex;
-  flex-direction: column;
-  background: var(--el-bg-color-page);
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.list-header {
-  padding: 16px;
-  border-bottom: 1px solid var(--el-border-color);
-}
-
-.search-mini {
-  width: 100%;
-  padding: 8px 12px;
-  background: var(--el-fill-color);
-  border: 1px solid var(--el-border-color);
-  border-radius: 6px;
-  color: var(--el-text-color-primary);
-  font-size: 14px;
-  outline: none;
-  transition: all 0.3s;
-}
-
-.search-mini:focus {
-  border-color: var(--el-color-primary);
-  background: var(--el-bg-color);
-}
-
-.search-mini::placeholder {
-  color: var(--el-text-color-placeholder);
-}
-
-/* 筛选标签 (详情视图小版本) */
-.filter-tabs-mini {
-  display: flex;
-  gap: 6px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--el-border-color);
-  flex-wrap: wrap;
-}
-
-.filter-tab-mini {
-  padding: 4px 10px;
-  font-size: 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  color: var(--el-text-color-secondary);
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.filter-tab-mini:hover {
-  background: var(--el-fill-color);
-  color: var(--el-text-color-primary);
-}
-
-.filter-tab-mini.active {
-  background: var(--el-color-primary);
-  color: #fff;
-}
-
-/* 模板列表项容器 */
-.template-items {
-  flex: 1;
-  overflow-y: auto;
-  padding: 8px;
-}
-
-.template-item {
-  display: flex;
-  gap: 12px;
-  padding: 12px;
-  margin-bottom: 8px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: 1px solid transparent;
-}
-
-.template-item:hover {
-  background: var(--el-fill-color);
-  border-color: var(--el-border-color);
-}
-
-.template-item.selected {
-  background: var(--el-fill-color-darker);
-  border-color: var(--el-color-primary);
-}
-
-.item-thumb {
-  width: 80px;
-  height: 60px;
-  border-radius: 6px;
-  overflow: hidden;
-  flex-shrink: 0;
-  background: var(--el-fill-color-darker);
-}
-
-.item-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.item-content {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
 }
 
-.item-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--el-text-color-primary);
-  margin-bottom: 4px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.list-item-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.item-meta {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
+.title-icon {
+  width: 18px;
+  height: 18px;
+  color: #8c8c8c;
+  flex-shrink: 0;
 }
 
-/* 空状态 */
-.empty-list {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  color: var(--el-text-color-secondary);
-}
-
-/* 右侧预览面板 */
-.preview-panel {
-  background: var(--el-bg-color-page);
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.preview-content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.preview-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--el-border-color);
-  background: var(--el-bg-color);
-}
-
-.toolbar-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-}
-
-.toolbar-actions {
+.list-item-actions {
   display: flex;
   gap: 8px;
+  flex-shrink: 0;
 }
 
-.preview-image-container {
-  flex: 1;
-  overflow: auto;
-  padding: 24px;
+.list-item-desc {
+  font-size: 14px;
+  color: #8c8c8c;
+  line-height: 1.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.list-item-meta {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: var(--el-fill-color);
+  font-size: 13px;
+  color: #8c8c8c;
 }
 
-.preview-image {
-  max-width: 100%;
-  max-height: 100%;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.preview-details {
-  padding: 20px;
-  border-top: 1px solid var(--el-border-color);
-  background: var(--el-bg-color);
-}
-
-.detail-section {
-  margin-bottom: 16px;
-}
-
-.detail-section:last-child {
-  margin-bottom: 0;
-}
-
-.detail-label {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  margin-bottom: 4px;
-}
-
-.detail-value {
-  font-size: 14px;
-  color: var(--el-text-color-primary);
-}
-
-/* 未选择状态 */
-.preview-empty {
-  display: flex;
-  flex-direction: column;
+.meta-text {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--el-text-color-secondary);
-  text-align: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #8c8c8c;
 }
 
-/* 预览对话框 */
-.preview-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.preview-dialog-image {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-  border: 1px solid var(--el-border-color);
-}
-
-.preview-info {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.meta-number {
+  color: #40a9ff;
+  font-weight: 600;
   font-size: 14px;
-}
-
-.preview-info p {
-  color: var(--el-text-color-regular);
-}
-
-.preview-info strong {
-  color: var(--el-text-color-primary);
-}
-
-/* Scrollbar */
-.template-grid-view::-webkit-scrollbar,
-.template-list-view::-webkit-scrollbar,
-.template-items::-webkit-scrollbar,
-.preview-image-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.template-grid-view::-webkit-scrollbar-thumb,
-.template-list-view::-webkit-scrollbar-thumb,
-.template-items::-webkit-scrollbar-thumb,
-.preview-image-container::-webkit-scrollbar-thumb {
-  background: var(--el-fill-color-darker);
-  border-radius: 3px;
-}
-
-.template-grid-view::-webkit-scrollbar-track,
-.template-list-view::-webkit-scrollbar-track,
-.template-items::-webkit-scrollbar-track,
-.preview-image-container::-webkit-scrollbar-track {
-  background: transparent;
 }
 </style>
+

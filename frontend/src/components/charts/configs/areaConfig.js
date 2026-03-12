@@ -1,18 +1,12 @@
 /**
  * 面积图配置
  */
+import { createTitleConfig, commonAxisTooltip, commonLegend, commonGrid, commonCategoryXAxis, commonValueYAxis } from './commonConfig'
 
 export const defaultAreaConfig = {
-  title: {
-    text: '面积图',
-    left: 'center',
-    textStyle: {
-      color: '#fff',
-      fontSize: 16
-    }
-  },
+  title: createTitleConfig('面积图'),
   tooltip: {
-    trigger: 'axis',
+    ...commonAxisTooltip,
     axisPointer: {
       type: 'cross',
       label: {
@@ -21,48 +15,16 @@ export const defaultAreaConfig = {
     }
   },
   legend: {
-    data: ['数据A', '数据B'],
-    top: 30,
-    textStyle: {
-      color: '#999'
-    }
+    ...commonLegend,
+    data: ['数据A', '数据B']
   },
-  grid: {
-    left: '3%',
-    right: '4%',
-    bottom: '3%',
-    top: '15%',
-    containLabel: true
-  },
+  grid: commonGrid,
   xAxis: {
-    type: 'category',
+    ...commonCategoryXAxis,
     boundaryGap: false,
-    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
-    axisLine: {
-      lineStyle: {
-        color: '#666'
-      }
-    },
-    axisLabel: {
-      color: '#999'
-    }
+    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
   },
-  yAxis: {
-    type: 'value',
-    axisLine: {
-      lineStyle: {
-        color: '#666'
-      }
-    },
-    axisLabel: {
-      color: '#999'
-    },
-    splitLine: {
-      lineStyle: {
-        color: '#333'
-      }
-    }
-  },
+  yAxis: commonValueYAxis,
   series: [
     {
       name: '数据A',

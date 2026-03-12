@@ -3,7 +3,7 @@
  * 检查用户是否有访问路由的权限
  */
 import { usePermission } from '@/composables/usePermission'
-import { ElMessage } from 'element-plus'
+import { message } from 'ant-design-vue'
 
 /**
  * 权限守卫
@@ -25,7 +25,7 @@ export function permissionGuard(to, from, next) {
 
   // 检查单个权限
   if (permission && !hasPermission(permission)) {
-    ElMessage.error('您没有权限访问该页面')
+    message.error('您没有权限访问该页面')
     next(from.path || '/')
     return
   }
@@ -34,7 +34,7 @@ export function permissionGuard(to, from, next) {
   if (permissions && Array.isArray(permissions)) {
     const hasAllPermissions = permissions.every(p => hasPermission(p))
     if (!hasAllPermissions) {
-      ElMessage.error('您没有权限访问该页面')
+      message.error('您没有权限访问该页面')
       next(from.path || '/')
       return
     }
@@ -42,7 +42,7 @@ export function permissionGuard(to, from, next) {
 
   // 检查角色
   if (role && !hasRole(role)) {
-    ElMessage.error('您的角色无权访问该页面')
+    message.error('您的角色无权访问该页面')
     next(from.path || '/')
     return
   }
@@ -51,7 +51,7 @@ export function permissionGuard(to, from, next) {
   if (roles && Array.isArray(roles)) {
     const hasAnyRole = roles.some(r => hasRole(r))
     if (!hasAnyRole) {
-      ElMessage.error('您的角色无权访问该页面')
+      message.error('您的角色无权访问该页面')
       next(from.path || '/')
       return
     }

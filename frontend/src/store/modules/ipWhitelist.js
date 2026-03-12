@@ -4,7 +4,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import * as ipWhitelistApi from '@/api/ipWhitelist'
-import { success, error, confirmDelete } from '@/utils/message'
+import { success, error } from '@/utils/message'
+import { confirmDelete } from '@/utils/confirm'
 
 export const useIpWhitelistStore = defineStore('ipWhitelist', () => {
   // 状态

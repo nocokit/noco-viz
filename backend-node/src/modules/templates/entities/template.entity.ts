@@ -21,6 +21,7 @@ export enum TemplateStatus {
 export enum TemplateCategory {
   DASHBOARD = 'dashboard',
   REPORT = 'report',
+  SCREEN = 'screen',
   CHART = 'chart',
   OTHER = 'other',
 }
@@ -46,6 +47,9 @@ export class Template {
     default: TemplateCategory.OTHER,
   })
   category: TemplateCategory;
+
+  @Column({ length: 50, nullable: true })
+  resolution: string;
 
   @Column({ nullable: true, length: 500 })
   thumbnail: string;

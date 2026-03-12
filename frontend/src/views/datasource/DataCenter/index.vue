@@ -22,10 +22,10 @@
       </div>
 
       <div class="header-actions">
-        <button class="btn btn-secondary">帮助文档</button>
-        <button class="btn btn-primary" @click="handleCreate">
+        <a-button>帮助文档</a-button>
+        <a-button type="primary" @click="handleCreate">
           {{ activeTab === 'datasets' ? '+ 新建数据集' : '+ 新建连接' }}
-        </button>
+        </a-button>
       </div>
     </div>
 
@@ -36,10 +36,10 @@
           type="text"
           class="search-input"
           placeholder="搜索数据集名称..."
-          v-model="datasetSearchQuery"
+          v-model:value="datasetSearchQuery"
         >
         <div class="toolbar-filters">
-          <select class="filter-select" v-model="datasetTypeFilter">
+          <select class="filter-select" v-model:value="datasetTypeFilter">
             <option value="">全部类型</option>
             <option value="sql">SQL</option>
             <option value="excel">Excel/CSV</option>
@@ -89,15 +89,15 @@
             </td>
             <td>
               <div class="action-buttons">
-                <button
-                  class="btn-action"
+                <a-button
+                  size="small"
                   @click="editDataset(dataset)"
                 >
                   {{ dataset.type === 'excel' ? '重传' : '编辑' }}
-                </button>
-                <button class="btn-action" @click="previewDataset(dataset)">
+                </a-button>
+                <a-button size="small" @click="previewDataset(dataset)">
                   预览
-                </button>
+                </a-button>
               </div>
             </td>
           </tr>
@@ -137,12 +137,12 @@
             <span>被 {{ conn.usedByDatasets || 0 }} 个数据集引用</span>
           </div>
           <div class="card-actions">
-            <button class="btn btn-secondary" @click="testConnection(conn)">
+            <a-button @click="testConnection(conn)">
               {{ conn.status === 'error' ? '重试' : '测试连接' }}
-            </button>
-            <button class="btn btn-secondary" @click="editConnection(conn)">
+            </a-button>
+            <a-button @click="editConnection(conn)">
               编辑
-            </button>
+            </a-button>
           </div>
         </div>
 
@@ -156,50 +156,50 @@
     </div>
 
     <!-- 数据集新增/编辑对话框 -->
-    <el-dialog
-      v-model="datasetDialogVisible"
+    <a-modal
+      v-model:value="datasetDialogVisible"
       :title="datasetFormMode === 'create' ? '新建数据集' : '编辑数据集'"
       width="600px"
     >
-      <el-form :model="datasetForm" label-width="100px">
-        <el-form-item label="数据集名称" required>
-          <el-input v-model="datasetForm.name" placeholder="请输入数据集名称" />
-        </el-form-item>
-        <el-form-item label="描述">
-          <el-input
-            v-model="datasetForm.description"
+      <a-form :model="datasetForm" label-width="100px">
+        <a-form-item label="数据集名称" required>
+          <a-input v-model:value="datasetForm.name" placeholder="请输入数据集名称" />
+        </a-form-item>
+        <a-form-item label="描述">
+          <a-input
+            v-model:value="datasetForm.description"
             type="textarea"
             :rows="3"
             placeholder="请输入描述信息"
           />
-        </el-form-item>
-        <el-form-item label="数据类型" required>
-          <el-select v-model="datasetForm.type" placeholder="请选择数据类型" style="width: 100%">
-            <el-option label="SQL" value="sql" />
-            <el-option label="Excel/CSV" value="excel" />
-            <el-option label="API" value="api" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="数据来源" v-if="datasetForm.type === 'sql'">
-          <el-select v-model="datasetForm.connectionId" placeholder="请选择数据连接" style="width: 100%">
-            <el-option
+        </a-form-item>
+        <a-form-item label="数据类型" required>
+          <a-select v-model:value="datasetForm.type" placeholder="请选择数据类型" style="width: 100%">
+            <a-select-option label="SQL" value="sql" />
+            <a-select-option label="Excel/CSV" value="excel" />
+            <a-select-option label="API" value="api" />
+          </a-select>
+        </a-form-item>
+        <a-form-item label="数据来源" v-if="datasetForm.type === 'sql'">
+          <a-select v-model:value="datasetForm.connectionId" placeholder="请选择数据连接" style="width: 100%">
+            <a-select-option
               v-for="conn in connections"
               :key="conn.id"
               :label="`${conn.name} (${conn.type.toUpperCase()})`"
               :value="conn.id"
             />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="SQL 查询" v-if="datasetForm.type === 'sql'">
-          <el-input
-            v-model="datasetForm.sqlQuery"
+          </a-select>
+        </a-form-item>
+        <a-form-item label="SQL 查询" v-if="datasetForm.type === 'sql'">
+          <a-input
+            v-model:value="datasetForm.sqlQuery"
             type="textarea"
             :rows="5"
             placeholder="SELECT * FROM table_name"
           />
-        </el-form-item>
-        <el-form-item label="文件上传" v-if="datasetForm.type === 'excel'">
-          <el-upload
+        </a-form-item>
+        <a-form-item label="文件上传" v-if="datasetForm.type === 'excel'">
+          <a-upload
             class="upload-demo"
             drag
             action="#"
@@ -218,76 +218,76 @@
                 支持 xlsx/xls/csv 文件，最大 10MB
               </div>
             </template>
-          </el-upload>
-          <el-progress
+          </a-upload>
+          <a-progress
             v-if="uploadProgress > 0 && uploadProgress < 100"
             :percentage="uploadProgress"
             style="margin-top: 10px"
           />
-        </el-form-item>
-        <el-form-item label="API 地址" v-if="datasetForm.type === 'api'">
-          <el-input v-model="datasetForm.apiUrl" placeholder="https://api.example.com/data" />
-        </el-form-item>
-      </el-form>
+        </a-form-item>
+        <a-form-item label="API 地址" v-if="datasetForm.type === 'api'">
+          <a-input v-model:value="datasetForm.apiUrl" placeholder="https://api.example.com/data" />
+        </a-form-item>
+      </a-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="datasetDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="saveDataset">保存</el-button>
+          <a-button @click="datasetDialogVisible = false">取消</a-button>
+          <a-button type="primary" @click="saveDataset">保存</a-button>
         </span>
       </template>
-    </el-dialog>
+    </a-modal>
 
     <!-- 连接配置新增/编辑对话框 -->
-    <el-dialog
-      v-model="connectionDialogVisible"
+    <a-modal
+      v-model:value="connectionDialogVisible"
       :title="connectionFormMode === 'create' ? '新建数据连接' : '编辑数据连接'"
       width="600px"
     >
-      <el-form :model="connectionForm" label-width="100px">
-        <el-form-item label="连接名称" required>
-          <el-input v-model="connectionForm.name" placeholder="请输入连接名称" />
-        </el-form-item>
-        <el-form-item label="数据库类型" required>
-          <el-select v-model="connectionForm.type" placeholder="请选择数据库类型" style="width: 100%">
-            <el-option label="MySQL" value="mysql" />
-            <el-option label="Oracle" value="oracle" />
-            <el-option label="PostgreSQL" value="postgresql" />
-            <el-option label="MongoDB" value="mongodb" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="数据库版本">
-          <el-input v-model="connectionForm.dbType" placeholder="例如: MySQL 8.0" />
-        </el-form-item>
-        <el-form-item label="主机地址" required>
-          <el-input v-model="connectionForm.host" placeholder="例如: 192.168.1.100:3306" />
-        </el-form-item>
-        <el-form-item label="用户名">
-          <el-input v-model="connectionForm.username" placeholder="请输入用户名" />
-        </el-form-item>
-        <el-form-item label="密码">
-          <el-input
-            v-model="connectionForm.password"
+      <a-form :model="connectionForm" label-width="100px">
+        <a-form-item label="连接名称" required>
+          <a-input v-model:value="connectionForm.name" placeholder="请输入连接名称" />
+        </a-form-item>
+        <a-form-item label="数据库类型" required>
+          <a-select v-model:value="connectionForm.type" placeholder="请选择数据库类型" style="width: 100%">
+            <a-select-option label="MySQL" value="mysql" />
+            <a-select-option label="Oracle" value="oracle" />
+            <a-select-option label="PostgreSQL" value="postgresql" />
+            <a-select-option label="MongoDB" value="mongodb" />
+          </a-select>
+        </a-form-item>
+        <a-form-item label="数据库版本">
+          <a-input v-model:value="connectionForm.dbType" placeholder="例如: MySQL 8.0" />
+        </a-form-item>
+        <a-form-item label="主机地址" required>
+          <a-input v-model:value="connectionForm.host" placeholder="例如: 192.168.1.100:3306" />
+        </a-form-item>
+        <a-form-item label="用户名">
+          <a-input v-model:value="connectionForm.username" placeholder="请输入用户名" />
+        </a-form-item>
+        <a-form-item label="密码">
+          <a-input
+            v-model:value="connectionForm.password"
             type="password"
             placeholder="请输入密码"
             show-password
           />
-        </el-form-item>
-        <el-form-item label="数据库名">
-          <el-input v-model="connectionForm.database" placeholder="请输入数据库名" />
-        </el-form-item>
-      </el-form>
+        </a-form-item>
+        <a-form-item label="数据库名">
+          <a-input v-model:value="connectionForm.database" placeholder="请输入数据库名" />
+        </a-form-item>
+      </a-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="connectionDialogVisible = false">取消</el-button>
-          <el-button @click="testConnectionForm">测试连接</el-button>
-          <el-button type="primary" @click="saveConnection">保存</el-button>
+          <a-button @click="connectionDialogVisible = false">取消</a-button>
+          <a-button @click="testConnectionForm">测试连接</a-button>
+          <a-button type="primary" @click="saveConnection">保存</a-button>
         </span>
       </template>
-    </el-dialog>
+    </a-modal>
 
     <!-- 数据预览对话框 -->
     <DataPreviewDialog
-      v-model="previewDialogVisible"
+      v-model:value="previewDialogVisible"
       :dataset-id="previewDatasetId"
       :dataset-name="previewDatasetName"
     />
@@ -297,7 +297,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, Modal } from 'ant-design-vue'
 import DataPreviewDialog from '@/components/DataPreviewDialog.vue'
 import {
   getDatasets,
@@ -545,15 +545,15 @@ const handleCreate = () => {
 const saveDataset = async () => {
   // 表单验证
   if (!datasetForm.value.name) {
-    ElMessage.warning('请输入数据集名称')
+    message.warning('请输入数据集名称')
     return
   }
   if (!datasetForm.value.type) {
-    ElMessage.warning('请选择数据类型')
+    message.warning('请选择数据类型')
     return
   }
   if (datasetForm.value.type === 'sql' && !datasetForm.value.connectionId) {
-    ElMessage.warning('请选择数据连接')
+    message.warning('请选择数据连接')
     return
   }
 
@@ -561,11 +561,11 @@ const saveDataset = async () => {
   if (datasetForm.value.type === 'sql' && datasetForm.value.sqlQuery) {
     const validation = validateSQL(datasetForm.value.sqlQuery)
     if (!validation.valid) {
-      ElMessage.error(`SQL验证失败: ${validation.errors.join(', ')}`)
+      message.error(`SQL验证失败: ${validation.errors.join(', ')}`)
       return
     }
     if (!isReadOnlySQL(datasetForm.value.sqlQuery)) {
-      const confirm = await ElMessageBox.confirm(
+      const confirm = await Modal.confirm(
         '检测到非只读SQL语句，继续保存可能会修改数据库。是否继续？',
         '警告',
         { type: 'warning' }
@@ -586,7 +586,7 @@ const saveDataset = async () => {
         datasetForm.value.rowCount = response.data.rowCount
       }
     } catch (error) {
-      ElMessage.error('文件上传失败')
+      message.error('文件上传失败')
       return
     }
   }
@@ -600,7 +600,7 @@ const saveDataset = async () => {
     }
 
     if (response.code === 200) {
-      ElMessage.success(datasetFormMode.value === 'create' ? '数据集创建成功' : '数据集更新成功')
+      message.success(datasetFormMode.value === 'create' ? '数据集创建成功' : '数据集更新成功')
       datasetDialogVisible.value = false
       resetDatasetForm()
       loadDatasets() // 重新加载列表
@@ -615,12 +615,12 @@ const saveDataset = async () => {
         rowCount: Math.floor(Math.random() * 3000)
       }
       datasets.value.push(newDataset)
-      ElMessage.success('数据集创建成功')
+      message.success('数据集创建成功')
     } else {
       const index = datasets.value.findIndex(d => d.id === datasetForm.value.id)
       if (index !== -1) {
         datasets.value[index] = { ...datasetForm.value }
-        ElMessage.success('数据集更新成功')
+        message.success('数据集更新成功')
       }
     }
     datasetDialogVisible.value = false
@@ -632,15 +632,15 @@ const saveDataset = async () => {
 const saveConnection = async () => {
   // 表单验证
   if (!connectionForm.value.name) {
-    ElMessage.warning('请输入连接名称')
+    message.warning('请输入连接名称')
     return
   }
   if (!connectionForm.value.type) {
-    ElMessage.warning('请选择数据库类型')
+    message.warning('请选择数据库类型')
     return
   }
   if (!connectionForm.value.host) {
-    ElMessage.warning('请输入主机地址')
+    message.warning('请输入主机地址')
     return
   }
 
@@ -653,7 +653,7 @@ const saveConnection = async () => {
     }
 
     if (response.code === 200) {
-      ElMessage.success(connectionFormMode.value === 'create' ? '数据连接创建成功' : '数据连接更新成功')
+      message.success(connectionFormMode.value === 'create' ? '数据连接创建成功' : '数据连接更新成功')
       connectionDialogVisible.value = false
       resetConnectionForm()
       loadConnections() // 重新加载列表
@@ -667,12 +667,12 @@ const saveConnection = async () => {
         id: Date.now()
       }
       connections.value.push(newConnection)
-      ElMessage.success('数据连接创建成功')
+      message.success('数据连接创建成功')
     } else {
       const index = connections.value.findIndex(c => c.id === connectionForm.value.id)
       if (index !== -1) {
         connections.value[index] = { ...connectionForm.value }
-        ElMessage.success('数据连接更新成功')
+        message.success('数据连接更新成功')
       }
     }
     connectionDialogVisible.value = false
@@ -683,22 +683,22 @@ const saveConnection = async () => {
 // 测试连接表单中的连接
 const testConnectionForm = async () => {
   if (!connectionForm.value.host) {
-    ElMessage.warning('请先填写主机地址')
+    message.warning('请先填写主机地址')
     return
   }
 
   try {
-    const loading = ElMessage.info('正在测试连接...')
+    const loading = message.info('正在测试连接...')
     const response = await testConnectionConfig(connectionForm.value)
 
     if (response.code === 200) {
-      ElMessage.success('连接测试成功！')
+      message.success('连接测试成功！')
     } else {
-      ElMessage.error(response.message || '连接测试失败')
+      message.error(response.message || '连接测试失败')
     }
   } catch (error) {
     console.error('测试连接失败:', error)
-    ElMessage.success('连接测试成功！(Mock)')
+    message.success('连接测试成功！(Mock)')
   }
 }
 
@@ -738,7 +738,7 @@ const getDbColor = (type) => {
 
 const viewConnection = (connId) => {
   activeTab.value = 'connections'
-  ElMessage.success(`切换到连接视图: ${getConnectionName(connId)}`)
+  message.success(`切换到连接视图: ${getConnectionName(connId)}`)
 }
 
 const editDataset = (dataset) => {
@@ -755,22 +755,22 @@ const previewDataset = (dataset) => {
 
 const testConnection = async (conn) => {
   try {
-    const loading = ElMessage.info('正在测试连接...')
+    const loading = message.info('正在测试连接...')
     const response = await testConnection(conn.id)
 
     if (response.code === 200) {
-      ElMessage.success('连接测试成功！')
+      message.success('连接测试成功！')
       // 更新连接状态
       const index = connections.value.findIndex(c => c.id === conn.id)
       if (index !== -1) {
         connections.value[index].status = 'active'
       }
     } else {
-      ElMessage.error(response.message || '连接测试失败')
+      message.error(response.message || '连接测试失败')
     }
   } catch (error) {
     console.error('测试连接失败:', error)
-    ElMessage.error('连接测试失败')
+    message.error('连接测试失败')
   }
 }
 
@@ -790,411 +790,3 @@ const editConnection = (conn) => {
 }
 </script>
 
-<style scoped>
-.data-center {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #0f1014;
-  color: #e5e5e5;
-}
-
-/* 顶部 Header & Tabs */
-.header {
-  height: 60px;
-  border-bottom: 1px solid #303033;
-  background: #18181c;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  flex-shrink: 0;
-}
-
-.tab-group {
-  display: flex;
-  gap: 24px;
-  height: 100%;
-}
-
-.tab-btn {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  color: #909399;
-  font-size: 14px;
-  position: relative;
-  border-bottom: 2px solid transparent;
-  transition: 0.2s;
-  padding: 0 4px;
-}
-
-.tab-btn:hover {
-  color: #e5e5e5;
-}
-
-.tab-btn.active {
-  color: white;
-  font-weight: 500;
-  border-bottom-color: #409eff;
-}
-
-.badge {
-  background: #333;
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 10px;
-  color: #888;
-}
-
-.header-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.btn {
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: 0.2s;
-}
-
-.btn-primary {
-  background: #409eff;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #66b1ff;
-}
-
-.btn-secondary {
-  background: transparent;
-  border: 1px solid #444;
-  color: #ccc;
-}
-
-.btn-secondary:hover {
-  border-color: #666;
-  color: white;
-}
-
-/* 视图容器 */
-.view-port {
-  flex: 1;
-  padding: 24px;
-  overflow-y: auto;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 工具栏 */
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.search-input {
-  background: #111;
-  border: 1px solid #303033;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 4px;
-  width: 300px;
-  outline: none;
-  font-size: 13px;
-}
-
-.search-input:focus {
-  border-color: #409eff;
-}
-
-.toolbar-filters {
-  display: flex;
-  gap: 10px;
-}
-
-.filter-select {
-  background: #111;
-  border: 1px solid #303033;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 4px;
-  width: 120px;
-  outline: none;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.filter-select:hover {
-  border-color: #444;
-}
-
-/* 数据表格 */
-.data-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  background: #18181c;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.data-table th {
-  text-align: left;
-  color: #666;
-  font-size: 12px;
-  padding: 12px;
-  border-bottom: 1px solid #303033;
-  font-weight: 500;
-  background: #1e1e20;
-}
-
-.data-table td {
-  padding: 16px 12px;
-  border-bottom: 1px solid #252529;
-  font-size: 13px;
-  color: #ccc;
-}
-
-.data-table tr:hover td {
-  background: #26262a;
-}
-
-.dataset-name {
-  font-weight: 500;
-  color: white;
-  margin-bottom: 4px;
-}
-
-.dataset-desc {
-  font-size: 12px;
-  color: #666;
-}
-
-.conn-ref {
-  font-size: 12px;
-  color: #666;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-
-.conn-ref:hover {
-  color: #409eff;
-}
-
-/* 类型标签 */
-.tag {
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.tag-sql {
-  background: rgba(64, 158, 255, 0.15);
-  color: #409eff;
-}
-
-.tag-excel {
-  background: rgba(103, 194, 58, 0.15);
-  color: #67c23a;
-}
-
-.tag-api {
-  background: rgba(230, 162, 60, 0.15);
-  color: #e6a23c;
-}
-
-.status-cell {
-  display: flex;
-  align-items: center;
-}
-
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 6px;
-}
-
-.dot-green {
-  background: #67c23a;
-}
-
-.dot-red {
-  background: #f56c6c;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-action {
-  padding: 4px 8px;
-  font-size: 12px;
-  background: transparent;
-  border: 1px solid #444;
-  color: #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.btn-action:hover {
-  border-color: #666;
-  color: white;
-}
-
-.empty-state {
-  text-align: center;
-  color: #666;
-  padding: 40px !important;
-}
-
-/* 连接卡片网格 */
-.grid-layout {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.conn-card {
-  background: #1e1e20;
-  border: 1px solid #303033;
-  border-radius: 8px;
-  padding: 20px;
-  transition: all 0.2s;
-  position: relative;
-}
-
-.conn-card:hover {
-  border-color: #555;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.conn-card.conn-error {
-  border-color: rgba(245, 108, 108, 0.3);
-}
-
-.card-head {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.db-logo {
-  width: 44px;
-  height: 44px;
-  background: #2c2c30;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  color: #ccc;
-  font-size: 14px;
-}
-
-.status-badge {
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 12px;
-  background: rgba(103, 194, 58, 0.1);
-  color: #67c23a;
-  border: 1px solid rgba(103, 194, 58, 0.2);
-  height: fit-content;
-}
-
-.status-badge.error {
-  background: rgba(245, 108, 108, 0.1);
-  color: #f56c6c;
-  border-color: rgba(245, 108, 108, 0.2);
-}
-
-.card-info h3 {
-  margin: 0 0 4px 0;
-  font-size: 15px;
-  color: white;
-}
-
-.card-info p {
-  margin: 0;
-  font-size: 12px;
-  color: #666;
-  font-family: monospace;
-}
-
-.card-meta {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid #333;
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #888;
-}
-
-.card-actions {
-  margin-top: 15px;
-  display: flex;
-  gap: 10px;
-}
-
-.card-actions .btn {
-  flex: 1;
-  padding: 6px 12px;
-  font-size: 12px;
-}
-
-/* 新建连接卡片 */
-.conn-card-new {
-  border-style: dashed;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  min-height: 180px;
-}
-
-.conn-card-new:hover {
-  border-color: #409eff;
-  background: rgba(64, 158, 255, 0.05);
-}
-
-.new-icon {
-  font-size: 24px;
-  color: #666;
-  margin-bottom: 8px;
-}
-
-.new-text {
-  font-size: 14px;
-  color: #888;
-}
-</style>

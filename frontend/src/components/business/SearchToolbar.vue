@@ -1,54 +1,50 @@
 <template>
-  <div class="search-toolbar">
-    <div class="toolbar-left">
+  <a-flex justify="space-between" align="center" :wrap="true" :gap="12">
+    <a-flex align="center" :gap="12" :wrap="true">
       <!-- 搜索框 -->
-      <el-input
-        v-model="searchValue"
+      <a-input-search
+        v-model:value="searchValue"
         :placeholder="placeholder"
         :style="{ width: searchWidth }"
-        clearable
-        @input="handleSearch"
-        @clear="handleClear"
-      >
-        <template #prefix><el-icon><Search /></el-icon></template>
-      </el-input>
+        allow-clear
+        @search="handleSearch"
+        @change="handleInput"
+      />
 
       <!-- 筛选器插槽 -->
       <slot name="filters" />
-    </div>
+    </a-flex>
 
-    <div class="toolbar-right">
+    <a-flex align="center" :gap="12">
       <!-- 统计信息 -->
-      <div v-if="showStats" class="toolbar-stats">
-        <slot name="stats">
-          <span class="stat-item">
-            <span class="stat-label">{{ statsLabel }}：</span>
-            <span class="stat-value">{{ total }}</span>
-          </span>
-        </slot>
-      </div>
+      <slot v-if="showStats" name="stats">
+        <a-typography-text type="secondary">
+          {{ statsLabel }}：<a-typography-text strong>{{ total }}</a-typography-text>
+        </a-typography-text>
+      </slot>
 
       <!-- 操作按钮 -->
       <slot name="actions">
-        <el-button
+        <a-button
           v-if="showCreate"
           type="primary"
-          :icon="createIcon"
           @click="$emit('create')"
         >
+          <template #icon><PlusOutlined /></template>
           {{ createText }}
-        </el-button>
+        </a-button>
       </slot>
 
       <!-- 更多操作 -->
       <slot name="extra" />
-    </div>
-  </div>
+    </a-flex>
+  </a-flex>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
+import { PlusOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps({
   modelValue: { type: String, default: '' },
@@ -67,15 +63,18 @@ const emit = defineEmits(['update:modelValue', 'search', 'clear', 'create'])
 
 const searchValue = ref(props.modelValue)
 
-const handleSearch = useDebounceFn(() => {
+const debouncedSearch = useDebounceFn(() => {
   emit('update:modelValue', searchValue.value)
   emit('search', searchValue.value)
 }, props.debounce)
 
-const handleClear = () => {
-  searchValue.value = ''
-  emit('update:modelValue', '')
-  emit('clear')
+const handleInput = () => {
+  debouncedSearch()
+}
+
+const handleSearch = (value) => {
+  emit('update:modelValue', value)
+  emit('search', value)
 }
 
 watch(() => props.modelValue, (val) => {
@@ -83,49 +82,3 @@ watch(() => props.modelValue, (val) => {
 })
 </script>
 
-<style scoped>
-.search-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px;
-  background: var(--el-bg-color);
-  border-radius: 8px;
-  margin-bottom: 16px;
-}
-
-.toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-}
-
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.toolbar-stats {
-  display: flex;
-  gap: 16px;
-  padding: 0 16px;
-  border-left: 1px solid var(--el-border-color);
-}
-
-.stat-item {
-  font-size: 14px;
-}
-
-.stat-label {
-  color: var(--el-text-color-secondary);
-}
-
-.stat-value {
-  color: var(--el-color-primary);
-  font-weight: 500;
-  margin-left: 4px;
-}
-</style>

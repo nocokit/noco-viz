@@ -1,44 +1,55 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsBoolean, IsOptional, IsArray, IsEnum } from 'class-validator';
-import { DataScope } from '../entities/role.entity';
+import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsObject } from 'class-validator';
 
 export class CreateRoleDto {
-  @ApiProperty({ example: '管理员', description: '角色名称' })
+  @ApiProperty({ example: 'custom_role', description: '角色标识' })
   @IsString()
+  @IsNotEmpty()
+  key?: string;
+
+  @ApiProperty({ example: '自定义角色', description: '角色名称' })
+  @IsString()
+  @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ example: '系统管理员角色', description: '角色描述', required: false })
+  @ApiProperty({ example: '这是一个自定义角色', description: '角色描述', required: false })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @ApiProperty({ example: false, description: '是否系统内置', required: false })
+  @ApiProperty({ example: 'dept', description: '数据权限范围: all, dept, self, custom' })
+  @IsString()
+  @IsNotEmpty()
+  scope: string;
+
+  @ApiProperty({ example: false, description: '是否系统内置角色', required: false })
   @IsOptional()
   @IsBoolean()
   isSystem?: boolean;
 
   @ApiProperty({
-    example: 'all',
-    enum: DataScope,
-    description: '数据权限范围',
-    required: false,
+    example: {
+      users: { all: false, view: true, create: false, edit: false, delete: false },
+      roles: { all: false, view: true, create: false, edit: false, delete: false }
+    },
+    description: '角色权限配置',
+    required: false
   })
   @IsOptional()
-  @IsEnum(DataScope)
-  scope?: DataScope;
+  @IsObject()
+  permissions?: any;
 
+  // 兼容旧格式
   @ApiProperty({
     example: {
-      users: 'all',
-      projects: 'all',
-      datasets: 'all',
-      templates: 'all',
-      media: 'all',
-      system: 'all'
+      name: '管理员',
+      isSystem: false,
+      scope: 'all',
+      permissions: {}
     },
-    description: '权限配置对象',
-    required: false,
+    description: '角色配置（JSON对象或字符串）',
+    required: false
   })
   @IsOptional()
-  permissions?: Record<string, any>;
+  value?: any;
 }

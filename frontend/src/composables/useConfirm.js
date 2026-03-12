@@ -2,50 +2,59 @@
  * 确认对话框逻辑 Composable
  */
 
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { Modal, message } from 'ant-design-vue'
 
 export function useConfirm() {
   const confirmDelete = async (itemName, callback) => {
-    try {
-      await ElMessageBox.confirm(
-        `确定要删除 "${itemName}" 吗？此操作不可恢复。`,
-        '删除确认',
-        {
-          confirmButtonText: '删除',
-          cancelButtonText: '取消',
-          type: 'warning',
-          confirmButtonClass: 'el-button--danger'
+    return new Promise((resolve) => {
+      Modal.confirm({
+        title: '删除确认',
+        content: `确定要删除 "${itemName}" 吗？此操作不可恢复。`,
+        okText: '删除',
+        cancelText: '取消',
+        okType: 'danger',
+        onOk: async () => {
+          try {
+            await callback()
+            message.success('删除成功')
+            resolve(true)
+          } catch (error) {
+            resolve(false)
+          }
+        },
+        onCancel: () => {
+          resolve(false)
         }
-      )
-      await callback()
-      ElMessage.success('删除成功')
-      return true
-    } catch {
-      return false
-    }
+      })
+    })
   }
 
   const confirmAction = async (options) => {
-    try {
-      await ElMessageBox.confirm(
-        options.message,
-        options.title || '确认操作',
-        {
-          confirmButtonText: options.confirmText || '确认',
-          cancelButtonText: options.cancelText || '取消',
-          type: options.type || 'warning'
+    return new Promise((resolve) => {
+      Modal.confirm({
+        title: options.title || '确认操作',
+        content: options.message,
+        okText: options.confirmText || '确认',
+        cancelText: options.cancelText || '取消',
+        okType: options.type === 'error' ? 'danger' : 'primary',
+        onOk: async () => {
+          try {
+            if (options.callback) {
+              await options.callback()
+            }
+            if (options.successMessage) {
+              message.success(options.successMessage)
+            }
+            resolve(true)
+          } catch (error) {
+            resolve(false)
+          }
+        },
+        onCancel: () => {
+          resolve(false)
         }
-      )
-      if (options.callback) {
-        await options.callback()
-      }
-      if (options.successMessage) {
-        ElMessage.success(options.successMessage)
-      }
-      return true
-    } catch {
-      return false
-    }
+      })
+    })
   }
 
   return { confirmDelete, confirmAction }

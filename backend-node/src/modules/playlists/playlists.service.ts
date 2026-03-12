@@ -93,6 +93,35 @@ export class PlaylistsService {
     if (!playlist) {
       throw new NotFoundException(`Playlist #${id} not found`);
     }
+
+    // 填充项目信息到 slides
+    if (playlist.slides && playlist.slides.length > 0) {
+      const projectIds = playlist.slides
+        .map(slide => slide.projectId)
+        .filter(id => id);
+
+      if (projectIds.length > 0) {
+        const projects = await this.projectsRepository.findByIds(projectIds);
+        const projectsMap = new Map<number, Project>();
+        projects.forEach(project => {
+          projectsMap.set(project.id, project);
+        });
+
+        playlist.slides = playlist.slides.map(slide => {
+          const project = projectsMap.get(slide.projectId);
+          if (project) {
+            return {
+              ...slide,
+              name: project.title,
+              type: project.type,
+              thumbnail: project.coverImage || '/images/project-cover.svg',
+            };
+          }
+          return slide;
+        });
+      }
+    }
+
     return playlist;
   }
 

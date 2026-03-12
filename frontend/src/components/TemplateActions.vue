@@ -1,56 +1,56 @@
 <template>
   <div class="template-actions">
-    <el-button :size="size" @click="$emit('use')">
-      <el-icon><Check /></el-icon>
+    <a-button :size="size" @click="$emit('use')">
+      <Check />
       使用
-    </el-button>
-    <el-button v-if="showPreview" :size="size" @click="$emit('preview')">
-      <el-icon><View /></el-icon>
+    </a-button>
+    <a-button v-if="showPreview" :size="size" @click="$emit('preview')">
+      <View />
       预览
-    </el-button>
-    <el-dropdown
+    </a-button>
+    <a-dropdown
       v-if="showMore && !isSystem"
       trigger="click"
       @command="handleCommand"
     >
-      <el-button :size="size">
-        <el-icon><MoreFilled /></el-icon>
-      </el-button>
+      <a-button :size="size">
+        <MoreFilled />
+      </a-button>
       <template #dropdown>
-        <el-dropdown-menu>
-          <el-dropdown-item command="edit">
-            <el-icon><Edit /></el-icon>
+        <a-menu>
+          <a-menu-item command="edit">
+            <Edit />
             编辑
-          </el-dropdown-item>
-          <el-dropdown-item command="delete" divided>
-            <el-icon><Delete /></el-icon>
+          </a-menu-item>
+          <a-menu-item command="delete" divided>
+            <Delete />
             删除
-          </el-dropdown-item>
-        </el-dropdown-menu>
+          </a-menu-item>
+        </a-menu>
       </template>
-    </el-dropdown>
-    <el-button
+    </a-dropdown>
+    <a-button
       v-else-if="showEdit && !isSystem"
       :size="size"
       @click="$emit('edit')"
     >
-      <el-icon><Edit /></el-icon>
+      <Edit />
       编辑
-    </el-button>
-    <el-button
+    </a-button>
+    <a-button
       v-if="showDelete && !isSystem"
       :size="size"
       type="danger"
       @click="$emit('delete')"
     >
-      <el-icon><Delete /></el-icon>
+      <Delete />
       删除
-    </el-button>
+    </a-button>
   </div>
 </template>
 
 <script setup>
-import { Check, View, Edit, Delete, MoreFilled } from '@element-plus/icons-vue'
+import { CheckOutlined, EyeOutlined, EditOutlined, DeleteOutlined, MoreOutlined } from '@ant-design/icons-vue'
 
 defineProps({
   isSystem: {
@@ -86,10 +86,3 @@ const handleCommand = (command) => {
 }
 </script>
 
-<style scoped>
-.template-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-</style>

@@ -5,7 +5,7 @@
  */
 
 import { ref, reactive, nextTick, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from 'ant-design-vue'
 
 /**
  * @param {Object} options - 配置选项
@@ -177,7 +177,7 @@ export function useFormModal(options = {}) {
       }
 
       if (response.code === 200 || response.success) {
-        ElMessage.success(
+        message.success(
           successMessage ||
           (isEditMode.value ? '更新成功' : '创建成功')
         )
@@ -185,13 +185,13 @@ export function useFormModal(options = {}) {
         onSuccess && onSuccess(response.data, isEditMode.value)
         return true
       } else {
-        ElMessage.error(response.message || '操作失败')
+        message.error(response.message || '操作失败')
         return false
       }
     } catch (error) {
       if (error.message && error.message !== 'cancel') {
         console.error('提交失败:', error)
-        ElMessage.error(error.message || '操作失败')
+        message.error(error.message || '操作失败')
       }
       return false
     } finally {
@@ -232,7 +232,7 @@ export function useFormModal(options = {}) {
       return result !== false
     } catch (error) {
       console.error('异步验证失败:', error)
-      ElMessage.error(error.message || '验证失败')
+      message.error(error.message || '验证失败')
       return false
     } finally {
       validating.value = false
@@ -265,7 +265,7 @@ export function useFormModal(options = {}) {
       return results
     } catch (error) {
       console.error('文件上传失败:', error)
-      ElMessage.error('文件上传失败')
+      message.error('文件上传失败')
       throw error
     } finally {
       uploading.value = false

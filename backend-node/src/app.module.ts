@@ -23,6 +23,7 @@ import { DepartmentsModule } from './modules/departments/departments.module';
 import { ComponentsModule } from './modules/components/components.module';
 import { DatasourcesModule } from './modules/datasources/datasources.module';
 import { MonitorModule } from './modules/monitor/monitor.module';
+import { IntegrationPublishModule } from './integration-publish/integration-publish.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { MonitorModule } from './modules/monitor/monitor.module';
     ComponentsModule,
     DatasourcesModule,
     MonitorModule,
+    IntegrationPublishModule,
   ],
   providers: [
     {

@@ -75,16 +75,16 @@
             <!-- Card Footer -->
             <div class="ds-footer">
               <template v-if="ds.category === 'file'">
-                <el-button size="small" @click="previewFile(ds)">预览数据</el-button>
-                <el-button size="small" @click="reuploadFile(ds)">重新上传</el-button>
+                <a-button size="small" @click="previewFile(ds)">预览数据</a-button>
+                <a-button size="small" @click="reuploadFile(ds)">重新上传</a-button>
               </template>
               <template v-else>
-                <el-button size="small" @click="testConnection(ds)">
+                <a-button size="small" @click="testConnection(ds)">
                   {{ ds.status === 'connected' ? '测试连接' : '重试' }}
-                </el-button>
-                <el-button size="small" @click="editDatasource(ds)">编辑</el-button>
+                </a-button>
+                <a-button size="small" @click="editDatasource(ds)">编辑</a-button>
               </template>
-              <el-button size="small" type="danger" plain @click="deleteDatasource(ds)">删除</el-button>
+              <a-button size="small" danger @click="deleteDatasource(ds)">删除</a-button>
             </div>
           </div>
         </div>
@@ -94,10 +94,10 @@
       <div v-if="filteredFiles.length > 0" class="category-section">
         <div class="section-title">
           本地文件与静态数据 <span class="section-badge">Excel / CSV / JSON</span>
-          <el-button size="small" type="primary" plain @click="openJsonModal" style="margin-left: auto;">
-            <el-icon><Plus /></el-icon>
+          <a-button size="small" type="primary" plain @click="openJsonModal" style="margin-left: auto;">
+            <PlusOutlined />
             添加 JSON
-          </el-button>
+          </a-button>
         </div>
         <div class="datasource-grid">
           <div
@@ -133,9 +133,9 @@
 
             <!-- Card Footer -->
             <div class="ds-footer">
-              <el-button size="small" @click="previewFile(ds)">预览数据</el-button>
-              <el-button size="small" @click="reuploadFile(ds)">重新上传</el-button>
-              <el-button size="small" type="danger" plain @click="deleteDatasource(ds)">删除</el-button>
+              <a-button size="small" @click="previewFile(ds)">预览数据</a-button>
+              <a-button size="small" @click="reuploadFile(ds)">重新上传</a-button>
+              <a-button size="small" danger @click="deleteDatasource(ds)">删除</a-button>
             </div>
           </div>
         </div>
@@ -181,31 +181,31 @@
 
             <!-- Card Footer -->
             <div class="ds-footer">
-              <el-button size="small" @click="testConnection(ds)">测试请求</el-button>
-              <el-button size="small" @click="editDatasource(ds)">编辑</el-button>
-              <el-button size="small" type="danger" plain @click="deleteDatasource(ds)">删除</el-button>
+              <a-button size="small" @click="testConnection(ds)">测试请求</a-button>
+              <a-button size="small" @click="editDatasource(ds)">编辑</a-button>
+              <a-button size="small" danger @click="deleteDatasource(ds)">删除</a-button>
             </div>
           </div>
         </div>
       </div>
 
       <!-- 空状态 -->
-      <el-empty
+      <a-empty
         v-if="hasNoDatasources"
         description="暂无数据源"
       />
     </div>
 
     <!-- Modal (保持原样逻辑，样式微调适配 Element Plus) -->
-    <el-dialog
-      v-model="modalOpen"
+    <a-modal
+      v-model:value="modalOpen"
       :title="editingDs ? '编辑连接' : '新建连接'"
       width="600px"
     >
       <div class="modal-body">
-        <el-form :model="formData" label-position="top">
+        <a-form :model="formData" label-position="top">
           <!-- Type Selector -->
-          <el-form-item label="选择数据源类型">
+          <a-form-item label="选择数据源类型">
             <div class="type-selector">
               <div
                 v-for="type in dsTypes"
@@ -217,69 +217,69 @@
                 {{ type.label }}
               </div>
             </div>
-          </el-form-item>
+          </a-form-item>
 
           <!-- Name -->
-          <el-form-item label="显示名称">
-            <el-input v-model="formData.name" placeholder="例如：生产主库" />
-          </el-form-item>
+          <a-form-item label="显示名称">
+            <a-input v-model:value="formData.name" placeholder="例如：生产主库" />
+          </a-form-item>
 
           <!-- Host & Port -->
           <div class="form-grid">
-            <el-form-item label="主机地址 (Host)">
-              <el-input v-model="formData.host" placeholder="127.0.0.1" />
-            </el-form-item>
-            <el-form-item label="端口 (Port)">
-              <el-input v-model="formData.port" :placeholder="getDefaultPort(formData.type)" />
-            </el-form-item>
+            <a-form-item label="主机地址 (Host)">
+              <a-input v-model:value="formData.host" placeholder="127.0.0.1" />
+            </a-form-item>
+            <a-form-item label="端口 (Port)">
+              <a-input v-model:value="formData.port" :placeholder="getDefaultPort(formData.type)" />
+            </a-form-item>
           </div>
 
           <!-- Database -->
-          <el-form-item v-if="formData.type !== 'api'" label="数据库名 (Database)">
-            <el-input v-model="formData.database" placeholder="nocoviz_db" />
-          </el-form-item>
+          <a-form-item v-if="formData.type !== 'api'" label="数据库名 (Database)">
+            <a-input v-model:value="formData.database" placeholder="nocoviz_db" />
+          </a-form-item>
 
           <!-- Username & Password -->
           <div v-if="formData.type !== 'api'" class="form-grid">
-            <el-form-item label="用户名">
-              <el-input v-model="formData.username" />
-            </el-form-item>
-            <el-form-item label="密码">
-              <el-input v-model="formData.password" type="password" show-password />
-            </el-form-item>
+            <a-form-item label="用户名">
+              <a-input v-model:value="formData.username" />
+            </a-form-item>
+            <a-form-item label="密码">
+              <a-input v-model:value="formData.password" type="password" show-password />
+            </a-form-item>
           </div>
 
           <!-- Advanced Config -->
           <div class="advanced-toggle" @click="showAdvanced = !showAdvanced">
-            <el-icon><setting /></el-icon> 高级配置 (连接池)
-            <el-icon :class="{ 'is-rotated': showAdvanced }"><arrow-down /></el-icon>
+            <SettingOutlined /> 高级配置 (连接池)
+            <ArrowDownOutlined :class="{ 'is-rotated': showAdvanced }" />
           </div>
           
           <div v-show="showAdvanced" class="advanced-panel">
             <div class="form-grid">
-              <el-form-item label="最大连接数">
-                <el-input-number v-model="formData.maxActive" :min="1" />
-              </el-form-item>
-              <el-form-item label="空闲超时 (ms)">
-                <el-input-number v-model="formData.idleTimeout" :step="1000" />
-              </el-form-item>
+              <a-form-item label="最大连接数">
+                <a-input-number v-model:value="formData.maxActive" :min="1" />
+              </a-form-item>
+              <a-form-item label="空闲超时 (ms)">
+                <a-input-number v-model:value="formData.idleTimeout" :step="1000" />
+              </a-form-item>
             </div>
             <div class="tip-text">注意：私有化部署环境下，请根据数据库负载能力谨慎调整。</div>
           </div>
-        </el-form>
+        </a-form>
       </div>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="modalOpen = false">取消</el-button>
-          <el-button type="primary" plain @click="testConnectionInModal">测试连接</el-button>
-          <el-button type="primary" @click="saveDatasource">保存</el-button>
+          <a-button @click="modalOpen = false">取消</a-button>
+          <a-button type="primary" plain @click="testConnectionInModal">测试连接</a-button>
+          <a-button type="primary" @click="saveDatasource">保存</a-button>
         </span>
       </template>
-    </el-dialog>
+    </a-modal>
 
     <!-- JSON 配置弹窗 -->
-    <el-dialog
-      v-model="jsonModalOpen"
+    <a-modal
+      v-model:value="jsonModalOpen"
       title="添加 JSON 数据源"
       width="800px"
     >
@@ -288,7 +288,7 @@
         <div class="json-input-section">
           <div class="section-label">粘贴 JSON 数据</div>
           <textarea
-            v-model="jsonInput"
+            v-model:value="jsonInput"
             class="json-textarea"
             placeholder='{"status": 200, "data": {"items": [{"id": 1, "name": "张三"}]}}'
             @input="validateJson"
@@ -298,23 +298,23 @@
 
         <!-- 配置区 -->
         <div class="json-config-section">
-          <el-form :model="jsonFormData" label-position="top">
-            <el-form-item label="数据源名称">
-              <el-input
-                v-model="jsonFormData.name"
+          <a-form :model="jsonFormData" label-position="top">
+            <a-form-item label="数据源名称">
+              <a-input
+                v-model:value="jsonFormData.name"
                 placeholder="例如: 2025_用户列表.json"
               />
-            </el-form-item>
-            <el-form-item label="数据路径 (JSONPath)">
-              <el-input
-                v-model="jsonFormData.jsonPath"
+            </a-form-item>
+            <a-form-item label="数据路径 (JSONPath)">
+              <a-input
+                v-model:value="jsonFormData.jsonPath"
                 placeholder="例如: data.items (留空表示根路径)"
               >
                 <template #prepend>$.</template>
-              </el-input>
+              </a-input>
               <div class="tip-text">支持嵌套路径提取,如: data.items 或 response.data.list</div>
-            </el-form-item>
-          </el-form>
+            </a-form-item>
+          </a-form>
         </div>
 
         <!-- 预览区 -->
@@ -342,19 +342,19 @@
 
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="jsonModalOpen = false">取消</el-button>
-          <el-button type="primary" @click="saveJsonDatasource">保存</el-button>
+          <a-button @click="jsonModalOpen = false">取消</a-button>
+          <a-button type="primary" @click="saveJsonDatasource">保存</a-button>
         </span>
       </template>
-    </el-dialog>
+    </a-modal>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Setting, ArrowDown } from '@element-plus/icons-vue'
+import { message, Modal } from 'ant-design-vue'
+import { PlusOutlined, SettingOutlined, ArrowDownOutlined } from '@ant-design/icons-vue'
 import PageHeader from '@/components/PageHeader.vue'
 
 const router = useRouter()
@@ -578,39 +578,39 @@ const editDatasource = (ds) => {
 
 const testConnection = (ds) => {
   if (ds.status === 'connected') {
-    ElMessage.success(`${ds.name} 连接测试成功`)
+    message.success(`${ds.name} 连接测试成功`)
   } else {
-    ElMessage.error(`${ds.name} 连接测试失败，请检查配置`)
+    message.error(`${ds.name} 连接测试失败，请检查配置`)
   }
 }
 
 const testConnectionInModal = () => {
-  ElMessage.info('正在测试连接...')
+  message.info('正在测试连接...')
   setTimeout(() => {
-    ElMessage.success('连接测试成功')
+    message.success('连接测试成功')
   }, 1000)
 }
 
 const saveDatasource = () => {
   if (!formData.value.name) {
-    ElMessage.warning('请输入显示名称')
+    message.warning('请输入显示名称')
     return
   }
   if (!formData.value.host && formData.value.type !== 'file') {
-    ElMessage.warning('请输入主机地址')
+    message.warning('请输入主机地址')
     return
   }
-  ElMessage.success(editingDs.value ? '连接配置已更新' : '连接创建成功')
+  message.success(editingDs.value ? '连接配置已更新' : '连接创建成功')
   modalOpen.value = false
 }
 
 const deleteDatasource = (ds) => {
-  ElMessageBox.confirm(`确定删除连接 "${ds.name}"？`, '确认删除', {
+  Modal.confirm(`确定删除连接 "${ds.name}"？`, '确认删除', {
     type: 'warning',
     confirmButtonText: '删除',
     cancelButtonText: '取消'
   }).then(() => {
-    ElMessage.success('连接已删除')
+    message.success('连接已删除')
   }).catch(() => {})
 }
 
@@ -621,7 +621,7 @@ const previewFile = (ds) => {
 }
 
 const reuploadFile = (ds) => {
-  ElMessage.info(`重新上传 ${ds.name}`)
+  message.info(`重新上传 ${ds.name}`)
   // TODO: 打开文件上传对话框
 }
 
@@ -733,17 +733,17 @@ const formatPreviewValue = (val) => {
 // 保存 JSON 数据源
 const saveJsonDatasource = () => {
   if (!jsonFormData.value.name) {
-    ElMessage.warning('请输入数据源名称')
+    message.warning('请输入数据源名称')
     return
   }
 
   if (!jsonInput.value.trim()) {
-    ElMessage.warning('请输入 JSON 数据')
+    message.warning('请输入 JSON 数据')
     return
   }
 
   if (jsonPreviewData.value.length === 0) {
-    ElMessage.warning('无法解析 JSON 数据,请检查格式和路径')
+    message.warning('无法解析 JSON 数据,请检查格式和路径')
     return
   }
 
@@ -763,7 +763,7 @@ const saveJsonDatasource = () => {
     jsonPath: jsonFormData.value.jsonPath || '(根路径)'
   })
 
-  ElMessage.success('JSON 数据源已添加')
+  message.success('JSON 数据源已添加')
   jsonModalOpen.value = false
 }
 
@@ -775,447 +775,3 @@ watch(() => jsonFormData.value.jsonPath, () => {
 })
 </script>
 
-<style scoped>
-/* =========================================
-   全局样式 (Consistent with TemplateLibrary)
-   ========================================= */
-.datasource-management {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--el-bg-color);
-}
-
-/* Header Area */
-.library-header {
-  padding: 30px 40px;
-  background: linear-gradient(180deg, rgba(64, 158, 255, 0.05) 0%, transparent 100%);
-  border-bottom: 1px solid var(--el-border-color);
-  flex-shrink: 0;
-}
-
-.header-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-}
-
-.header-title h1 {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: var(--el-text-color-primary);
-}
-
-.header-title p {
-  color: var(--el-text-color-secondary);
-  font-size: 14px;
-  max-width: 600px;
-  line-height: 1.5;
-}
-
-/* Datasource Filter */
-.datasource-filter {
-  display: flex;
-  gap: 30px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-  padding-bottom: 2px;
-  margin-bottom: 20px;
-}
-
-.datasource-filter-item {
-  padding-bottom: 12px;
-  font-size: 14px;
-  color: var(--el-text-color-secondary);
-  cursor: pointer;
-  position: relative;
-  transition: color 0.2s;
-}
-
-.datasource-filter-item:hover {
-  color: var(--el-text-color-primary);
-}
-
-.datasource-filter-item.active {
-  color: var(--el-color-primary);
-  font-weight: 600;
-}
-
-.datasource-filter-item.active::after {
-  content: '';
-  position: absolute;
-  bottom: -3px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--el-color-primary);
-}
-
-/* Scroll Area */
-.datasource-scroll {
-  flex: 1;
-  padding: 30px 40px;
-  overflow-y: auto;
-}
-
-.category-section {
-  margin-bottom: 40px;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--el-text-color-primary);
-}
-
-.section-badge {
-  font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--el-fill-color);
-  color: var(--el-text-color-secondary);
-  font-weight: 400;
-}
-
-.datasource-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
-}
-
-/* Datasource Card */
-.ds-card {
-  background: #1e2229;
-  border: 1px solid #303640;
-  border-radius: 8px;
-  padding: 20px;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  display: flex;
-  flex-direction: column;
-}
-
-.ds-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-}
-
-/* 文件卡片左边框 */
-.file-card {
-  border-left: 3px solid #10b981;
-}
-
-/* API 卡片左边框 */
-.api-card {
-  border-left: 3px solid #3b82f6;
-}
-
-/* 数据库卡片悬停 */
-.ds-card:not(.file-card):not(.api-card):hover {
-  border-color: #409eff;
-}
-
-.ds-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-}
-
-.ds-icon-box {
-  width: 48px;
-  height: 48px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.5px;
-}
-
-.icon-mysql {
-  color: #fff;
-  background: linear-gradient(135deg, #00758f 0%, #00a8cc 100%);
-}
-.icon-oracle {
-  color: #fff;
-  background: linear-gradient(135deg, #f80000 0%, #ff4444 100%);
-}
-.icon-pg {
-  color: #fff;
-  background: linear-gradient(135deg, #336791 0%, #4a90c7 100%);
-}
-.icon-api {
-  color: #fff;
-  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-}
-.icon-excel {
-  color: #fff;
-  background: linear-gradient(135deg, #217346 0%, #2ea662 100%);
-}
-.icon-json {
-  color: #fff;
-  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-}
-
-.ds-status {
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
-.status-success { color: #10b981; background: rgba(16, 185, 129, 0.1); }
-.status-error { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
-.dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-
-.ds-body {
-  flex: 1;
-  margin-bottom: 20px;
-}
-
-.ds-name {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--el-text-color-primary);
-}
-
-.ds-meta {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.meta-row {
-  display: flex;
-  gap: 8px;
-}
-
-.meta-label {
-  color: var(--el-text-color-placeholder);
-}
-
-/* 文件元数据标签 */
-.meta-tags {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-  flex-wrap: wrap;
-}
-
-.meta-tag {
-  font-size: 11px;
-  color: #94a3b8;
-  background: rgba(100, 116, 139, 0.1);
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-  border: 1px solid rgba(100, 116, 139, 0.2);
-}
-
-.ds-footer {
-  display: flex;
-  gap: 8px;
-  border-top: 1px solid var(--el-border-color-lighter);
-  padding-top: 16px;
-  justify-content: flex-end;
-}
-
-.ds-footer :deep(.el-button) {
-  height: 32px;
-  padding: 0 15px;
-  font-size: 13px;
-}
-
-.ds-footer :deep(.el-button--small) {
-  height: 32px;
-  padding: 0 15px;
-}
-
-.ds-footer :deep(.el-button + .el-button) {
-  margin-left: 0;
-}
-
-/* Modal Styles */
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.type-selector {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-}
-
-.type-item {
-  flex: 1;
-  border: 1px solid var(--el-border-color);
-  padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  text-align: center;
-  font-size: 13px;
-  transition: 0.2s;
-  color: var(--el-text-color-regular);
-}
-
-.type-item:hover,
-.type-item.selected {
-  border-color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
-  color: var(--el-color-primary);
-}
-
-.advanced-toggle {
-  font-size: 13px;
-  color: var(--el-color-primary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-bottom: 16px;
-}
-
-.advanced-panel {
-  background: var(--el-fill-color-light);
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 20px;
-}
-
-.tip-text {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  margin-top: 8px;
-}
-
-.is-rotated {
-  transform: rotate(180deg);
-  transition: transform 0.3s;
-}
-
-/* Scrollbar */
-.datasource-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-
-.datasource-scroll::-webkit-scrollbar-thumb {
-  background: var(--el-fill-color-darker);
-  border-radius: 3px;
-}
-
-.datasource-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* JSON Modal Styles */
-.json-modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  max-height: 600px;
-  overflow-y: auto;
-}
-
-.section-label {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--el-text-color-primary);
-}
-
-.json-input-section {
-  display: flex;
-  flex-direction: column;
-}
-
-.json-textarea {
-  width: 100%;
-  min-height: 150px;
-  padding: 12px;
-  border: 1px solid var(--el-border-color);
-  border-radius: 6px;
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-  font-size: 12px;
-  resize: vertical;
-  background: #1e2229;
-  color: var(--el-text-color-primary);
-}
-
-.json-textarea:focus {
-  outline: none;
-  border-color: var(--el-color-primary);
-}
-
-.error-message {
-  color: var(--el-color-error);
-  font-size: 12px;
-  margin-top: 6px;
-}
-
-.json-config-section {
-  background: var(--el-fill-color-light);
-  border-radius: 6px;
-  padding: 16px;
-}
-
-.json-preview-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.preview-table-wrapper {
-  border: 1px solid var(--el-border-color);
-  border-radius: 6px;
-  overflow: auto;
-  max-height: 300px;
-}
-
-.preview-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-  background: #1e2229;
-}
-
-.preview-table thead {
-  position: sticky;
-  top: 0;
-  background: #2a3039;
-  z-index: 1;
-}
-
-.preview-table th {
-  padding: 10px 12px;
-  text-align: left;
-  font-weight: 600;
-  border-bottom: 2px solid var(--el-border-color);
-  color: var(--el-text-color-primary);
-  white-space: nowrap;
-}
-
-.preview-table td {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-  color: var(--el-text-color-secondary);
-  white-space: nowrap;
-}
-
-.preview-table tbody tr:hover {
-  background: rgba(64, 158, 255, 0.05);
-}
-</style>

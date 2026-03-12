@@ -115,10 +115,3 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
-.map-3d-chart {
-  width: 100%;
-  height: 100%;
-  min-height: 400px;
-}
-</style>

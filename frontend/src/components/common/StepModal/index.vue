@@ -1,5 +1,5 @@
 <template>
-  <el-dialog
+  <a-modal
     v-model="visible"
     :title="title"
     :width="width"
@@ -22,7 +22,7 @@
         ]"
       >
         <div class="step-modal__indicator-number">
-          <el-icon v-if="index < currentStepIndex"><Check /></el-icon>
+          <Check />
           <span v-else>{{ index + 1 }}</span>
         </div>
         <span class="step-modal__indicator-label">{{ step.title }}</span>
@@ -45,18 +45,18 @@
     <!-- 底部按钮 -->
     <template #footer>
       <div class="step-modal__footer">
-        <el-button @click="handleCancel" :disabled="loading">取消</el-button>
+        <a-button @click="handleCancel" :disabled="loading">取消</a-button>
 
         <div class="step-modal__footer-actions">
-          <el-button
+          <a-button
             v-if="currentStepIndex > 0"
             @click="handlePrevStep"
             :disabled="loading"
           >
             上一步
-          </el-button>
+          </a-button>
 
-          <el-button
+          <a-button
             v-if="currentStepIndex < steps.length - 1"
             type="primary"
             @click="handleNextStep"
@@ -64,9 +64,9 @@
             :loading="loading"
           >
             下一步
-          </el-button>
+          </a-button>
 
-          <el-button
+          <a-button
             v-else
             type="primary"
             @click="handleFinish"
@@ -74,16 +74,16 @@
             :loading="loading"
           >
             {{ confirmText }}
-          </el-button>
+          </a-button>
         </div>
       </div>
     </template>
-  </el-dialog>
+  </a-modal>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Check } from '@element-plus/icons-vue'
+import { CheckOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps({
   modelValue: {
@@ -232,113 +232,3 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-.step-modal__indicator {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 32px;
-  padding: 0 24px;
-}
-
-.step-modal__indicator-line {
-  position: absolute;
-  top: 16px;
-  left: 24px;
-  right: 24px;
-  height: 2px;
-  background: var(--border, #35363a);
-  z-index: 0;
-}
-
-.step-modal__indicator-item {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  z-index: 1;
-}
-
-.step-modal__indicator-number {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--bg-card, #1a1b1e);
-  border: 2px solid var(--border, #35363a);
-  color: var(--text-secondary, #9aa0a6);
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s;
-}
-
-.step-modal__indicator-item--active .step-modal__indicator-number {
-  border-color: var(--el-color-primary);
-  color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
-}
-
-.step-modal__indicator-item--completed .step-modal__indicator-number {
-  border-color: var(--el-color-success);
-  background: var(--el-color-success);
-  color: #fff;
-}
-
-.step-modal__indicator-label {
-  font-size: 13px;
-  color: var(--text-secondary, #9aa0a6);
-  white-space: nowrap;
-  transition: color 0.3s;
-}
-
-.step-modal__indicator-item--active .step-modal__indicator-label {
-  color: var(--el-color-primary);
-  font-weight: 500;
-}
-
-.step-modal__indicator-item--completed .step-modal__indicator-label {
-  color: var(--text-primary, #e8eaed);
-}
-
-.step-modal__content {
-  min-height: 300px;
-  padding: 0 24px;
-}
-
-.step-modal__footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.step-modal__footer-actions {
-  display: flex;
-  gap: 12px;
-}
-
-@media (max-width: 768px) {
-  .step-modal__indicator {
-    padding: 0 12px;
-  }
-
-  .step-modal__indicator-label {
-    font-size: 11px;
-  }
-
-  .step-modal__indicator-number {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
-  }
-
-  .step-modal__content {
-    padding: 0 12px;
-    min-height: 200px;
-  }
-}
-</style>

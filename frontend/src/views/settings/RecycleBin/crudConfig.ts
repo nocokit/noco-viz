@@ -9,6 +9,7 @@ export const crudConfig = {
   table: {
     rowKey: 'id',
     emptyText: '暂无数据',
+    selectable: true, // 启用行选择
     // 搜索表单配置
     searchForm: {
       fields: [

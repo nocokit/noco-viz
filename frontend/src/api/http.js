@@ -3,7 +3,7 @@
  * 统一配置、请求拦截、响应拦截、错误处理
  */
 import axios from 'axios'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, Modal } from 'ant-design-vue'
 import { useUserStore } from '@/store/modules/user'
 import { RequestCanceler } from '@/utils/request-optimizer'
 
@@ -134,31 +134,29 @@ request.interceptors.response.use(
           is401ConfirmShowing = true
 
           try {
-            await ElMessageBox.confirm(
-              '您的登录状态已过期，需要重新登录才能继续操作。',
-              '登录已过期',
-              {
-                confirmButtonText: '重新登录',
-                cancelButtonText: '取消',
-                type: 'warning',
-                closeOnClickModal: false,
-                closeOnPressEscape: false,
-                showClose: false
+            await Modal.confirm({
+              title: '登录已过期',
+              content: '您的登录状态已过期，需要重新登录才能继续操作。',
+              okText: '重新登录',
+              cancelText: '取消',
+              maskClosable: false,
+              keyboard: false,
+              closable: false,
+              onOk: () => {
+                // 用户确认后，清除本地状态并跳转到登录页
+                userStore.accessToken = ''
+                userStore.refreshToken = ''
+                userStore.userInfo = null
+                userStore.isLoggedIn = false
+                sessionStorage.removeItem('access_token')
+                sessionStorage.removeItem('refresh_token')
+
+                // 跳转到登录页
+                if (window.location.pathname !== '/login') {
+                  window.location.href = '/login'
+                }
               }
-            )
-
-            // 用户确认后，清除本地状态并跳转到登录页
-            userStore.accessToken = ''
-            userStore.refreshToken = ''
-            userStore.userInfo = null
-            userStore.isLoggedIn = false
-            sessionStorage.removeItem('access_token')
-            sessionStorage.removeItem('refresh_token')
-
-            // 跳转到登录页
-            if (window.location.pathname !== '/login') {
-              window.location.href = '/login'
-            }
+            })
           } catch (cancelError) {
             // 用户取消操作
           } finally {

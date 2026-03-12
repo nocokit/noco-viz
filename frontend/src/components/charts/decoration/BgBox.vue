@@ -189,36 +189,3 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
-.bg-box {
-  position: relative;
-  overflow: hidden;
-  border-radius: 4px;
-}
-
-.bg-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  opacity: 0.4;
-}
-
-.bg-svg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-}
-
-.bg-content {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  padding: 20px;
-  box-sizing: border-box;
-  z-index: 1;
-}
-</style>

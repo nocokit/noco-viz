@@ -2,7 +2,7 @@
   <div class="table-toolbar">
     <div class="toolbar-left">
       <!-- 搜索框 -->
-      <el-input
+      <a-input
         v-model="searchValue"
         :placeholder="searchPlaceholder"
         :prefix-icon="Search"
@@ -17,8 +17,8 @@
         <span class="selection-info">
           已选择 <strong>{{ selectionCount }}</strong> 项
         </span>
-        <el-divider direction="vertical" />
-        <el-button
+        <a-divider direction="vertical" />
+        <a-button
           v-for="action in batchActions"
           :key="action.command"
           :type="action.type || 'default'"
@@ -27,7 +27,7 @@
           @click="handleBatchAction(action.command)"
         >
           {{ action.label }}
-        </el-button>
+        </a-button>
       </div>
     </div>
 
@@ -57,55 +57,55 @@
       <slot name="actions"></slot>
 
       <!-- 刷新按钮 -->
-      <el-button
+      <a-button
         v-if="showRefresh"
         :icon="Refresh"
         :loading="refreshing"
         @click="handleRefresh"
       >
         {{ refreshText }}
-      </el-button>
+      </a-button>
 
       <!-- 导出按钮 -->
-      <el-button
+      <a-button
         v-if="showExport"
         :icon="Download"
         @click="handleExport"
       >
         {{ exportText }}
-      </el-button>
+      </a-button>
 
       <!-- 列设置 -->
-      <el-popover
+      <a-popover
         v-if="showColumnSettings"
         placement="bottom-end"
         :width="240"
         trigger="click"
       >
         <template #reference>
-          <el-button :icon="Setting">
+          <a-button :icon="Setting">
             列设置
-          </el-button>
+          </a-button>
         </template>
         <div class="column-settings">
           <div class="settings-header">
             <span>显示列</span>
-            <el-button link size="small" @click="resetColumns">
+            <a-button link size="small" @click="resetColumns">
               重置
-            </el-button>
+            </a-button>
           </div>
-          <el-checkbox-group v-model="visibleColumns" class="column-list">
-            <el-checkbox
+          <a-checkbox-group v-model="visibleColumns" class="column-list">
+            <a-checkbox
               v-for="column in columns"
               :key="column.prop"
               :label="column.prop"
               :disabled="column.required"
             >
               {{ column.label }}
-            </el-checkbox>
-          </el-checkbox-group>
+            </a-checkbox>
+          </a-checkbox-group>
         </div>
-      </el-popover>
+      </a-popover>
 
       <!-- 更多操作 -->
       <slot name="more"></slot>
@@ -115,7 +115,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Search, Refresh, Download, Setting } from '@element-plus/icons-vue'
+import { SearchOutlined, ReloadOutlined, DownloadOutlined, SettingOutlined } from '@ant-design/icons-vue'
 import { debounce } from 'lodash-es'
 
 const props = defineProps({
@@ -270,170 +270,3 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-.table-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-lg);
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  margin-bottom: var(--spacing-lg);
-}
-
-.toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex: 1;
-  min-width: 0;
-}
-
-.search-input {
-  width: 300px;
-  max-width: 100%;
-}
-
-.batch-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--bg-active);
-  border-radius: var(--radius-md);
-}
-
-.selection-info {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-}
-
-.selection-info strong {
-  color: var(--color-primary);
-  font-weight: var(--font-weight-semibold);
-}
-
-.toolbar-center {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-  flex-shrink: 0;
-}
-
-.toolbar-stats {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xl);
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  white-space: nowrap;
-}
-
-.stat-label {
-  color: var(--text-secondary);
-}
-
-.stat-value {
-  color: var(--text-primary);
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-base);
-}
-
-.stat-selected {
-  color: var(--color-primary);
-}
-
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex-shrink: 0;
-}
-
-/* 列设置 */
-.column-settings {
-  padding: var(--spacing-sm);
-}
-
-.settings-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--spacing-md);
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--border);
-  font-weight: var(--font-weight-semibold);
-}
-
-.column-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.column-list :deep(.el-checkbox) {
-  margin-right: 0;
-}
-
-/* 响应式 */
-@media (max-width: 1200px) {
-  .table-toolbar {
-    flex-wrap: wrap;
-  }
-
-  .toolbar-left {
-    flex: 1 1 100%;
-  }
-
-  .toolbar-center {
-    flex: 1 1 auto;
-  }
-
-  .toolbar-right {
-    flex: 0 0 auto;
-  }
-}
-
-@media (max-width: 768px) {
-  .table-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .toolbar-left,
-  .toolbar-center,
-  .toolbar-right {
-    width: 100%;
-  }
-
-  .toolbar-left {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-input {
-    width: 100%;
-  }
-
-  .batch-actions {
-    flex-wrap: wrap;
-  }
-
-  .toolbar-stats {
-    flex-wrap: wrap;
-    gap: var(--spacing-md);
-  }
-
-  .toolbar-right {
-    justify-content: flex-end;
-    flex-wrap: wrap;
-  }
-}
-</style>

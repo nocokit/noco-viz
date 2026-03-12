@@ -2,7 +2,7 @@
  * 剪贴板工具函数
  */
 
-import { ElMessage } from 'element-plus'
+import { message } from 'ant-design-vue'
 
 /**
  * 复制文本到剪贴板
@@ -12,7 +12,7 @@ import { ElMessage } from 'element-plus'
  */
 export async function copyToClipboard(text, successMessage = '已复制到剪贴板') {
   if (!text) {
-    ElMessage.warning('没有内容可复制')
+    message.warning('没有内容可复制')
     return false
   }
 
@@ -20,7 +20,7 @@ export async function copyToClipboard(text, successMessage = '已复制到剪贴
     // 优先使用现代 Clipboard API
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(text)
-      ElMessage.success(successMessage)
+      message.success(successMessage)
       return true
     } else {
       // 降级方案：使用 execCommand
@@ -53,15 +53,15 @@ function copyToClipboardFallback(text, successMessage) {
   try {
     const successful = document.execCommand('copy')
     if (successful) {
-      ElMessage.success(successMessage)
+      message.success(successMessage)
       return true
     } else {
-      ElMessage.error('复制失败')
+      message.error('复制失败')
       return false
     }
   } catch (err) {
     console.error('复制失败:', err)
-    ElMessage.error('复制失败，请手动复制')
+    message.error('复制失败，请手动复制')
     return false
   } finally {
     document.body.removeChild(textArea)
@@ -78,12 +78,12 @@ export async function readFromClipboard() {
       const text = await navigator.clipboard.readText()
       return text
     } else {
-      ElMessage.warning('当前环境不支持读取剪贴板')
+      message.warning('当前环境不支持读取剪贴板')
       return null
     }
   } catch (err) {
     console.error('读取剪贴板失败:', err)
-    ElMessage.error('读取剪贴板失败')
+    message.error('读取剪贴板失败')
     return null
   }
 }
@@ -101,7 +101,7 @@ export async function copyObjectAsJSON(obj, pretty = true, successMessage = '已
     return await copyToClipboard(jsonString, successMessage)
   } catch (err) {
     console.error('复制对象失败:', err)
-    ElMessage.error('复制失败，对象无法序列化')
+    message.error('复制失败，对象无法序列化')
     return false
   }
 }

@@ -20,6 +20,11 @@ export class CreateTemplateDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  resolution?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
   thumbnail?: string;
 
   @ApiProperty({ required: false, description: '封面图片媒体资源ID' })

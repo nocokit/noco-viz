@@ -4,16 +4,16 @@
  *
  * @example
  * <!-- 单个权限 -->
- * <el-button v-permission="'user:create'">创建用户</el-button>
+ * <a-button v-permission="'user:create'">创建用户</a-button>
  *
  * <!-- 多个权限（任意一个） -->
- * <el-button v-permission="['user:create', 'user:edit']">操作</el-button>
+ * <a-button v-permission="['user:create', 'user:edit']">操作</a-button>
  *
  * <!-- 多个权限（全部拥有） -->
- * <el-button v-permission:all="['user:create', 'user:edit']">操作</el-button>
+ * <a-button v-permission:all="['user:create', 'user:edit']">操作</a-button>
  *
  * <!-- 角色判断 -->
- * <el-button v-permission:role="'admin'">管理员操作</el-button>
+ * <a-button v-permission:role="'admin'">管理员操作</a-button>
  */
 
 import { usePermission } from '@/composables/usePermission'
@@ -89,7 +89,7 @@ export const permission = {
  * 用于控制元素的禁用状态（不移除元素）
  *
  * @example
- * <el-button v-permission-disabled="'user:create'">创建用户</el-button>
+ * <a-button v-permission-disabled="'user:create'">创建用户</a-button>
  */
 export const permissionDisabled = {
   mounted(el, binding) {
@@ -100,9 +100,9 @@ export const permissionDisabled = {
       el.disabled = true
       el.classList.add('is-disabled')
 
-      // 如果是 Element Plus 组件，添加禁用样式
-      if (el.classList.contains('el-button')) {
-        el.classList.add('is-disabled')
+      // 如果是 Ant Design Vue 组件，添加禁用样式
+      if (el.classList.contains('ant-btn')) {
+        el.classList.add('ant-btn-disabled')
       }
     }
   },

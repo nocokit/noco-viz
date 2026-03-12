@@ -1,217 +1,145 @@
 <template>
-  <div class="crud-table">
+  <a-space direction="vertical" :size="16" :style="{ width: '100%' }">
     <!-- 额外内容插槽 -->
     <slot name="toolbar-extra"></slot>
 
     <!-- 工具栏 -->
-    <div class="crud-toolbar" v-if="showToolbar">
-      <div class="toolbar-left">
+    <a-flex v-if="showToolbar" justify="space-between" align="center" :wrap="true" :gap="12">
+      <a-flex align="center" :gap="12" :wrap="true">
         <!-- 搜索框 -->
-        <el-input
+        <a-input-search
           v-if="searchable"
-          v-model="searchQuery"
+          v-model:value="searchQuery"
           :placeholder="searchPlaceholder"
-          clearable
-          class="search-input"
-          @clear="handleSearch"
-        >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-        </el-input>
+          :style="{ width: '240px' }"
+          allow-clear
+          @search="handleSearch"
+        />
 
         <!-- 筛选器 -->
         <slot name="filters"></slot>
-      </div>
+      </a-flex>
 
-      <div class="toolbar-right">
+      <a-flex align="center" :gap="8">
         <!-- 视图切换 -->
-        <el-button-group v-if="viewSwitchable">
-          <el-button
-            :type="currentView === 'table' ? 'primary' : ''"
-            @click="switchView('table')"
-          >
-            <el-icon><List /></el-icon>
-          </el-button>
-          <el-button
-            :type="currentView === 'grid' ? 'primary' : ''"
-            @click="switchView('grid')"
-          >
-            <el-icon><Grid /></el-icon>
-          </el-button>
-        </el-button-group>
+        <a-segmented
+          v-if="viewSwitchable"
+          v-model:value="currentView"
+          :options="[
+            { label: '列表', value: 'table', icon: h(UnorderedListOutlined) },
+            { label: '网格', value: 'grid', icon: h(AppstoreOutlined) }
+          ]"
+          @change="handleViewChange"
+        />
 
         <!-- 批量操作 -->
-        <el-dropdown v-if="batchActions.length > 0 && selectedRows.length > 0" @command="handleBatchAction">
-          <el-button>
+        <a-dropdown v-if="batchActions.length > 0 && selectedRows.length > 0">
+          <a-button>
             批量操作 ({{ selectedRows.length }})
-            <el-icon class="el-icon--right"><ArrowDown /></el-icon>
-          </el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item
+            <DownOutlined />
+          </a-button>
+          <template #overlay>
+            <a-menu @click="handleBatchAction">
+              <a-menu-item
                 v-for="action in batchActions"
                 :key="action.command"
-                :command="action.command"
-                :icon="action.icon"
               >
+                <component v-if="action.icon" :is="action.icon" />
                 {{ action.label }}
-              </el-dropdown-item>
-            </el-dropdown-menu>
+              </a-menu-item>
+            </a-menu>
           </template>
-        </el-dropdown>
+        </a-dropdown>
 
         <!-- 自定义操作按钮 -->
         <slot name="actions"></slot>
 
         <!-- 创建按钮 -->
-        <el-button
+        <a-button
           v-if="creatable"
           type="primary"
           @click="handleCreate"
         >
-          <el-icon><Plus /></el-icon>
+          <template #icon><PlusOutlined /></template>
           {{ createButtonText }}
-        </el-button>
+        </a-button>
 
         <!-- 刷新按钮 -->
-        <el-button
+        <a-button
           v-if="refreshable"
           :loading="loading"
           @click="handleRefresh"
         >
-          <el-icon><Refresh /></el-icon>
-        </el-button>
-      </div>
-    </div>
+          <template #icon><ReloadOutlined /></template>
+        </a-button>
+      </a-flex>
+    </a-flex>
 
     <!-- 表格视图 -->
-    <el-table
+    <a-table
       v-if="currentView === 'table'"
       ref="tableRef"
-      :data="tableData"
+      :data-source="tableData"
       :loading="loading"
+      :row-selection="selectable ? rowSelection : null"
+      :columns="tableColumns"
       v-bind="tableProps"
-      @selection-change="handleSelectionChange"
-      @sort-change="handleSortChange"
-      class="crud-table-view"
-    >
-      <!-- 多选列 -->
-      <el-table-column
-        v-if="selectable"
-        type="selection"
-        width="55"
-        :selectable="selectableFunc"
-      />
-
-      <!-- 序号列 -->
-      <el-table-column
-        v-if="showIndex"
-        type="index"
-        label="序号"
-        width="60"
-        :index="indexMethod"
-      />
-
-      <!-- 数据列 -->
-      <el-table-column
-        v-for="column in visibleColumns"
-        :key="column.prop"
-        v-bind="column"
-      >
-        <template #default="{ row, $index }">
-          <slot
-            :name="`column-${column.prop}`"
-            :row="row"
-            :column="column"
-            :index="$index"
-          >
-            {{ row[column.prop] }}
-          </slot>
-        </template>
-      </el-table-column>
-
-      <!-- 操作列 -->
-      <el-table-column
-        v-if="showActions"
-        label="操作"
-        :width="actionsWidth"
-        :fixed="actionsFixed"
-      >
-        <template #default="{ row, $index }">
-          <slot name="row-actions" :row="row" :index="$index">
-            <el-button
-              v-if="editable"
-              link
-              type="primary"
-              @click="handleEdit(row)"
-            >
-              编辑
-            </el-button>
-            <el-button
-              v-if="deletable"
-              link
-              type="danger"
-              @click="handleDelete(row)"
-            >
-              删除
-            </el-button>
-          </slot>
-        </template>
-      </el-table-column>
-    </el-table>
+      @change="handleTableChange"
+    />
 
     <!-- 网格视图 -->
-    <div v-else-if="currentView === 'grid'" class="crud-grid-view" v-loading="loading">
-      <div class="grid-container">
-        <div
+    <a-spin v-else-if="currentView === 'grid'" :spinning="loading">
+      <a-row :gutter="[16, 16]" v-if="tableData.length > 0">
+        <a-col
           v-for="(item, index) in tableData"
           :key="item.id || index"
-          class="grid-item"
-          :class="{ selected: isSelected(item) }"
-          @click="handleGridItemClick(item)"
+          :xs="24"
+          :sm="12"
+          :md="8"
+          :lg="6"
         >
-          <slot name="grid-item" :item="item" :index="index">
-            <div class="grid-item-content">
-              <div class="grid-item-title">{{ item.name || item.title }}</div>
-              <div class="grid-item-actions">
-                <el-button link type="primary" @click.stop="handleEdit(item)">编辑</el-button>
-                <el-button link type="danger" @click.stop="handleDelete(item)">删除</el-button>
-              </div>
-            </div>
-          </slot>
-        </div>
-      </div>
+          <a-card
+            hoverable
+            :class="{ 'ant-card-selected': isSelected(item) }"
+            @click="handleGridItemClick(item)"
+          >
+            <slot name="grid-item" :item="item" :index="index">
+              <a-space direction="vertical" :size="8" :style="{ width: '100%' }">
+                <a-typography-text strong>{{ item.name || item.title }}</a-typography-text>
+                <a-space :size="8">
+                  <a-button type="link" size="small" @click.stop="handleEdit(item)">编辑</a-button>
+                  <a-button type="link" danger size="small" @click.stop="handleDelete(item)">删除</a-button>
+                </a-space>
+              </a-space>
+            </slot>
+          </a-card>
+        </a-col>
+      </a-row>
 
       <!-- 空状态 -->
-      <el-empty v-if="tableData.length === 0" :description="emptyText" />
-    </div>
+      <a-empty v-else :description="emptyText" />
+    </a-spin>
 
     <!-- 分页 -->
-    <div class="crud-pagination" v-if="pageable && tableData.length > 0">
-      <el-pagination
-        v-model:current-page="currentPage"
+    <a-flex v-if="pageable && tableData.length > 0" justify="flex-end">
+      <a-pagination
+        v-model:current="currentPage"
         v-model:page-size="internalPageSize"
         :total="total"
-        :page-sizes="pageSizes"
-        :layout="paginationLayout"
-        @size-change="handleSizeChange"
-        @current-change="handlePageChange"
+        :page-size-options="pageSizes.map(String)"
+        :show-size-changer="true"
+        :show-quick-jumper="true"
+        :show-total="(total) => `共 ${total} 条`"
+        @change="handlePageChange"
+        @showSizeChange="handleSizeChange"
       />
-    </div>
-  </div>
+    </a-flex>
+  </a-space>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import {
-  Search,
-  List,
-  Grid,
-  Plus,
-  Refresh,
-  ArrowDown
-} from '@element-plus/icons-vue'
+import { ref, computed, watch, h } from 'vue'
+import { SearchOutlined, UnorderedListOutlined, AppstoreOutlined, PlusOutlined, ReloadOutlined, DownOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps({
   // 数据
@@ -373,7 +301,76 @@ const visibleColumns = computed(() => {
   return props.columns.filter(col => col.visible !== false)
 })
 
+const tableColumns = computed(() => {
+  const cols = []
+
+  // 序号列
+  if (props.showIndex) {
+    cols.push({
+      title: '序号',
+      width: 60,
+      customRender: ({ index }) => {
+        return props.indexMethod ? props.indexMethod(index) : index + 1
+      }
+    })
+  }
+
+  // 数据列
+  visibleColumns.value.forEach(column => {
+    cols.push({
+      title: column.label || column.title,
+      dataIndex: column.prop || column.dataIndex,
+      key: column.prop || column.dataIndex,
+      width: column.width,
+      align: column.align,
+      fixed: column.fixed,
+      sorter: column.sortable,
+      customRender: column.customRender
+    })
+  })
+
+  // 操作列
+  if (props.showActions) {
+    cols.push({
+      title: '操作',
+      key: 'actions',
+      width: props.actionsWidth,
+      fixed: props.actionsFixed,
+      customRender: ({ record, index }) => {
+        return h('div', [
+          props.editable && h('a-button', {
+            type: 'link',
+            onClick: () => handleEdit(record)
+          }, '编辑'),
+          props.deletable && h('a-button', {
+            type: 'link',
+            danger: true,
+            onClick: () => handleDelete(record)
+          }, '删除')
+        ])
+      }
+    })
+  }
+
+  return cols
+})
+
+const rowSelection = computed(() => ({
+  selectedRowKeys: selectedRows.value.map(row => row.id),
+  onChange: (selectedRowKeys, selectedRowsData) => {
+    selectedRows.value = selectedRowsData
+    emit('selection-change', selectedRowsData)
+  },
+  getCheckboxProps: props.selectableFunc ? (record) => ({
+    disabled: !props.selectableFunc(record)
+  }) : undefined
+}))
+
 // 方法
+const handleViewChange = (view) => {
+  emit('view-change', view)
+}
+
 const switchView = (view) => {
   currentView.value = view
   emit('view-change', view)
@@ -391,8 +388,8 @@ const handleDelete = (row) => {
   emit('delete', row)
 }
 
-const handleBatchAction = (command) => {
-  emit('batch-action', command, selectedRows.value)
+const handleBatchAction = ({ key }) => {
+  emit('batch-action', key, selectedRows.value)
 }
 
 const handleRefresh = () => {
@@ -403,20 +400,21 @@ const handleSearch = () => {
   emit('search', searchQuery.value)
 }
 
-const handleSelectionChange = (selection) => {
-  selectedRows.value = selection
-  emit('selection-change', selection)
+const handleTableChange = (pagination, filters, sorter) => {
+  if (sorter.field) {
+    emit('sort-change', {
+      prop: sorter.field,
+      order: sorter.order === 'ascend' ? 'ascending' : sorter.order === 'descend' ? 'descending' : null
+    })
+  }
 }
 
-const handleSortChange = (sortInfo) => {
-  emit('sort-change', sortInfo)
-}
-
-const handlePageChange = (page) => {
+const handlePageChange = (page, pageSize) => {
+  currentPage.value = page
   emit('page-change', page)
 }
 
-const handleSizeChange = (size) => {
+const handleSizeChange = (current, size) => {
   internalPageSize.value = size
   emit('size-change', size)
 }
@@ -466,99 +464,3 @@ defineExpose({
 })
 </script>
 
-<style scoped lang="scss">
-.crud-table {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  height: 100%;
-}
-
-.crud-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-
-  .toolbar-left,
-  .toolbar-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .search-input {
-    width: 300px;
-  }
-}
-
-.crud-table-view {
-  flex: 1;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.crud-grid-view {
-  flex: 1;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 16px;
-  overflow-y: auto;
-
-  .grid-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 16px;
-  }
-
-  .grid-item {
-    padding: 16px;
-    border: 1px solid #e4e7ed;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-
-    &:hover {
-      border-color: #409eff;
-      box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
-    }
-
-    &.selected {
-      border-color: #409eff;
-      background: #ecf5ff;
-    }
-  }
-
-  .grid-item-content {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .grid-item-title {
-    font-size: 16px;
-    font-weight: 500;
-    color: #303133;
-  }
-
-  .grid-item-actions {
-    display: flex;
-    gap: 8px;
-  }
-}
-
-.crud-pagination {
-  display: flex;
-  justify-content: flex-end;
-  padding: 16px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-</style>

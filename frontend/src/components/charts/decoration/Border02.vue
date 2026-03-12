@@ -98,24 +98,3 @@ const containerStyle = computed(() => ({
 }))
 </script>
 
-<style scoped>
-.border-02 {
-  position: relative;
-  display: inline-block;
-}
-
-.border-svg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  filter: drop-shadow(0 0 2px currentColor);
-}
-
-.border-content {
-  width: 100%;
-  height: 100%;
-  padding: 20px;
-  box-sizing: border-box;
-}
-</style>

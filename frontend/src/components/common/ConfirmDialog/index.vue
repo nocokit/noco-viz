@@ -1,5 +1,5 @@
 <template>
-  <el-dialog
+  <a-modal
     v-model="visible"
     :title="title"
     :width="width"
@@ -8,9 +8,9 @@
   >
     <div class="confirm-dialog__content">
       <div class="confirm-dialog__icon">
-        <el-icon :size="48" :color="iconColor">
+        
           <component :is="iconComponent" />
-        </el-icon>
+        
       </div>
 
       <div class="confirm-dialog__message">
@@ -19,7 +19,7 @@
 
       <!-- 二次确认输入 -->
       <div v-if="requireInput" class="confirm-dialog__input">
-        <el-input
+        <a-input
           v-model="inputValue"
           :placeholder="inputPlaceholder"
           clearable
@@ -30,25 +30,25 @@
 
     <template #footer>
       <div class="confirm-dialog__footer">
-        <el-button @click="handleCancel" :disabled="confirming">
+        <a-button @click="handleCancel" :disabled="confirming">
           {{ cancelText }}
-        </el-button>
-        <el-button
+        </a-button>
+        <a-button
           :type="confirmType"
           @click="handleConfirm"
           :loading="confirming"
           :disabled="!canConfirm"
         >
           {{ confirmText }}
-        </el-button>
+        </a-button>
       </div>
     </template>
-  </el-dialog>
+  </a-modal>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { WarningFilled, InfoFilled, QuestionFilled } from '@element-plus/icons-vue'
+import { WarningFilled, InfoCircleFilled, QuestionCircleFilled } from '@ant-design/icons-vue'
 
 const props = defineProps({
   modelValue: {
@@ -167,43 +167,3 @@ const handleCancel = () => {
 }
 </script>
 
-<style scoped>
-.confirm-dialog__content {
-  text-align: center;
-  padding: 20px 0;
-}
-
-.confirm-dialog__icon {
-  margin-bottom: 16px;
-}
-
-.confirm-dialog__message {
-  font-size: 14px;
-  color: var(--text-primary, #e8eaed);
-  line-height: 1.6;
-  margin-bottom: 20px;
-}
-
-.confirm-dialog__input {
-  margin-top: 20px;
-}
-
-.confirm-dialog__hint {
-  margin-top: 8px;
-  font-size: 12px;
-  color: var(--text-tertiary, #5f6368);
-  text-align: left;
-}
-
-.confirm-dialog__footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-:deep(.el-dialog__header) {
-  text-align: center;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border, #35363a);
-}
-</style>

@@ -1,350 +1,379 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BaseService } from '../../common/base/base.service';
 import { Role } from './entities/role.entity';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 
 @Injectable()
-export class RolesService extends BaseService<Role> {
+export class RolesService {
   constructor(
     @InjectRepository(Role)
-    private rolesRepository: Repository<Role>,
-  ) {
-    super(rolesRepository);
-  }
+    private readonly rolesRepository: Repository<Role>,
+  ) {}
 
-  async create(createRoleDto: CreateRoleDto): Promise<Role> {
+  /**
+   * 创建角色
+   */
+  async create(createRoleDto: CreateRoleDto) {
+    // 生成 key（如果没有提供）
+    const key = createRoleDto.key || createRoleDto.name.toLowerCase().replace(/\s+/g, '_');
+
     const existingRole = await this.rolesRepository.findOne({
-      where: { name: createRoleDto.name },
+      where: { key },
     });
 
     if (existingRole) {
-      throw new ConflictException('角色名称已存在');
+      throw new ConflictException('角色标识已存在');
     }
 
-    const role = this.rolesRepository.create(createRoleDto);
-    return this.rolesRepository.save(role);
+    // 构建角色数据
+    let roleData: any;
+    if (createRoleDto.value) {
+      // 兼容旧格式
+      roleData = typeof createRoleDto.value === 'string'
+        ? createRoleDto.value
+        : JSON.stringify(createRoleDto.value);
+    } else {
+      // 新格式
+      roleData = JSON.stringify({
+        name: createRoleDto.name,
+        description: createRoleDto.description || '',
+        scope: createRoleDto.scope,
+        isSystem: createRoleDto.isSystem || false,
+        permissions: createRoleDto.permissions || {}
+      });
+    }
+
+    const role = this.rolesRepository.create({
+      key,
+      value: roleData,
+      description: createRoleDto.description,
+    });
+
+    return await this.rolesRepository.save(role);
   }
 
+  /**
+   * 获取所有角色
+   */
   async findAll(): Promise<any[]> {
     const roles = await this.rolesRepository.find({
       relations: ['users'],
       order: { createdAt: 'DESC' },
     });
 
-    return roles.map(role => ({
-      ...role,
-      userCount: role.users?.length || 0,
-      users: undefined, // Remove users array from response
-    }));
-  }
-
-  async findOne(id: number): Promise<any> {
-    const role = await super.findOne(id, ['users']);
-
-    return {
-      ...role,
-      userCount: role.users?.length || 0,
-      users: undefined, // Remove users array from response
-    };
-  }
-
-  async update(id: number, updateRoleDto: UpdateRoleDto): Promise<Role> {
-    const role = await this.findOne(id);
-
-    if (role.isSystem) {
-      throw new ConflictException('系统内置角色不能修改');
-    }
-
-    return super.update(id, updateRoleDto);
-  }
-
-  async remove(id: number): Promise<void> {
-    const role = await this.findOne(id);
-
-    if (role.isSystem) {
-      throw new ConflictException('系统内置角色不能删除');
-    }
-
-    await super.remove(id);
-  }
-
-  async importRoles(roles: CreateRoleDto[]): Promise<{ success: number; failed: number; errors: any[] }> {
-    const result = { success: 0, failed: 0, errors: [] };
-
-    for (const roleDto of roles) {
+    return roles.map(role => {
+      let roleData: any = {};
       try {
-        await this.create(roleDto);
-        result.success++;
-      } catch (error) {
-        result.failed++;
-        result.errors.push({ role: roleDto.name, error: error.message });
+        roleData = JSON.parse(role.value);
+      } catch {
+        roleData = {};
       }
-    }
 
-    return result;
-  }
-
-  async exportRoles(roleIds?: number[]): Promise<any[]> {
-    if (roleIds && roleIds.length > 0) {
-      const roles = await this.rolesRepository.find({
-        where: roleIds.map(id => ({ id })),
-        relations: ['users'],
-      });
-      return roles.map(role => ({
-        ...role,
+      return {
+        id: role.id,
+        key: role.key,
+        name: roleData.name || role.key,
+        description: role.description || roleData.description || '',
+        scope: roleData.scope || 'self',
+        isSystem: roleData.isSystem || false,
         userCount: role.users?.length || 0,
-        users: undefined,
-      }));
-    }
-    return this.findAll();
+        permissions: roleData.permissions || {},
+        createdAt: role.createdAt,
+        updatedAt: role.updatedAt,
+      };
+    });
   }
 
-  async validateRoles(roles: any[]): Promise<{ valid: boolean; errors: any[] }> {
-    const errors = [];
-
-    for (const role of roles) {
-      if (!role.name) {
-        errors.push({ role, error: '角色名称不能为空' });
-      }
-
-      if (role.name) {
-        const existing = await this.rolesRepository.findOne({
-          where: { name: role.name },
-        });
-        if (existing) {
-          errors.push({ role: role.name, error: '角色名称已存在' });
-        }
-      }
-    }
-
-    return { valid: errors.length === 0, errors };
-  }
-
-  async getPermissionTree(): Promise<any> {
-    // 返回完整的权限树结构
-    return {
-      permissions: [
-        {
-          id: 'workspace',
-          label: '工作台',
-          children: [
-            {
-              id: 'project',
-              label: '项目管理',
-              children: [
-                { id: 'project:view', label: '查看项目' },
-                { id: 'project:create', label: '创建项目' },
-                { id: 'project:edit', label: '编辑项目' },
-                { id: 'project:delete', label: '删除项目' },
-                { id: 'project:publish', label: '发布项目' },
-              ],
-            },
-            {
-              id: 'playlist',
-              label: '轮播管理',
-              children: [
-                { id: 'playlist:view', label: '查看轮播' },
-                { id: 'playlist:create', label: '创建轮播' },
-                { id: 'playlist:edit', label: '编辑轮播' },
-                { id: 'playlist:delete', label: '删除轮播' },
-              ],
-            },
-            {
-              id: 'template',
-              label: '模板库',
-              children: [
-                { id: 'template:view', label: '查看模板' },
-                { id: 'template:create', label: '创建模板' },
-                { id: 'template:edit', label: '编辑模板' },
-                { id: 'template:delete', label: '删除模板' },
-                { id: 'template:publish', label: '发布模板' },
-              ],
-            },
-          ],
-        },
-        {
-          id: 'data',
-          label: '数据中心',
-          children: [
-            {
-              id: 'connection',
-              label: '连接配置',
-              children: [
-                { id: 'connection:view', label: '查看连接' },
-                { id: 'connection:create', label: '创建连接' },
-                { id: 'connection:edit', label: '编辑连接' },
-                { id: 'connection:delete', label: '删除连接' },
-                { id: 'connection:test', label: '测试连接' },
-              ],
-            },
-            {
-              id: 'dataset',
-              label: '数据集管理',
-              children: [
-                { id: 'dataset:view', label: '查看数据集' },
-                { id: 'dataset:create', label: '创建数据集' },
-                { id: 'dataset:edit', label: '编辑数据集' },
-                { id: 'dataset:delete', label: '删除数据集' },
-                { id: 'dataset:execute', label: '执行查询' },
-              ],
-            },
-          ],
-        },
-        {
-          id: 'assets',
-          label: '资产管理',
-          children: [
-            {
-              id: 'media',
-              label: '媒体资源库',
-              children: [
-                { id: 'media:view', label: '查看媒体' },
-                { id: 'media:upload', label: '上传媒体' },
-                { id: 'media:edit', label: '编辑媒体' },
-                { id: 'media:delete', label: '删除媒体' },
-              ],
-            },
-            {
-              id: 'component',
-              label: '自定义组件',
-              children: [
-                { id: 'component:view', label: '查看组件' },
-                { id: 'component:create', label: '创建组件' },
-                { id: 'component:edit', label: '编辑组件' },
-                { id: 'component:delete', label: '删除组件' },
-              ],
-            },
-          ],
-        },
-        {
-          id: 'security',
-          label: '安全与权限',
-          children: [
-            {
-              id: 'user',
-              label: '用户管理',
-              children: [
-                { id: 'user:view', label: '查看用户' },
-                { id: 'user:create', label: '创建用户' },
-                { id: 'user:edit', label: '编辑用户' },
-                { id: 'user:delete', label: '删除用户' },
-                { id: 'user:resetPassword', label: '重置密码' },
-              ],
-            },
-            {
-              id: 'department',
-              label: '组织架构',
-              children: [
-                { id: 'department:view', label: '查看部门' },
-                { id: 'department:create', label: '创建部门' },
-                { id: 'department:edit', label: '编辑部门' },
-                { id: 'department:delete', label: '删除部门' },
-              ],
-            },
-            {
-              id: 'role',
-              label: '角色管理',
-              children: [
-                { id: 'role:view', label: '查看角色' },
-                { id: 'role:create', label: '创建角色' },
-                { id: 'role:edit', label: '编辑角色' },
-                { id: 'role:delete', label: '删除角色' },
-                { id: 'role:assign', label: '分配角色' },
-              ],
-            },
-            {
-              id: 'audit',
-              label: '审计日志',
-              children: [
-                { id: 'audit:view', label: '查看日志' },
-                { id: 'audit:export', label: '导出日志' },
-              ],
-            },
-          ],
-        },
-        {
-          id: 'operations',
-          label: '运维中心',
-          children: [
-            {
-              id: 'monitor',
-              label: '系统监控',
-              children: [
-                { id: 'monitor:view', label: '查看监控' },
-                { id: 'monitor:manage', label: '管理监控' },
-              ],
-            },
-            {
-              id: 'integration',
-              label: '集成发布',
-              children: [
-                { id: 'integration:view', label: '查看集成' },
-                { id: 'integration:publish', label: '发布集成' },
-              ],
-            },
-          ],
-        },
-        {
-          id: 'system',
-          label: '系统设置',
-          children: [
-            {
-              id: 'config',
-              label: '系统配置',
-              children: [
-                { id: 'config:view', label: '查看配置' },
-                { id: 'config:edit', label: '编辑配置' },
-              ],
-            },
-            {
-              id: 'whitelist',
-              label: 'IP白名单',
-              children: [
-                { id: 'whitelist:view', label: '查看白名单' },
-                { id: 'whitelist:create', label: '创建白名单' },
-                { id: 'whitelist:edit', label: '编辑白名单' },
-                { id: 'whitelist:delete', label: '删除白名单' },
-              ],
-            },
-            {
-              id: 'backup',
-              label: '备份恢复',
-              children: [
-                { id: 'backup:view', label: '查看备份' },
-                { id: 'backup:create', label: '创建备份' },
-                { id: 'backup:restore', label: '恢复备份' },
-                { id: 'backup:delete', label: '删除备份' },
-              ],
-            },
-            {
-              id: 'recycle',
-              label: '回收站',
-              children: [
-                { id: 'recycle:view', label: '查看回收站' },
-                { id: 'recycle:restore', label: '恢复数据' },
-                { id: 'recycle:delete', label: '彻底删除' },
-              ],
-            },
-          ],
-        },
-      ],
-    };
-  }
-
-  async cloneRole(id: number, newName: string): Promise<Role> {
-    const sourceRole = await this.findOne(id);
-
-    const newRole = this.rolesRepository.create({
-      name: newName,
-      description: sourceRole.description,
-      scope: sourceRole.scope,
-      permissions: sourceRole.permissions,
-      isSystem: false,
+  /**
+   * 获取单个角色（通过ID）
+   */
+  async findById(id: number): Promise<any> {
+    const role = await this.rolesRepository.findOne({
+      where: { id },
+      relations: ['users']
     });
 
-    return this.rolesRepository.save(newRole);
+    if (!role) {
+      throw new NotFoundException(`角色 ID ${id} 不存在`);
+    }
+
+    let roleData: any = {};
+    try {
+      roleData = JSON.parse(role.value);
+    } catch {
+      roleData = {};
+    }
+
+    return {
+      id: role.id,
+      key: role.key,
+      name: roleData.name || role.key,
+      description: role.description || roleData.description || '',
+      scope: roleData.scope || 'self',
+      isSystem: roleData.isSystem || false,
+      userCount: role.users?.length || 0,
+      permissions: roleData.permissions || {},
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt,
+    };
+  }
+
+  /**
+   * 获取单个角色（通过key）
+   */
+  async findOne(key: string): Promise<any> {
+    const role = await this.rolesRepository.findOne({ where: { key } });
+
+    if (!role) {
+      throw new NotFoundException(`角色 ${key} 不存在`);
+    }
+
+    try {
+      return JSON.parse(role.value);
+    } catch {
+      return role.value;
+    }
+  }
+
+  /**
+   * 更新角色
+   */
+  async update(key: string, updateDto: UpdateRoleDto): Promise<Role> {
+    let role = await this.rolesRepository.findOne({ where: { key } });
+
+    // 构建角色数据
+    let roleData: any;
+    if (updateDto.value) {
+      // 兼容旧格式
+      roleData = typeof updateDto.value === 'string'
+        ? updateDto.value
+        : JSON.stringify(updateDto.value);
+    } else if (role) {
+      // 新格式 - 更新现有角色
+      try {
+        const existingData = JSON.parse(role.value);
+        roleData = JSON.stringify({
+          ...existingData,
+          name: updateDto.name !== undefined ? updateDto.name : existingData.name,
+          description: updateDto.description !== undefined ? updateDto.description : existingData.description,
+          scope: updateDto.scope !== undefined ? updateDto.scope : existingData.scope,
+          isSystem: updateDto.isSystem !== undefined ? updateDto.isSystem : existingData.isSystem,
+          permissions: updateDto.permissions !== undefined ? updateDto.permissions : existingData.permissions
+        });
+      } catch {
+        roleData = JSON.stringify({
+          name: updateDto.name || key,
+          description: updateDto.description || '',
+          scope: updateDto.scope || 'self',
+          isSystem: updateDto.isSystem || false,
+          permissions: updateDto.permissions || {}
+        });
+      }
+    } else {
+      // 新格式 - 创建新角色
+      roleData = JSON.stringify({
+        name: updateDto.name || key,
+        description: updateDto.description || '',
+        scope: updateDto.scope || 'self',
+        isSystem: updateDto.isSystem || false,
+        permissions: updateDto.permissions || {}
+      });
+    }
+
+    if (role) {
+      role.value = roleData;
+      if (updateDto.description !== undefined) {
+        role.description = updateDto.description;
+      }
+    } else {
+      role = this.rolesRepository.create({
+        key,
+        value: roleData,
+        description: updateDto.description,
+      });
+    }
+
+    return await this.rolesRepository.save(role);
+  }
+
+  /**
+   * 批量更新角色
+   */
+  async batchUpdate(roles: Record<string, any>): Promise<{ success: boolean; updated: number }> {
+    let updated = 0;
+
+    for (const [key, value] of Object.entries(roles)) {
+      await this.update(key, { value: typeof value === 'string' ? value : JSON.stringify(value) });
+      updated++;
+    }
+
+    return { success: true, updated };
+  }
+
+  /**
+   * 删除角色
+   */
+  async remove(key: string): Promise<void> {
+    await this.rolesRepository.delete({ key });
+  }
+
+  /**
+   * 获取权限树
+   */
+  async getPermissionTree() {
+    // 定义系统所有可用权限的树形结构
+    return [
+      {
+        key: 'users',
+        label: '用户管理',
+        children: [
+          { key: 'users.view', label: '查看用户' },
+          { key: 'users.create', label: '创建用户' },
+          { key: 'users.edit', label: '编辑用户' },
+          { key: 'users.delete', label: '删除用户' },
+          { key: 'users.all', label: '所有权限' },
+        ],
+      },
+      {
+        key: 'roles',
+        label: '角色管理',
+        children: [
+          { key: 'roles.view', label: '查看角色' },
+          { key: 'roles.create', label: '创建角色' },
+          { key: 'roles.edit', label: '编辑角色' },
+          { key: 'roles.delete', label: '删除角色' },
+          { key: 'roles.all', label: '所有权限' },
+        ],
+      },
+      {
+        key: 'projects',
+        label: '项目管理',
+        children: [
+          { key: 'projects.view', label: '查看项目' },
+          { key: 'projects.create', label: '创建项目' },
+          { key: 'projects.edit', label: '编辑项目' },
+          { key: 'projects.delete', label: '删除项目' },
+          { key: 'projects.publish', label: '发布项目' },
+          { key: 'projects.all', label: '所有权限' },
+        ],
+      },
+      {
+        key: 'templates',
+        label: '模板管理',
+        children: [
+          { key: 'templates.view', label: '查看模板' },
+          { key: 'templates.create', label: '创建模板' },
+          { key: 'templates.edit', label: '编辑模板' },
+          { key: 'templates.delete', label: '删除模板' },
+          { key: 'templates.publish', label: '发布模板' },
+          { key: 'templates.all', label: '所有权限' },
+        ],
+      },
+      {
+        key: 'datasets',
+        label: '数据集管理',
+        children: [
+          { key: 'datasets.view', label: '查看数据集' },
+          { key: 'datasets.create', label: '创建数据集' },
+          { key: 'datasets.edit', label: '编辑数据集' },
+          { key: 'datasets.delete', label: '删除数据集' },
+          { key: 'datasets.all', label: '所有权限' },
+        ],
+      },
+      {
+        key: 'connections',
+        label: '数据源连接',
+        children: [
+          { key: 'connections.view', label: '查看连接' },
+          { key: 'connections.create', label: '创建连接' },
+          { key: 'connections.edit', label: '编辑连接' },
+          { key: 'connections.delete', label: '删除连接' },
+          { key: 'connections.all', label: '所有权限' },
+        ],
+      },
+      {
+        key: 'media',
+        label: '媒体资源',
+        children: [
+          { key: 'media.view', label: '查看媒体' },
+          { key: 'media.upload', label: '上传媒体' },
+          { key: 'media.edit', label: '编辑媒体' },
+          { key: 'media.delete', label: '删除媒体' },
+          { key: 'media.all', label: '所有权限' },
+        ],
+      },
+      {
+        key: 'components',
+        label: '组件库',
+        children: [
+          { key: 'components.view', label: '查看组件' },
+          { key: 'components.create', label: '创建组件' },
+          { key: 'components.edit', label: '编辑组件' },
+          { key: 'components.delete', label: '删除组件' },
+          { key: 'components.all', label: '所有权限' },
+        ],
+      },
+      {
+        key: 'system',
+        label: '系统设置',
+        children: [
+          { key: 'system.view', label: '查看设置' },
+          { key: 'system.config', label: '修改配置' },
+          { key: 'system.backup', label: '备份数据' },
+          { key: 'system.restore', label: '恢复数据' },
+          { key: 'system.all', label: '所有权限' },
+        ],
+      },
+      {
+        key: 'security',
+        label: '安全管理',
+        children: [
+          { key: 'security.view', label: '查看安全日志' },
+          { key: 'security.config', label: '配置安全策略' },
+          { key: 'security.all', label: '所有权限' },
+        ],
+      },
+    ];
+  }
+
+  /**
+   * 获取角色权限
+   */
+  async getRolePermissions(id: number): Promise<any> {
+    const role = await this.rolesRepository.findOne({ where: { id } });
+
+    if (!role) {
+      throw new NotFoundException(`角色 ID ${id} 不存在`);
+    }
+
+    try {
+      const data = JSON.parse(role.value);
+      return data.permissions || {};
+    } catch {
+      return {};
+    }
+  }
+
+  /**
+   * 更新角色权限
+   */
+  async updateRolePermissions(id: number, permissions: any): Promise<any> {
+    const role = await this.rolesRepository.findOne({ where: { id } });
+
+    if (!role) {
+      throw new NotFoundException(`角色 ID ${id} 不存在`);
+    }
+
+    try {
+      const data = JSON.parse(role.value);
+      data.permissions = permissions;
+      role.value = JSON.stringify(data);
+      await this.rolesRepository.save(role);
+      return { success: true, permissions };
+    } catch (error) {
+      throw new Error('更新权限失败');
+    }
   }
 }

@@ -14,15 +14,8 @@ export class AuthService {
   ) {}
 
   async validateUser(username: string, password: string): Promise<User | null> {
-    // 支持用户名、邮箱、手机号登录 - 优化为一次查询
-    const user = await this.usersService.findOneBy(
-      [
-        { username },
-        { email: username },
-        { phone: username }
-      ] as any,
-      ['role']
-    );
+    // 支持用户名、邮箱、手机号登录
+    const user = await this.usersService.findByUsernameOrEmailOrPhone(username);
 
     if (!user) {
       return null;

@@ -3,21 +3,16 @@ import {
   Get,
   Post,
   Body,
-  Patch,
-  Put,
   Param,
   Delete,
-  UseInterceptors,
-  UploadedFile,
-  Res,
   UseGuards,
+  Put,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiConsumes, ApiBearerAuth } from '@nestjs/swagger';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { BatchUpdateRoleDto } from './dto/batch-update-role.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('roles')
@@ -45,63 +40,55 @@ export class RolesController {
     return this.rolesService.getPermissionTree();
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: '获取角色详情' })
-  findOne(@Param('id') id: string) {
-    return this.rolesService.findOne(+id);
+  @Get(':id/permissions')
+  @ApiOperation({ summary: '获取角色权限' })
+  getRolePermissions(@Param('id') id: string) {
+    return this.rolesService.getRolePermissions(+id);
+  }
+
+  @Put(':id/permissions')
+  @ApiOperation({ summary: '更新角色权限' })
+  updateRolePermissions(@Param('id') id: string, @Body() body: { permissions: any }) {
+    return this.rolesService.updateRolePermissions(+id, body.permissions);
+  }
+
+  @Get(':key')
+  @ApiOperation({ summary: '获取单个角色' })
+  findOne(@Param('key') key: string) {
+    return this.rolesService.findOne(key);
   }
 
   @Put(':id')
   @ApiOperation({ summary: '更新角色' })
-  update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
-    return this.rolesService.update(+id, updateRoleDto);
+  async updateById(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
+    // 先通过 ID 查找角色获取 key
+    const role = await this.rolesService.findById(+id);
+    return this.rolesService.update(role.key, updateRoleDto);
   }
 
-  @Patch(':id')
-  @ApiOperation({ summary: '更新角色（部分）' })
-  patch(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
-    return this.rolesService.update(+id, updateRoleDto);
+  @Put('key/:key')
+  @ApiOperation({ summary: '通过key更新角色' })
+  update(@Param('key') key: string, @Body() updateRoleDto: UpdateRoleDto) {
+    return this.rolesService.update(key, updateRoleDto);
+  }
+
+  @Post('batch')
+  @ApiOperation({ summary: '批量更新角色' })
+  batchUpdate(@Body() batchUpdateDto: BatchUpdateRoleDto) {
+    return this.rolesService.batchUpdate(batchUpdateDto.roles);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '删除角色' })
-  remove(@Param('id') id: string) {
-    return this.rolesService.remove(+id);
+  async removeById(@Param('id') id: string) {
+    // 先通过 ID 查找角色获取 key
+    const role = await this.rolesService.findById(+id);
+    return this.rolesService.remove(role.key);
   }
 
-  @Post('import')
-  @ApiOperation({ summary: '批量导入角色' })
-  importRoles(@Body() body: { roles: CreateRoleDto[] }) {
-    return this.rolesService.importRoles(body.roles);
-  }
-
-  @Post('export')
-  @ApiOperation({ summary: '导出角色' })
-  async exportRoles(@Body() body: { roleIds?: number[] }, @Res() res: Response) {
-    const roles = await this.rolesService.exportRoles(body.roleIds);
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', 'attachment; filename=roles.json');
-    res.send(JSON.stringify(roles, null, 2));
-  }
-
-  @Post('upload')
-  @ApiOperation({ summary: '上传角色JSON文件' })
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadRoleFile(@UploadedFile() file: Express.Multer.File) {
-    const roles = JSON.parse(file.buffer.toString());
-    return this.rolesService.importRoles(roles);
-  }
-
-  @Post('validate')
-  @ApiOperation({ summary: '验证角色数据' })
-  validateRoles(@Body() body: { roles: any[] }) {
-    return this.rolesService.validateRoles(body.roles);
-  }
-
-  @Post(':id/clone')
-  @ApiOperation({ summary: '复制角色' })
-  cloneRole(@Param('id') id: string, @Body() body: { name: string }) {
-    return this.rolesService.cloneRole(+id, body.name);
+  @Delete('key/:key')
+  @ApiOperation({ summary: '通过key删除角色' })
+  remove(@Param('key') key: string) {
+    return this.rolesService.remove(key);
   }
 }

@@ -42,25 +42,36 @@ export class UsersService extends BaseService<User> {
 
   async findAll(): Promise<User[]> {
     return super.findAll({
-      relations: ['role'],
+      relations: ['role', 'department'],
       order: { createdAt: 'DESC' },
     });
   }
 
   async findOne(id: number): Promise<User> {
-    return super.findOne(id, ['role']);
+    return super.findOne(id, ['role', 'department']);
   }
 
   async findByUsername(username: string): Promise<User | null> {
-    return this.findOneBy({ username }, ['role']);
+    return this.findOneBy({ username }, ['role', 'department']);
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.findOneBy({ email }, ['role']);
+    return this.findOneBy({ email }, ['role', 'department']);
   }
 
   async findByPhone(phone: string): Promise<User | null> {
-    return this.findOneBy({ phone }, ['role']);
+    return this.findOneBy({ phone }, ['role', 'department']);
+  }
+
+  async findByUsernameOrEmailOrPhone(identifier: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: [
+        { username: identifier },
+        { email: identifier },
+        { phone: identifier }
+      ],
+      relations: ['role', 'department']
+    });
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {

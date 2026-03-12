@@ -13,7 +13,7 @@
       <div class="toolbar-right">
         <slot name="toolbar-right">
           <!-- 搜索框 -->
-          <el-input
+          <a-input
             v-if="showSearch"
             v-model="searchQuery"
             :placeholder="searchPlaceholder"
@@ -24,14 +24,14 @@
           />
 
           <!-- 视图切换按钮 -->
-          <el-radio-group v-model="currentView" size="small" class="view-toggle">
-            <el-radio-button value="grid">
-              <el-icon><Grid /></el-icon>
-            </el-radio-button>
-            <el-radio-button value="list">
-              <el-icon><List /></el-icon>
-            </el-radio-button>
-          </el-radio-group>
+          <a-radio-group v-model="currentView" size="small" class="view-toggle">
+            <a-radio-button value="grid">
+              <Grid />
+            </a-radio-button>
+            <a-radio-button value="list">
+              <List />
+            </a-radio-button>
+          </a-radio-group>
         </slot>
       </div>
     </div>
@@ -95,7 +95,7 @@
 
     <!-- 分页 -->
     <div v-if="showPagination && filteredData.length > 0" class="view-switcher__pagination">
-      <el-pagination
+      <a-pagination
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
         :total="total"
@@ -110,7 +110,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Grid, List } from '@element-plus/icons-vue'
+import { AppstoreOutlined, UnorderedListOutlined } from '@ant-design/icons-vue'
 import EmptyState from '../EmptyState/index.vue'
 import { debounce } from 'lodash-es'
 
@@ -329,144 +329,3 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-.view-switcher {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.view-switcher__toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-card);
-}
-
-.toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.toolbar-title {
-  margin: 0;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-}
-
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.toolbar-search {
-  width: 240px;
-}
-
-.view-toggle {
-  flex-shrink: 0;
-}
-
-.view-switcher__content {
-  flex: 1;
-  overflow: auto;
-  padding: var(--spacing-lg);
-}
-
-/* 网格视图 */
-.grid-view {
-  min-height: 200px;
-}
-
-.grid-item {
-  cursor: pointer;
-  transition: all var(--transition-base);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-.grid-item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-hover);
-}
-
-.grid-item.selected {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.default-grid-item {
-  padding: var(--spacing-xl);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  text-align: center;
-}
-
-/* 列表视图 */
-.list-view {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  min-height: 200px;
-}
-
-.list-item {
-  cursor: pointer;
-  transition: all var(--transition-base);
-  border-radius: var(--radius-md);
-}
-
-.list-item:hover {
-  background: var(--bg-hover);
-}
-
-.list-item.selected {
-  background: var(--bg-active);
-  border-left: 3px solid var(--color-primary);
-}
-
-.default-list-item {
-  padding: var(--spacing-lg);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-}
-
-/* 空状态 */
-.empty-container {
-  grid-column: 1 / -1;
-  padding: var(--spacing-3xl) 0;
-}
-
-/* 分页 */
-.view-switcher__pagination {
-  display: flex;
-  justify-content: center;
-  padding: var(--spacing-lg);
-  border-top: 1px solid var(--border);
-  background: var(--bg-card);
-}
-
-/* 响应式 */
-@media (max-width: 768px) {
-  .view-switcher__toolbar {
-    flex-direction: column;
-    gap: var(--spacing-md);
-    align-items: stretch;
-  }
-
-  .toolbar-right {
-    justify-content: space-between;
-  }
-
-  .toolbar-search {
-    flex: 1;
-  }
-}
-</style>

@@ -2,7 +2,7 @@
  * 文件下载和导出工具函数
  */
 
-import { ElMessage } from 'element-plus'
+import { message } from 'ant-design-vue'
 
 /**
  * 导出CSV文件
@@ -15,7 +15,7 @@ import { ElMessage } from 'element-plus'
  */
 export function exportToCSV(data, filename, headers) {
   if (!data || data.length === 0) {
-    ElMessage.warning('没有数据可导出')
+    message.warning('没有数据可导出')
     return
   }
 
@@ -58,7 +58,7 @@ export function exportToCSV(data, filename, headers) {
  */
 export function exportToJSON(data, filename, pretty = true) {
   if (!data) {
-    ElMessage.warning('没有数据可导出')
+    message.warning('没有数据可导出')
     return
   }
 
@@ -75,7 +75,7 @@ export function exportToJSON(data, filename, pretty = true) {
  */
 export async function exportToExcel(data, filename, sheetName = 'Sheet1') {
   if (!data || data.length === 0) {
-    ElMessage.warning('没有数据可导出')
+    message.warning('没有数据可导出')
     return
   }
 
@@ -90,10 +90,10 @@ export async function exportToExcel(data, filename, sheetName = 'Sheet1') {
 
     // 导出文件
     XLSX.writeFile(workbook, `${filename}.xlsx`)
-    ElMessage.success('导出成功')
+    message.success('导出成功')
   } catch (error) {
     console.error('导出Excel失败:', error)
-    ElMessage.error('导出Excel失败，请确保已安装 xlsx 库')
+    message.error('导出Excel失败，请确保已安装 xlsx 库')
   }
 }
 
@@ -117,7 +117,7 @@ export function downloadBlob(blob, filename) {
   // 释放URL对象
   URL.revokeObjectURL(url)
 
-  ElMessage.success('下载成功')
+  message.success('下载成功')
 }
 
 /**
@@ -136,7 +136,7 @@ export function downloadRemoteFile(url, filename) {
     .then(blob => downloadBlob(blob, filename))
     .catch(error => {
       console.error('下载失败:', error)
-      ElMessage.error('下载失败，请稍后重试')
+      message.error('下载失败，请稍后重试')
     })
 }
 
@@ -203,6 +203,6 @@ export function exportData(data, filename, format = 'csv', options = {}) {
       exportToExcel(data, filename, options.sheetName)
       break
     default:
-      ElMessage.error(`不支持的导出格式: ${format}`)
+      message.error(`不支持的导出格式: ${format}`)
   }
 }

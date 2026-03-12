@@ -1,170 +1,86 @@
 <template>
   <div class="login-container">
-    <!-- 左侧展示区 -->
-    <div class="login-banner">
-      <div class="banner-inner">
-        <div class="logo-section">
-          <div class="logo">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-              <rect width="48" height="48" rx="12" fill="url(#gradient)" />
-              <path d="M24 12L32 18V30L24 36L16 30V18L24 12Z" stroke="white" stroke-width="2" fill="none"/>
-              <defs>
-                <linearGradient id="gradient" x1="0" y1="0" x2="48" y2="48">
-                  <stop offset="0%" stop-color="#667eea" />
-                  <stop offset="100%" stop-color="#764ba2" />
-                </linearGradient>
-              </defs>
-            </svg>
-            <span class="logo-text">NocoViz</span>
-          </div>
-        </div>
+    <!-- 科技感背景 -->
+    <canvas ref="canvasRef" class="tech-background"></canvas>
 
-        <!-- 展示图片 -->
-        <div class="banner-image">
-          <div class="image-placeholder">
-            <el-icon :size="120"><DataAnalysis /></el-icon>
-          </div>
-          <h3 class="banner-title">开箱即用的高质量模板</h3>
-          <p class="banner-desc">丰富的页面模板，覆盖大多数典型业务场景</p>
-        </div>
-      </div>
-    </div>
+    <!-- 网格背景 -->
+    <div class="grid-background"></div>
 
-    <!-- 右侧登录区 -->
-    <div class="login-panel">
-      <div class="login-panel-inner">
-        <div class="login-header">
-          <h2 class="login-title">{{ isLoginMode ? '登录 NocoViz' : '注册 NocoViz' }}</h2>
-          <p class="login-subtitle">{{ isLoginMode ? '登录 NocoViz' : '注册 NocoViz' }}</p>
-        </div>
+    <!-- 光效 -->
+    <div class="light-effect"></div>
 
-        <el-form
-          ref="formRef"
-          :model="formData"
-          :rules="formRules"
-          class="login-form"
-          @submit.prevent="handleSubmit"
-        >
-          <!-- 用户名 -->
-          <el-form-item prop="username">
-            <el-input
-              v-model="formData.username"
-              :placeholder="isLoginMode ? 'admin' : '用户名'"
-              size="large"
-              clearable
-            >
-              <template #prefix>
-                <el-icon><User /></el-icon>
-              </template>
-            </el-input>
-          </el-form-item>
+    <!-- 登录表单 -->
+    <a-flex vertical align="center" justify="center" :style="containerStyle">
+      <a-card :style="cardStyle" class="login-card">
+        <a-space direction="vertical" :size="24" style="width: 100%">
+          <a-flex vertical align="center" :gap="16">
+            <img src="/logo.png" alt="NocoViz" :style="logoStyle" />
+            <a-typography-title :level="3" style="margin: 0">NocoViz</a-typography-title>
+            <a-typography-text type="secondary">数据可视化平台</a-typography-text>
+          </a-flex>
 
-          <!-- 注册时的邮箱 -->
-          <el-form-item v-if="!isLoginMode" prop="email">
-            <el-input
-              v-model="formData.email"
-              placeholder="邮箱"
-              size="large"
-              clearable
-            >
-              <template #prefix>
-                <el-icon><Message /></el-icon>
-              </template>
-            </el-input>
-          </el-form-item>
-
-          <!-- 密码 -->
-          <el-form-item prop="password">
-            <el-input
-              v-model="formData.password"
-              type="password"
-              :placeholder="isLoginMode ? '······' : '密码'"
-              size="large"
-              show-password
-              clearable
-            >
-              <template #prefix>
-                <el-icon><Lock /></el-icon>
-              </template>
-            </el-input>
-          </el-form-item>
-
-          <!-- 注册时的确认密码 -->
-          <el-form-item v-if="!isLoginMode" prop="password_confirm">
-            <el-input
-              v-model="formData.password_confirm"
-              type="password"
-              placeholder="确认密码"
-              size="large"
-              show-password
-              clearable
-            >
-              <template #prefix>
-                <el-icon><Lock /></el-icon>
-              </template>
-            </el-input>
-          </el-form-item>
-
-          <!-- 登录选项 -->
-          <div v-if="isLoginMode" class="login-options">
-            <el-checkbox v-model="rememberMe">记住密码</el-checkbox>
-            <el-link type="primary" :underline="false">忘记密码</el-link>
-          </div>
-
-          <!-- 提交按钮 -->
-          <el-button
-            type="primary"
-            size="large"
-            class="submit-btn"
-            :loading="loading"
-            native-type="submit"
+          <a-form
+            ref="formRef"
+            :model="formData"
+            :rules="formRules"
+            @finish="handleSubmit"
           >
-            {{ isLoginMode ? '登录' : '注册' }}
-          </el-button>
+            <a-form-item name="username">
+              <a-input
+                v-model:value="formData.username"
+                placeholder="用户名"
+                size="large"
+              />
+            </a-form-item>
 
-          <!-- 切换登录/注册 -->
-          <div class="toggle-mode">
-            <el-link type="primary" :underline="false" @click="toggleMode">
-              {{ isLoginMode ? '注册账号' : '使用已有账号登录' }}
-            </el-link>
-          </div>
-        </el-form>
+            <a-form-item name="password">
+              <a-input-password
+                v-model:value="formData.password"
+                placeholder="密码"
+                size="large"
+              />
+            </a-form-item>
 
-        <!-- 页脚 -->
-        <div class="login-footer">
-          <span>Arco Pro</span>
-        </div>
-      </div>
-    </div>
+            <a-form-item>
+              <a-checkbox v-model:checked="formData.remember">
+                记住密码
+              </a-checkbox>
+            </a-form-item>
+
+            <a-button
+              type="primary"
+              html-type="submit"
+              size="large"
+              :loading="loading"
+              block
+            >
+              登录
+            </a-button>
+          </a-form>
+        </a-space>
+      </a-card>
+    </a-flex>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { User, Lock, Message, DataAnalysis } from '@element-plus/icons-vue'
+import { message } from 'ant-design-vue'
 import { useUserStore } from '@/store'
 
 const router = useRouter()
 const userStore = useUserStore()
-
-// 模式切换：true=登录，false=注册
-const isLoginMode = ref(true)
 const loading = ref(false)
-const rememberMe = ref(false)
-const formRef = ref(null)
+const canvasRef = ref(null)
 
-// 表单数据
 const formData = reactive({
   username: '',
-  email: '',
   password: '',
-  password_confirm: ''
+  remember: false
 })
 
-// 验证规则
-const loginRules = {
+const formRules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' }
   ],
@@ -174,354 +90,257 @@ const loginRules = {
   ]
 }
 
-const registerRules = {
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 150, message: '用户名长度3-150位', trigger: 'blur' },
-    { pattern: /^[a-zA-Z0-9_]+$/, message: '用户名只能包含字母、数字和下划线', trigger: 'blur' }
-  ],
-  email: [
-    { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
-  ],
-  password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码长度至少6位', trigger: 'blur' }
-  ],
-  password_confirm: [
-    { required: true, message: '请确认密码', trigger: 'blur' },
-    {
-      validator: (rule, value, callback) => {
-        if (value !== formData.password) {
-          callback(new Error('两次密码不一致'))
-        } else {
-          callback()
-        }
-      },
-      trigger: 'blur'
-    }
-  ]
-}
-
-const formRules = computed(() => isLoginMode.value ? loginRules : registerRules)
-
-// 切换登录/注册模式
-const toggleMode = () => {
-  isLoginMode.value = !isLoginMode.value
-  formRef.value?.clearValidate()
-  // 清空表单
-  Object.keys(formData).forEach(key => {
-    formData[key] = ''
-  })
-}
-
-// 提交表单
 const handleSubmit = async () => {
   try {
-    // 表单验证
-    await formRef.value.validate()
-
     loading.value = true
-
-    if (isLoginMode.value) {
-      // 登录
-      await userStore.login({
-        username: formData.username,
-        password: formData.password
-      })
-
-      ElMessage.success('登录成功')
-
-      // 跳转到首页
-      router.push('/')
-    } else {
-      // 注册
-      await userStore.register({
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-        password_confirm: formData.password_confirm
-      })
-
-      ElMessage.success('注册成功')
-
-      // 跳转到首页
-      router.push('/')
-    }
+    await userStore.login({
+      username: formData.username,
+      password: formData.password
+    })
+    message.success('登录成功')
+    router.push('/')
   } catch (error) {
-    console.error('提交失败:', error)
-
-    // 提取错误信息
-    let errorMessage = '提交失败'
-
-    if (error.message) {
-      errorMessage = error.message
-    } else if (error.data?.message) {
-      errorMessage = error.data.message
-    } else if (error.data?.detail) {
-      errorMessage = error.data.detail
-    } else if (typeof error === 'string') {
-      errorMessage = error
-    }
-
-    // 根据错误类型显示不同的提示
-    if (isLoginMode.value) {
-      if (errorMessage.includes('用户名') || errorMessage.includes('密码')) {
-        ElMessage.error(errorMessage)
-      } else if (errorMessage.includes('Unauthorized') || errorMessage.includes('401')) {
-        ElMessage.error('用户名或密码错误')
-      } else {
-        ElMessage.error(errorMessage)
-      }
-    } else {
-      ElMessage.error(errorMessage)
-    }
+    const errorMsg = error.message || error.data?.message || '登录失败，请检查用户名和密码'
+    message.error(errorMsg)
   } finally {
     loading.value = false
   }
 }
+
+// 粒子动画
+let animationId = null
+const particles = []
+
+class Particle {
+  constructor(canvas) {
+    this.canvas = canvas
+    this.x = Math.random() * canvas.width
+    this.y = Math.random() * canvas.height
+    this.vx = (Math.random() - 0.5) * 0.5
+    this.vy = (Math.random() - 0.5) * 0.5
+    this.radius = Math.random() * 2 + 1
+    this.opacity = Math.random() * 0.5 + 0.2
+  }
+
+  update() {
+    this.x += this.vx
+    this.y += this.vy
+
+    if (this.x < 0 || this.x > this.canvas.width) this.vx *= -1
+    if (this.y < 0 || this.y > this.canvas.height) this.vy *= -1
+  }
+
+  draw(ctx) {
+    ctx.beginPath()
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2)
+    ctx.fillStyle = `rgba(64, 150, 255, ${this.opacity})`
+    ctx.fill()
+  }
+}
+
+const initCanvas = () => {
+  const canvas = canvasRef.value
+  if (!canvas) return
+
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+
+  const ctx = canvas.getContext('2d')
+
+  // 创建粒子
+  particles.length = 0
+  for (let i = 0; i < 80; i++) {
+    particles.push(new Particle(canvas))
+  }
+
+  const animate = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // 更新和绘制粒子
+    particles.forEach(particle => {
+      particle.update()
+      particle.draw(ctx)
+    })
+
+    // 绘制连线
+    particles.forEach((p1, i) => {
+      particles.slice(i + 1).forEach(p2 => {
+        const dx = p1.x - p2.x
+        const dy = p1.y - p2.y
+        const distance = Math.sqrt(dx * dx + dy * dy)
+
+        if (distance < 120) {
+          ctx.beginPath()
+          ctx.moveTo(p1.x, p1.y)
+          ctx.lineTo(p2.x, p2.y)
+          ctx.strokeStyle = `rgba(64, 150, 255, ${0.15 * (1 - distance / 120)})`
+          ctx.lineWidth = 0.5
+          ctx.stroke()
+        }
+      })
+    })
+
+    animationId = requestAnimationFrame(animate)
+  }
+
+  animate()
+}
+
+const handleResize = () => {
+  if (canvasRef.value) {
+    canvasRef.value.width = window.innerWidth
+    canvasRef.value.height = window.innerHeight
+  }
+}
+
+onMounted(() => {
+  initCanvas()
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  if (animationId) {
+    cancelAnimationFrame(animationId)
+  }
+  window.removeEventListener('resize', handleResize)
+})
+
+const containerStyle = computed(() => ({
+  minHeight: '100vh',
+  padding: '20px',
+  position: 'relative',
+  zIndex: 10
+}))
+
+const cardStyle = computed(() => ({
+  width: '100%',
+  maxWidth: '380px',
+  padding: '24px'
+}))
+
+const logoStyle = computed(() => ({
+  width: '56px',
+  height: '56px'
+}))
 </script>
 
 <style scoped>
 .login-container {
-  display: flex;
-  min-height: 100vh;
-  background: #f7f8fa;
-}
-
-/* 左侧展示区 */
-.login-banner {
-  flex: 1;
-  background: linear-gradient(163.85deg, #1d2129 0%, #00308f 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1419 100%);
 }
 
-.banner-inner {
+/* 粒子背景 Canvas */
+.tech-background {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  max-width: 440px;
-  color: white;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
 }
 
-.logo-section {
-  margin-bottom: 60px;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.logo-text {
-  font-size: 24px;
-  font-weight: 600;
-  color: white;
-}
-
-.banner-image {
-  margin-top: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 20px;
-}
-
-.image-placeholder {
-  width: 280px;
-  height: 280px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(10px);
-  margin-bottom: 32px;
-}
-
-.image-placeholder .el-icon {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.banner-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: white;
-  margin: 0 0 16px 0;
-}
-
-.banner-desc {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0;
-  line-height: 1.6;
-}
-
-/* 右侧登录区 */
-.login-panel {
-  width: 48%;
-  min-width: 600px;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
-}
-
-.login-panel-inner {
+/* 网格背景 */
+.grid-background {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  max-width: 440px;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(64, 150, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(64, 150, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: gridMove 20s linear infinite;
 }
 
-.login-header {
-  margin-bottom: 32px;
-}
-
-.login-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #1d2129;
-  margin: 0 0 8px 0;
-}
-
-.login-subtitle {
-  font-size: 14px;
-  color: #86909c;
-  margin: 0;
-}
-
-/* 表单 */
-.login-form :deep(.el-form-item) {
-  margin-bottom: 20px;
-}
-
-.login-form :deep(.el-input) {
-  --el-input-bg-color: #f7f8fa;
-  --el-input-border-color: transparent;
-  --el-input-hover-border-color: #165dff;
-  --el-input-focus-border-color: #165dff;
-}
-
-.login-form :deep(.el-input__wrapper) {
-  background: #f7f8fa;
-  box-shadow: none;
-  border-radius: 4px;
-  padding: 0 12px;
-}
-
-.login-form :deep(.el-input__wrapper:hover),
-.login-form :deep(.el-input__wrapper.is-focus) {
-  background: #f7f8fa;
-  box-shadow: 0 0 0 1px #165dff;
-}
-
-.login-form :deep(.el-input__inner) {
-  background: transparent;
-  color: #1d2129;
-  height: 40px;
-}
-
-.login-form :deep(.el-input__inner::placeholder) {
-  color: #c9cdd4;
-}
-
-.login-form :deep(.el-input__prefix),
-.login-form :deep(.el-input__suffix) {
-  color: #86909c !important;
-  background: transparent !important;
-}
-
-.login-form :deep(.el-input__prefix-inner),
-.login-form :deep(.el-input__suffix-inner) {
-  display: flex;
-  align-items: center;
-  background: transparent !important;
-}
-
-.login-form :deep(.el-icon) {
-  background: transparent !important;
-  color: #86909c !important;
-}
-
-/* 登录选项 */
-.login-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.login-options :deep(.el-checkbox__label) {
-  color: #4e5969;
-  font-size: 14px;
-}
-
-.login-options :deep(.el-link) {
-  font-size: 14px;
-}
-
-/* 提交按钮 */
-.submit-btn {
-  width: 100%;
-  height: 40px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 4px;
-  background: #165dff;
-  border: none;
-  margin-bottom: 16px;
-}
-
-.submit-btn:hover {
-  background: #4080ff;
-}
-
-.submit-btn:active {
-  background: #0e42d2;
-}
-
-/* 模式切换 */
-.toggle-mode {
-  text-align: center;
-  margin-bottom: 24px;
-}
-
-.toggle-mode :deep(.el-link) {
-  font-size: 14px;
-}
-
-/* 页脚 */
-.login-footer {
-  text-align: center;
-  font-size: 12px;
-  color: #c9cdd4;
-  margin-top: 40px;
-}
-
-/* 响应式 */
-@media (max-width: 1024px) {
-  .login-banner {
-    display: none;
+@keyframes gridMove {
+  0% {
+    transform: translate(0, 0);
   }
-
-  .login-panel {
-    width: 100%;
+  100% {
+    transform: translate(50px, 50px);
   }
 }
 
-@media (max-width: 768px) {
-  .login-panel {
-    padding: 24px;
-  }
+/* 光效 */
+.light-effect {
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(64, 150, 255, 0.08) 0%,
+    transparent 50%
+  );
+  animation: lightPulse 8s ease-in-out infinite;
+}
 
-  .login-panel-inner {
-    max-width: 100%;
+@keyframes lightPulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
   }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+/* 登录卡片 */
+.login-card {
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 0 80px rgba(64, 150, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  animation: cardFloat 3s ease-in-out infinite;
+}
+
+@keyframes cardFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+:deep(.ant-input) {
+  padding: 8px 11px !important;
+}
+
+:deep(.ant-input-password) {
+  padding: 0 11px 0 0 !important;
+}
+
+:deep(.ant-input-password .ant-input) {
+  padding: 8px 0 8px 11px !important;
+}
+
+:deep(.ant-input-affix-wrapper) {
+  padding: 0 11px 0 0 !important;
+}
+
+:deep(.ant-input-affix-wrapper .ant-input) {
+  padding: 8px 0 8px 11px !important;
+}
+
+:deep(.ant-input-password .ant-input-suffix) {
+  margin-left: 8px;
 }
 </style>

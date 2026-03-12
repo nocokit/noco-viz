@@ -1,5 +1,5 @@
 <template>
-  <el-dialog
+  <a-modal
     v-model="visible"
     :title="title"
     :width="width"
@@ -7,7 +7,7 @@
     :close-on-press-escape="!loading"
     @close="handleClose"
   >
-    <el-form
+    <a-form
       ref="formRef"
       :model="formData"
       :rules="formRules"
@@ -15,19 +15,19 @@
       :label-position="labelPosition"
     >
       <slot :formData="formData" :formRef="formRef"></slot>
-    </el-form>
+    </a-form>
 
     <template #footer>
       <slot name="footer" :loading="loading" :handleSubmit="handleSubmit" :handleCancel="handleCancel">
         <div class="dialog-footer">
-          <el-button @click="handleCancel" :disabled="loading">取消</el-button>
-          <el-button type="primary" @click="handleSubmit" :loading="loading">
+          <a-button @click="handleCancel" :disabled="loading">取消</a-button>
+          <a-button type="primary" @click="handleSubmit" :loading="loading">
             {{ confirmText || '确定' }}
-          </el-button>
+          </a-button>
         </div>
       </slot>
     </template>
-  </el-dialog>
+  </a-modal>
 </template>
 
 <script setup>
@@ -85,10 +85,3 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-</style>

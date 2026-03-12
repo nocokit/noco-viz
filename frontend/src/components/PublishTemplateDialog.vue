@@ -1,79 +1,80 @@
 <template>
-  <el-dialog
-    v-model="visible"
+  <a-modal
+    v-model:open="visible"
     title="发布我的模板"
     width="700px"
-    @close="handleClose"
+    @cancel="handleClose"
   >
-    <el-form
+    <a-form
       ref="formRef"
       :model="form"
       :rules="rules"
-      label-width="100px"
+      :label-col="{ span: 5 }"
+      :wrapper-col="{ span: 19 }"
     >
-      <el-form-item label="模板名称" prop="name" required>
-        <el-input
-          v-model="form.name"
+      <a-form-item label="模板名称" name="name" required>
+        <a-input
+          v-model:value="form.name"
           placeholder="请输入模板名称"
           maxlength="50"
           show-word-limit
         />
-      </el-form-item>
+      </a-form-item>
 
-      <el-form-item label="模板描述" prop="description" required>
-        <el-input
-          v-model="form.description"
+      <a-form-item label="模板描述" name="description" required>
+        <a-input
+          v-model:value="form.description"
           type="textarea"
           :rows="3"
           placeholder="请描述模板的用途和特点"
           maxlength="200"
           show-word-limit
         />
-      </el-form-item>
+      </a-form-item>
 
-      <el-form-item label="分类" prop="category" required>
-        <el-select
-          v-model="form.category"
+      <a-form-item label="分类" name="category" required>
+        <a-select
+          v-model:value="form.category"
           placeholder="请选择分类"
           style="width: 100%"
         >
-          <el-option label="业务分析" value="business" />
-          <el-option label="物联网监控" value="iot" />
-          <el-option label="安全监控" value="security" />
-          <el-option label="物流供应链" value="logistics" />
-          <el-option label="人力资源" value="hr" />
-          <el-option label="客户服务" value="service" />
-          <el-option label="销售管理" value="sales" />
-          <el-option label="UI设计" value="design" />
-          <el-option label="研发效能" value="development" />
-          <el-option label="市场营销" value="marketing" />
-          <el-option label="财务分析" value="finance" />
-          <el-option label="其他" value="other" />
-        </el-select>
-      </el-form-item>
+          <a-select-option label="业务分析" value="business" />
+          <a-select-option label="物联网监控" value="iot" />
+          <a-select-option label="安全监控" value="security" />
+          <a-select-option label="物流供应链" value="logistics" />
+          <a-select-option label="人力资源" value="hr" />
+          <a-select-option label="客户服务" value="service" />
+          <a-select-option label="销售管理" value="sales" />
+          <a-select-option label="UI设计" value="design" />
+          <a-select-option label="研发效能" value="development" />
+          <a-select-option label="市场营销" value="marketing" />
+          <a-select-option label="财务分析" value="finance" />
+          <a-select-option label="其他" value="other" />
+        </a-select>
+      </a-form-item>
 
-      <el-form-item label="部门" prop="department">
-        <el-input
-          v-model="form.department"
+      <a-form-item label="部门" name="department">
+        <a-input
+          v-model:value="form.department"
           placeholder="请输入所属部门"
         />
-      </el-form-item>
+      </a-form-item>
 
-      <el-form-item label="分辨率" prop="resolution">
-        <el-select
-          v-model="form.resolution"
+      <a-form-item label="分辨率" name="resolution">
+        <a-select
+          v-model:value="form.resolution"
           placeholder="请选择分辨率"
           style="width: 100%"
         >
-          <el-option label="1920 x 1080 (标准)" value="1920 x 1080" />
-          <el-option label="3840 x 2160 (4K)" value="3840 x 2160" />
-          <el-option label="1366 x 768 (小屏)" value="1366 x 768" />
-          <el-option label="自适应" value="自适应" />
-        </el-select>
-      </el-form-item>
+          <a-select-option label="1920 x 1080 (标准)" value="1920 x 1080" />
+          <a-select-option label="3840 x 2160 (4K)" value="3840 x 2160" />
+          <a-select-option label="1366 x 768 (小屏)" value="1366 x 768" />
+          <a-select-option label="自适应" value="自适应" />
+        </a-select>
+      </a-form-item>
 
-      <el-form-item label="标签" prop="tags">
-        <el-tag
+      <a-form-item label="标签" name="tags">
+        <a-tag
           v-for="tag in form.tags"
           :key="tag"
           closable
@@ -81,8 +82,8 @@
           style="margin-right: 8px; margin-bottom: 8px;"
         >
           {{ tag }}
-        </el-tag>
-        <el-input
+        </a-tag>
+        <a-input
           v-if="tagInputVisible"
           ref="tagInputRef"
           v-model="tagInputValue"
@@ -91,18 +92,18 @@
           @keyup.enter="handleAddTag"
           @blur="handleAddTag"
         />
-        <el-button
+        <a-button
           v-else
           size="small"
           @click="showTagInput"
         >
           + 添加标签
-        </el-button>
+        </a-button>
         <div class="form-tip">按回车添加标签，最多5个</div>
-      </el-form-item>
+      </a-form-item>
 
-      <el-form-item label="缩略图" prop="thumbnail">
-        <el-upload
+      <a-form-item label="缩略图" name="thumbnail">
+        <a-upload
           class="thumbnail-uploader"
           :action="uploadAction"
           :headers="uploadHeaders"
@@ -114,35 +115,35 @@
         >
           <img v-if="form.thumbnail" :src="getImageUrl(form.thumbnail)" class="thumbnail-preview" />
           <div v-else class="thumbnail-placeholder">
-            <el-icon class="upload-icon"><Plus /></el-icon>
+            <Plus />
             <div class="upload-text">点击上传缩略图</div>
             <div class="upload-tip">建议尺寸 800x450，支持 JPG/PNG</div>
           </div>
-        </el-upload>
-        <el-progress
+        </a-upload>
+        <a-progress
           v-if="uploadProgress > 0 && uploadProgress < 100"
           :percentage="uploadProgress"
           style="margin-top: 10px;"
         />
-      </el-form-item>
+      </a-form-item>
 
-    </el-form>
+    </a-form>
 
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="handleClose">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitting">
+        <a-button @click="handleClose">取消</a-button>
+        <a-button type="primary" @click="handleSubmit" :loading="submitting">
           {{ submitting ? '发布中...' : '发布模板' }}
-        </el-button>
+        </a-button>
       </span>
     </template>
-  </el-dialog>
+  </a-modal>
 </template>
 
 <script setup>
 import { ref, computed, nextTick } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { message } from '@/utils/ui'
+import { PlusOutlined, UploadOutlined } from '@ant-design/icons-vue'
 import { publishTemplate, uploadThumbnail } from '@/api/template'
 
 const props = defineProps({
@@ -218,7 +219,7 @@ const getImageUrl = (url) => {
 // 显示标签输入框
 const showTagInput = () => {
   if (form.value.tags.length >= 5) {
-    ElMessage.warning('最多添加5个标签')
+    message.warning('最多添加5个标签')
     return
   }
   tagInputVisible.value = true
@@ -232,7 +233,7 @@ const handleAddTag = () => {
   const value = tagInputValue.value.trim()
   if (value && !form.value.tags.includes(value)) {
     if (form.value.tags.length >= 5) {
-      ElMessage.warning('最多添加5个标签')
+      message.warning('最多添加5个标签')
     } else {
       form.value.tags.push(value)
     }
@@ -255,11 +256,11 @@ const beforeThumbnailUpload = (file) => {
   const isLt5M = file.size / 1024 / 1024 < 5
 
   if (!isImage) {
-    ElMessage.error('只能上传图片文件!')
+    message.error('只能上传图片文件!')
     return false
   }
   if (!isLt5M) {
-    ElMessage.error('图片大小不能超过 5MB!')
+    message.error('图片大小不能超过 5MB!')
     return false
   }
 
@@ -277,10 +278,10 @@ const handleCustomUpload = async (file) => {
     })
 
     form.value.thumbnail = response.url
-    ElMessage.success('缩略图上传成功')
+    message.success('缩略图上传成功')
   } catch (error) {
     console.error('上传失败:', error)
-    ElMessage.error('上传缩略图失败')
+    message.error('上传缩略图失败')
   }
 }
 
@@ -293,7 +294,7 @@ const handleUploadProgress = (event) => {
 const handleThumbnailSuccess = (response) => {
   if (response.code === 200) {
     form.value.thumbnail = response.data.url
-    ElMessage.success('缩略图上传成功')
+    message.success('缩略图上传成功')
   }
 }
 
@@ -303,7 +304,7 @@ const handleSubmit = async () => {
     await formRef.value.validate()
 
     if (!form.value.thumbnail) {
-      ElMessage.warning('请上传缩略图')
+      message.warning('请上传缩略图')
       return
     }
 
@@ -327,12 +328,12 @@ const handleSubmit = async () => {
 
     try {
       const response = await publishTemplate(submitData)
-      ElMessage.success('模板发布成功！')
+      message.success('模板发布成功！')
       emit('success', response)
       handleClose()
     } catch (error) {
       console.error('发布失败:', error)
-      ElMessage.error('发布模板失败')
+      message.error('发布模板失败')
     }
   } catch (error) {
     console.error('表单验证失败:', error)
@@ -359,62 +360,3 @@ const handleClose = () => {
 }
 </script>
 
-<style scoped>
-.form-tip {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  margin-top: 5px;
-  line-height: 1.5;
-}
-
-.thumbnail-uploader {
-  width: 100%;
-}
-
-.thumbnail-preview {
-  width: 100%;
-  max-height: 300px;
-  object-fit: cover;
-  border-radius: 8px;
-  border: 1px solid var(--el-border-color);
-  cursor: pointer;
-}
-
-.thumbnail-placeholder {
-  width: 100%;
-  height: 200px;
-  border: 2px dashed var(--el-border-color);
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.thumbnail-placeholder:hover {
-  border-color: var(--el-color-primary);
-}
-
-.upload-icon {
-  font-size: 48px;
-  color: var(--el-text-color-secondary);
-  margin-bottom: 12px;
-}
-
-.upload-text {
-  font-size: 14px;
-  color: var(--el-text-color-primary);
-  margin-bottom: 8px;
-}
-
-.upload-tip {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-}
-
-:deep(.el-upload) {
-  width: 100%;
-}
-</style>

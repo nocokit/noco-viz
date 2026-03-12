@@ -2,7 +2,7 @@
   <div class="search-toolbar">
     <div class="toolbar-left">
       <!-- 搜索框 -->
-      <el-input
+      <a-input
         v-model="searchValue"
         :placeholder="placeholder"
         :prefix-icon="Search"
@@ -17,11 +17,11 @@
         <template v-if="$slots['search-suffix']" #suffix>
           <slot name="search-suffix"></slot>
         </template>
-      </el-input>
+      </a-input>
 
       <!-- 筛选器 -->
       <slot name="filters">
-        <el-select
+        <a-select
           v-if="filters && filters.length > 0"
           v-model="selectedFilter"
           :placeholder="filterPlaceholder"
@@ -29,13 +29,13 @@
           class="filter-select"
           @change="handleFilterChange"
         >
-          <el-option
+          <a-select-option
             v-for="filter in filters"
             :key="filter.value"
             :label="filter.label"
             :value="filter.value"
           />
-        </el-select>
+        </a-select>
       </slot>
     </div>
 
@@ -63,23 +63,23 @@
       <slot name="actions"></slot>
 
       <!-- 刷新按钮 -->
-      <el-button
+      <a-button
         v-if="showRefresh"
         :icon="Refresh"
         :loading="refreshing"
         @click="handleRefresh"
       >
         {{ refreshText }}
-      </el-button>
+      </a-button>
 
       <!-- 导出按钮 -->
-      <el-button
+      <a-button
         v-if="showExport"
         :icon="Download"
         @click="handleExport"
       >
         {{ exportText }}
-      </el-button>
+      </a-button>
 
       <!-- 更多操作 -->
       <slot name="more"></slot>
@@ -89,7 +89,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { Search, Refresh, Download } from '@element-plus/icons-vue'
+import { SearchOutlined, ReloadOutlined, DownloadOutlined } from '@ant-design/icons-vue'
 import { debounce } from 'lodash-es'
 
 const props = defineProps({
@@ -216,115 +216,3 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-.search-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-lg);
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-}
-
-.toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex: 1;
-  min-width: 0;
-}
-
-.search-input {
-  width: 300px;
-  max-width: 100%;
-}
-
-.filter-select {
-  width: 180px;
-}
-
-.toolbar-center {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-  flex-shrink: 0;
-}
-
-.toolbar-stats {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xl);
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  white-space: nowrap;
-}
-
-.stat-label {
-  color: var(--text-secondary);
-}
-
-.stat-value {
-  color: var(--text-primary);
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-base);
-}
-
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex-shrink: 0;
-}
-
-/* 响应式 */
-@media (max-width: 1200px) {
-  .search-toolbar {
-    flex-wrap: wrap;
-  }
-
-  .toolbar-left {
-    flex: 1 1 100%;
-  }
-
-  .toolbar-center {
-    flex: 1 1 auto;
-  }
-
-  .toolbar-right {
-    flex: 0 0 auto;
-  }
-}
-
-@media (max-width: 768px) {
-  .search-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .toolbar-left,
-  .toolbar-center,
-  .toolbar-right {
-    width: 100%;
-  }
-
-  .search-input {
-    width: 100%;
-  }
-
-  .toolbar-stats {
-    flex-wrap: wrap;
-    gap: var(--spacing-md);
-  }
-
-  .toolbar-right {
-    justify-content: flex-end;
-  }
-}
-</style>

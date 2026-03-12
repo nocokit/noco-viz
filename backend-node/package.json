@@ -21,6 +21,7 @@
     "typeorm": "typeorm-ts-node-commonjs",
     "db:init": "node scripts/init-database.js",
     "db:seed": "node scripts/seed-mock-data.js",
+    "db:seed:roles": "node scripts/seed-role-permissions.js",
     "db:reset": "node scripts/init-database.js && node scripts/seed-mock-data.js"
   },
   "dependencies": {
@@ -35,6 +36,7 @@
     "@nestjs/swagger": "^7.0.0",
     "@nestjs/typeorm": "^10.0.0",
     "@types/multer": "^2.0.0",
+    "adm-zip": "^0.5.16",
     "axios": "^1.13.2",
     "bcrypt": "^5.1.0",
     "cache-manager": "^7.2.8",

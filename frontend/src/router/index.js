@@ -1,12 +1,14 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import { setupRouterGuards } from './guards'
 import Layout from '@/layout/MainLayout.vue'
-import ComingSoon from '@/components/ComingSoon.vue'
-import ProjectList from '@/views/workspace/ProjectList'
-import SystemMonitor from '@/views/operations/SystemMonitor'
-import DatasourceMonitor from '@/views/operations/DatasourceMonitor'
-import TemplateLibrary from '@/views/workspace/TemplateLibrary'
-import SystemSettings from '@/views/settings/SystemSettings'
+
+// 使用懒加载优化性能
+const ComingSoon = () => import('@/components/ComingSoon.vue')
+const ProjectList = () => import('@/views/workspace/ProjectList')
+const SystemMonitor = () => import('@/views/operations/SystemMonitor')
+const DatasourceMonitor = () => import('@/views/operations/DatasourceMonitor')
+const TemplateLibrary = () => import('@/views/workspace/TemplateLibrary')
+const SystemSettings = () => import('@/views/settings/SystemSettings')
 
 /**
  * NocoViz 私有化部署版路由配置
@@ -54,6 +56,12 @@ const routes = [
         name: 'PlaylistManagement',
         component: () => import('@/views/workspace/PlaylistManagement'),
         meta: { title: '轮播管理', hideLayoutHeader: true }
+      },
+      {
+        path: 'playlist/:id/config',
+        name: 'PlaylistConfig',
+        component: () => import('@/views/workspace/PlaylistManagement/PlaylistConfig.vue'),
+        meta: { title: '配置轮播', requiresAuth: true, hideLayoutHeader: true }
       },
       {
         path: 'templates',
@@ -113,7 +121,7 @@ const routes = [
         path: 'monitor',
         name: 'SystemMonitor',
         component: SystemMonitor,
-        meta: { title: '系统监控' }
+        meta: { title: '系统监控', hideLayoutHeader: true }
       },
       {
         path: 'datasource-monitor',
@@ -125,7 +133,7 @@ const routes = [
         path: 'integration',
         name: 'IntegrationPublish',
         component: () => import('@/views/operations/IntegrationPublish'),
-        meta: { title: '集成发布' }
+        meta: { title: '集成发布', hideLayoutHeader: true }
       },
 
       // ========== 系统设置 ==========
@@ -136,17 +144,17 @@ const routes = [
         meta: { title: '系统配置', hideLayoutHeader: true }
       },
       {
+        path: 'branding',
+        name: 'BrandingManagement',
+        component: () => import('@/views/settings/BrandingManagement'),
+        meta: { title: '品牌化', hideLayoutHeader: true }
+      },
+      {
         path: 'whitelist',
         name: 'IPWhitelist',
         component: () => import('@/views/settings/IPWhitelist'),
         meta: { title: 'IP 白名单', hideLayoutHeader: true }
       },
-      // {
-      //   path: 'backup',
-      //   name: 'BackupRestore',
-      //   component: () => import('@/views/settings/BackupRestore'),
-      //   meta: { title: '备份恢复', hideLayoutHeader: true }
-      // },
       {
         path: 'recycle',
         name: 'Recycle',
@@ -167,13 +175,13 @@ const routes = [
     path: '/editor/report/:id',
     name: 'ReportEditor',
     component: () => import('@/views/editor/ReportEditor'),
-    meta: { title: '报表编辑器' }
+    meta: { title: '报表编辑器', requiresAuth: true }
   },
   {
     path: '/editor/screen/:id',
     name: 'ScreenEditor',
     component: () => import('@/views/ScreenEditor'),
-    meta: { title: '大屏编辑器' }
+    meta: { title: '大屏编辑器', requiresAuth: true }
   },
   {
     path: '/datasource/excel/:id',
@@ -196,7 +204,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes
 })
 

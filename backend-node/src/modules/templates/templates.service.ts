@@ -5,6 +5,7 @@ import { BaseService } from '../../common/base/base.service';
 import { Template, TemplateStatus } from './entities/template.entity';
 import { CreateTemplateDto } from './dto/create-template.dto';
 import { UpdateTemplateDto } from './dto/update-template.dto';
+import * as AdmZip from 'adm-zip';
 
 @Injectable()
 export class TemplatesService extends BaseService<Template> {
@@ -201,9 +202,55 @@ export class TemplatesService extends BaseService<Template> {
           throw new BadRequestException('模板数据缺少必需字段: title');
         }
       } else if (file.mimetype === 'application/zip' || fileExt === '.zip') {
-        // TODO: 解析 ZIP 文件，提取模板配置和资源
-        // 需要安装 adm-zip 或 jszip 包
-        throw new BadRequestException('ZIP 文件导入功能待实现');
+        // 解析 ZIP 文件，提取模板配置和资源
+        const zip = new AdmZip(file.buffer);
+        const zipEntries = zip.getEntries();
+
+        // 查找模板配置文件（template.json 或 config.json）
+        const configEntry = zipEntries.find(
+          (entry) => entry.entryName === 'template.json' || entry.entryName === 'config.json',
+        );
+
+        if (!configEntry) {
+          throw new BadRequestException('ZIP 文件中未找到模板配置文件（template.json 或 config.json）');
+        }
+
+        // 解析配置文件
+        const configContent = configEntry.getData().toString('utf-8');
+        templateData = JSON.parse(configContent);
+
+        // 验证必需字段
+        if (!templateData.title) {
+          throw new BadRequestException('模板数据缺少必需字段: title');
+        }
+
+        // 提取缩略图（如果存在）
+        const thumbnailEntry = zipEntries.find(
+          (entry) =>
+            entry.entryName.startsWith('thumbnail.') &&
+            (entry.entryName.endsWith('.png') ||
+              entry.entryName.endsWith('.jpg') ||
+              entry.entryName.endsWith('.jpeg') ||
+              entry.entryName.endsWith('.svg')),
+        );
+
+        if (thumbnailEntry) {
+          // 保存缩略图到本地（或上传到云存储）
+          const fs = require('fs').promises;
+          const path = require('path');
+          const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'templates');
+
+          // 确保目录存在
+          await fs.mkdir(uploadsDir, { recursive: true });
+
+          const thumbnailFileName = `${Date.now()}-${thumbnailEntry.entryName}`;
+          const thumbnailPath = path.join(uploadsDir, thumbnailFileName);
+
+          await fs.writeFile(thumbnailPath, thumbnailEntry.getData());
+
+          // 设置缩略图 URL
+          templateData.thumbnail = `/uploads/templates/${thumbnailFileName}`;
+        }
       } else {
         throw new BadRequestException('不支持的文件格式');
       }

@@ -4,7 +4,7 @@
     <div class="header">
       <div class="breadcrumb">
         <div class="back-btn" @click="goBack">
-          <el-icon><ArrowLeft /></el-icon>
+          <ArrowLeftOutlined />
           <span>数据连接</span>
         </div>
         <span style="color:#666">/</span>
@@ -12,11 +12,11 @@
       </div>
       <div class="actions">
         <button class="btn" @click="resetChanges">
-          <el-icon><RefreshLeft /></el-icon>
+          <ReloadOutlined />
           重置更改
         </button>
         <button class="btn btn-primary" @click="reuploadFile">
-          <el-icon><Upload /></el-icon>
+          <UploadOutlined />
           重新上传(更新)
         </button>
         <button class="btn btn-save" @click="saveConfig">
@@ -31,9 +31,7 @@
       <div class="schema-panel">
         <div class="panel-title">
           字段配置 ({{ fields.length }})
-          <el-icon style="margin-left:auto; cursor:pointer;" @click="addField">
-            <Plus />
-          </el-icon>
+          <PlusOutlined style="margin-left:auto; cursor:pointer;" @click="addField" />
         </div>
         <div class="field-list">
           <div
@@ -50,9 +48,7 @@
               {{ getTypeBadge(field.type) }}
             </div>
             <div class="field-name">{{ field.label }} ({{ field.key }})</div>
-            <el-icon class="field-edit-icon" @click="editField(index)">
-              <Edit />
-            </el-icon>
+            <EditOutlined class="field-edit-icon" @click="editField(index)" />
           </div>
         </div>
       </div>
@@ -107,39 +103,39 @@
     </div>
 
     <!-- 字段编辑对话框 -->
-    <el-dialog
-      v-model="editDialogVisible"
+    <a-modal
+      v-model:value="editDialogVisible"
       title="编辑字段"
       width="500px"
     >
-      <el-form :model="editingField" label-position="top">
-        <el-form-item label="字段名称">
-          <el-input v-model="editingField.label" placeholder="显示名称" />
-        </el-form-item>
-        <el-form-item label="字段标识">
-          <el-input v-model="editingField.key" placeholder="字段key" />
-        </el-form-item>
-        <el-form-item label="数据类型">
-          <el-select v-model="editingField.type" style="width: 100%;">
-            <el-option label="字符串" value="str" />
-            <el-option label="数值" value="num" />
-            <el-option label="日期" value="date" />
-          </el-select>
-        </el-form-item>
-      </el-form>
+      <a-form :model="editingField" label-position="top">
+        <a-form-item label="字段名称">
+          <a-input v-model:value="editingField.label" placeholder="显示名称" />
+        </a-form-item>
+        <a-form-item label="字段标识">
+          <a-input v-model:value="editingField.key" placeholder="字段key" />
+        </a-form-item>
+        <a-form-item label="数据类型">
+          <a-select v-model:value="editingField.type" style="width: 100%;">
+            <a-select-option label="字符串" value="str" />
+            <a-select-option label="数值" value="num" />
+            <a-select-option label="日期" value="date" />
+          </a-select>
+        </a-form-item>
+      </a-form>
       <template #footer>
-        <el-button @click="editDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveFieldEdit">确定</el-button>
+        <a-button @click="editDialogVisible = false">取消</a-button>
+        <a-button type="primary" @click="saveFieldEdit">确定</a-button>
       </template>
-    </el-dialog>
+    </a-modal>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { ArrowLeft, RefreshLeft, Upload, Plus, Edit } from '@element-plus/icons-vue'
+import { message } from 'ant-design-vue'
+import { ArrowLeftOutlined, ReloadOutlined, UploadOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -234,7 +230,7 @@ const toggleFieldType = (index) => {
   const currentIndex = types.indexOf(currentType)
   const nextIndex = (currentIndex + 1) % types.length
   fields.value[index].type = types[nextIndex]
-  ElMessage.success(`已切换为 ${getTypeLabel(types[nextIndex])}`)
+  message.success(`已切换为 ${getTypeLabel(types[nextIndex])}`)
 }
 
 const editField = (index) => {
@@ -246,7 +242,7 @@ const editField = (index) => {
 const saveFieldEdit = () => {
   if (editingIndex.value >= 0) {
     fields.value[editingIndex.value] = { ...editingField.value }
-    ElMessage.success('字段已更新')
+    message.success('字段已更新')
   }
   editDialogVisible.value = false
 }
@@ -267,345 +263,15 @@ const goBack = () => {
 }
 
 const resetChanges = () => {
-  ElMessage.info('已重置所有更改')
+  message.info('已重置所有更改')
 }
 
 const reuploadFile = () => {
-  ElMessage.info('打开文件上传对话框')
+  message.info('打开文件上传对话框')
 }
 
 const saveConfig = () => {
-  ElMessage.success('配置已保存')
+  message.success('配置已保存')
 }
 </script>
 
-<style scoped>
-/* --- 全局变量：保持 DataV 风格 --- */
-.excel-detail {
-  --bg-body: #101216;
-  --bg-panel: #171b22;
-  --bg-header: #1e2229;
-  --border-color: #303640;
-  --theme-cyan: #26d0ff;
-  --theme-blue: #007aff;
-  --text-main: #a1aeb3;
-  --text-value: #ffffff;
-  --bg-table-head: #262a30;
-  --bg-table-row: #171b22;
-  --bg-table-hover: #2b313a;
-
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background-color: var(--bg-body);
-  color: var(--text-main);
-}
-
-/* --- 顶部导航栏 --- */
-.header {
-  height: 50px;
-  background-color: var(--bg-header);
-  border-bottom: 1px solid #000;
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-  justify-content: space-between;
-  flex-shrink: 0;
-}
-
-.breadcrumb {
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.breadcrumb .current {
-  color: var(--text-value);
-  font-weight: bold;
-}
-
-.back-btn {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--text-main);
-  transition: color 0.2s;
-}
-
-.back-btn:hover {
-  color: var(--theme-cyan);
-}
-
-.actions {
-  display: flex;
-  gap: 10px;
-}
-
-/* 按钮样式 */
-.btn {
-  height: 28px;
-  padding: 0 12px;
-  border-radius: 2px;
-  font-size: 12px;
-  cursor: pointer;
-  border: 1px solid var(--border-color);
-  background: transparent;
-  color: var(--text-main);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.3s;
-}
-
-.btn:hover {
-  border-color: var(--theme-cyan);
-  color: var(--theme-cyan);
-}
-
-.btn-primary {
-  background: rgba(38, 208, 255, 0.1);
-  border-color: var(--theme-cyan);
-  color: var(--theme-cyan);
-}
-
-.btn-primary:hover {
-  background: rgba(38, 208, 255, 0.2);
-  box-shadow: 0 0 10px rgba(38, 208, 255, 0.2);
-}
-
-.btn-save {
-  background: var(--theme-cyan);
-  color: #000;
-  border-color: var(--theme-cyan);
-  font-weight: 600;
-}
-
-.btn-save:hover {
-  background: #40dcff;
-  box-shadow: 0 0 12px rgba(38, 208, 255, 0.4);
-}
-
-/* --- 主内容区 --- */
-.main-container {
-  flex: 1;
-  display: flex;
-  padding: 16px;
-  gap: 16px;
-  overflow: hidden;
-}
-
-/* --- 左侧：字段配置 --- */
-.schema-panel {
-  width: 280px;
-  background-color: var(--bg-panel);
-  border: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-}
-
-.panel-title {
-  height: 40px;
-  display: flex;
-  align-items: center;
-  padding: 0 12px;
-  border-bottom: 1px solid var(--border-color);
-  font-size: 13px;
-  font-weight: bold;
-  color: var(--text-value);
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.field-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px;
-}
-
-.field-item {
-  display: flex;
-  align-items: center;
-  padding: 8px;
-  border-radius: 4px;
-  margin-bottom: 4px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid transparent;
-  transition: all 0.2s;
-}
-
-.field-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: #444;
-}
-
-/* 字段类型图标 */
-.type-badge {
-  width: 36px;
-  height: 20px;
-  background: #333;
-  color: #ccc;
-  font-size: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 3px;
-  margin-right: 10px;
-  font-family: 'SF Mono', Monaco, monospace;
-  cursor: pointer;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.type-badge:hover {
-  transform: scale(1.1);
-}
-
-.type-badge.num {
-  color: #40c4ff;
-  border: 1px solid rgba(64, 196, 255, 0.3);
-  background: rgba(64, 196, 255, 0.1);
-}
-
-.type-badge.str {
-  color: #69f0ae;
-  border: 1px solid rgba(105, 240, 174, 0.3);
-  background: rgba(105, 240, 174, 0.1);
-}
-
-.type-badge.date {
-  color: #ffd740;
-  border: 1px solid rgba(255, 215, 64, 0.3);
-  background: rgba(255, 215, 64, 0.1);
-}
-
-.field-name {
-  flex: 1;
-  font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.field-edit-icon {
-  width: 14px;
-  height: 14px;
-  opacity: 0;
-  transition: opacity 0.2s;
-  cursor: pointer;
-  color: #999;
-}
-
-.field-item:hover .field-edit-icon {
-  opacity: 0.7;
-}
-
-.field-edit-icon:hover {
-  opacity: 1 !important;
-  color: var(--theme-cyan);
-}
-
-/* --- 右侧：数据预览 --- */
-.data-panel {
-  flex: 1;
-  background-color: var(--bg-panel);
-  border: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-width: 0;
-}
-
-.data-info-bar {
-  height: 36px;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  padding: 0 12px;
-  gap: 16px;
-  font-size: 12px;
-  flex-shrink: 0;
-}
-
-.info-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.info-item span {
-  color: var(--text-value);
-  font-family: 'SF Mono', Monaco, monospace;
-}
-
-/* 表格容器 */
-.grid-container {
-  flex: 1;
-  overflow: auto;
-  position: relative;
-}
-
-table {
-  border-collapse: separate;
-  border-spacing: 0;
-  width: 100%;
-  font-size: 12px;
-}
-
-th {
-  background-color: var(--bg-table-head);
-  color: var(--text-value);
-  position: sticky;
-  top: 0;
-  padding: 8px 12px;
-  text-align: left;
-  font-weight: normal;
-  border-bottom: 1px solid var(--border-color);
-  border-right: 1px solid var(--border-color);
-  white-space: nowrap;
-  z-index: 10;
-}
-
-td {
-  border-bottom: 1px solid var(--border-color);
-  border-right: 1px solid var(--border-color);
-  padding: 6px 12px;
-  color: var(--text-main);
-  white-space: nowrap;
-  background: var(--bg-table-row);
-  cursor: cell;
-}
-
-tr:hover td {
-  background-color: var(--bg-table-hover);
-}
-
-/* 选中单元格效果 */
-td:focus {
-  outline: 2px solid var(--theme-cyan);
-  background-color: rgba(38, 208, 255, 0.05);
-  color: #fff;
-  position: relative;
-  z-index: 5;
-}
-
-/* 滚动条 */
-.field-list::-webkit-scrollbar,
-.grid-container::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.field-list::-webkit-scrollbar-thumb,
-.grid-container::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 3px;
-}
-
-.field-list::-webkit-scrollbar-corner,
-.grid-container::-webkit-scrollbar-corner {
-  background: transparent;
-}
-</style>

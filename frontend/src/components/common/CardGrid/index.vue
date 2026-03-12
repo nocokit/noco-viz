@@ -13,9 +13,9 @@
           <div class="card-header">
             <slot name="header" :item="item">
               <div class="card-icon">
-                <el-icon :size="40">
+                
                   <component :is="item.icon || defaultIcon" />
-                </el-icon>
+                
               </div>
             </slot>
           </div>
@@ -34,13 +34,13 @@
               </div>
               <div class="card-actions">
                 <slot name="actions" :item="item">
-                  <el-dropdown v-if="actions.length > 0" trigger="click" @command="handleAction">
-                    <el-button text circle @click.stop>
-                      <el-icon><MoreFilled /></el-icon>
-                    </el-button>
+                  <a-dropdown v-if="actions.length > 0" trigger="click" @command="handleAction">
+                    <a-button text circle @click.stop>
+                      <MoreFilled />
+                    </a-button>
                     <template #dropdown>
-                      <el-dropdown-menu>
-                        <el-dropdown-item
+                      <a-menu>
+                        <a-menu-item
                           v-for="action in visibleActions(item)"
                           :key="action.label"
                           :command="{ action, item }"
@@ -48,10 +48,10 @@
                           :disabled="action.disabled"
                         >
                           {{ action.label }}
-                        </el-dropdown-item>
-                      </el-dropdown-menu>
+                        </a-menu-item>
+                      </a-menu>
                     </template>
-                  </el-dropdown>
+                  </a-dropdown>
                 </slot>
               </div>
             </slot>
@@ -71,7 +71,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Document, MoreFilled } from '@element-plus/icons-vue'
+import { FileOutlined, MoreOutlined } from '@ant-design/icons-vue'
 import { formatDateTime } from '@/utils/formatters'
 import EmptyState from '../EmptyState/index.vue'
 
@@ -145,98 +145,3 @@ const handleAction = ({ action, item }) => {
 }
 </script>
 
-<style scoped>
-.card-grid {
-  display: grid;
-  width: 100%;
-}
-
-.card-grid__item {
-  background: var(--bg-card, #1a1b1e);
-  border: 1px solid var(--border, #35363a);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.card-grid__item--clickable {
-  cursor: pointer;
-}
-
-.card-grid__item--clickable:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  border-color: var(--el-color-primary);
-}
-
-.card-content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 20px;
-}
-
-.card-header {
-  margin-bottom: 16px;
-}
-
-.card-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  background: var(--bg-elevated, #202124);
-  border-radius: 12px;
-  color: var(--el-color-primary);
-}
-
-.card-body {
-  flex: 1;
-  margin-bottom: 16px;
-}
-
-.card-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary, #e8eaed);
-  margin: 0 0 8px 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.card-description {
-  font-size: 14px;
-  color: var(--text-secondary, #9aa0a6);
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  line-height: 1.5;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 12px;
-  border-top: 1px solid var(--border, #35363a);
-}
-
-.card-meta {
-  font-size: 12px;
-  color: var(--text-tertiary, #5f6368);
-}
-
-.card-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.card-grid__empty {
-  grid-column: 1 / -1;
-}
-</style>

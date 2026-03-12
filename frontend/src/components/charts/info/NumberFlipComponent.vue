@@ -38,35 +38,3 @@ const formattedNumber = computed(() => {
 })
 </script>
 
-<style scoped>
-.number-flip-component {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  border-radius: 8px;
-  padding: 20px;
-}
-
-.number-container {
-  text-align: center;
-  color: #fff;
-}
-
-.number-value {
-  font-size: 36px;
-  font-weight: bold;
-  font-variant-numeric: tabular-nums;
-  margin-bottom: 8px;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.number-label {
-  font-size: 14px;
-  opacity: 0.8;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-</style>

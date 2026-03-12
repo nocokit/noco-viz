@@ -1,20 +1,20 @@
 <template>
-  <el-dropdown
+  <a-dropdown
     :trigger="trigger"
     :placement="placement"
     @command="handleCommand"
   >
     <slot>
-      <el-button :type="buttonType" :size="size" :icon="icon">
+      <a-button :type="buttonType" :size="size" :icon="icon">
         {{ text }}
-        <el-icon v-if="!icon" class="el-icon--right"><ArrowDown /></el-icon>
-      </el-button>
+        <ArrowDown />
+      </a-button>
     </slot>
 
     <template #dropdown>
-      <el-dropdown-menu>
+      <a-menu>
         <template v-for="(action, index) in visibleActions" :key="action.command || index">
-          <el-dropdown-item
+          <a-menu-item
             v-if="!action.hidden"
             :command="action.command"
             :disabled="action.disabled"
@@ -24,11 +24,11 @@
             <span :style="{ color: action.danger ? 'var(--el-color-danger)' : '' }">
               {{ action.label }}
             </span>
-          </el-dropdown-item>
+          </a-menu-item>
         </template>
-      </el-dropdown-menu>
+      </a-menu>
     </template>
-  </el-dropdown>
+  </a-dropdown>
 </template>
 
 <script setup>

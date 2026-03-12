@@ -1,6 +1,6 @@
 <template>
   <div class="data-table">
-    <el-table
+    <a-table
       ref="tableRef"
       :data="data"
       :loading="loading"
@@ -17,7 +17,7 @@
       @sort-change="handleSortChange"
     >
       <!-- 多选列 -->
-      <el-table-column
+      <a-table-column
         v-if="selection"
         type="selection"
         width="55"
@@ -25,7 +25,7 @@
       />
 
       <!-- 序号列 -->
-      <el-table-column
+      <a-table-column
         v-if="showIndex"
         type="index"
         label="序号"
@@ -34,7 +34,7 @@
       />
 
       <!-- 动态列 -->
-      <el-table-column
+      <a-table-column
         v-for="column in columns"
         :key="column.prop"
         :prop="column.prop"
@@ -50,10 +50,10 @@
             {{ scope.row[column.prop] }}
           </slot>
         </template>
-      </el-table-column>
+      </a-table-column>
 
       <!-- 操作列 -->
-      <el-table-column
+      <a-table-column
         v-if="actions && actions.length > 0"
         label="操作"
         :width="actionsWidth"
@@ -62,7 +62,7 @@
       >
         <template #default="scope">
           <slot name="actions" :row="scope.row">
-            <el-button
+            <a-button
               v-for="action in visibleActions(scope.row)"
               :key="action.label"
               :type="action.type || 'primary'"
@@ -71,10 +71,10 @@
               @click.stop="action.handler(scope.row)"
             >
               {{ action.label }}
-            </el-button>
+            </a-button>
           </slot>
         </template>
-      </el-table-column>
+      </a-table-column>
 
       <!-- 空状态 -->
       <template #empty>
@@ -82,11 +82,11 @@
           <EmptyState description="暂无数据" />
         </slot>
       </template>
-    </el-table>
+    </a-table>
 
     <!-- 分页 -->
     <div v-if="pagination" class="data-table__pagination">
-      <el-pagination
+      <a-pagination
         v-model:current-page="pagination.page"
         v-model:page-size="pagination.pageSize"
         :total="pagination.total"
@@ -194,34 +194,3 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-.data-table {
-  width: 100%;
-}
-
-.data-table__pagination {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
-  padding: 12px 0;
-}
-
-:deep(.el-table) {
-  background: var(--bg-card, #1a1b1e);
-  color: var(--text-primary, #e8eaed);
-}
-
-:deep(.el-table th.el-table__cell) {
-  background: var(--bg-elevated, #202124);
-  color: var(--text-secondary, #9aa0a6);
-  font-weight: 500;
-}
-
-:deep(.el-table tr:hover > td) {
-  background: var(--bg-hover, #2d2e30) !important;
-}
-
-:deep(.el-table td.el-table__cell) {
-  border-color: var(--border, #35363a);
-}
-</style>

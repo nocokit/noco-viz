@@ -46,8 +46,3 @@ const textStyle = computed(() => ({
 }))
 </script>
 
-<style scoped>
-.text-component {
-  user-select: none;
-}
-</style>

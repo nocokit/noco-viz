@@ -1,5 +1,5 @@
 <template>
-  <el-popconfirm
+  <a-popconfirm
     :title="title"
     :confirm-button-text="confirmText"
     :cancel-button-text="cancelText"
@@ -8,7 +8,7 @@
     @cancel="handleCancel"
   >
     <template #reference>
-      <el-button
+      <a-button
         :type="type"
         :size="size"
         :disabled="disabled"
@@ -18,12 +18,12 @@
         :link="link"
       >
         <slot>{{ buttonText }}</slot>
-      </el-button>
+      </a-button>
     </template>
     <template v-if="message" #default>
       <div class="confirm-message">{{ message }}</div>
     </template>
-  </el-popconfirm>
+  </a-popconfirm>
 </template>
 
 <script setup>
@@ -93,11 +93,3 @@ const handleCancel = () => {
 }
 </script>
 
-<style scoped>
-.confirm-message {
-  font-size: 14px;
-  color: var(--el-text-color-secondary);
-  line-height: 1.6;
-  margin-top: 8px;
-}
-</style>

@@ -3,7 +3,8 @@
  * 支持二次确认输入、异步操作、自定义样式
  */
 
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { Modal, message } from 'ant-design-vue'
+import { h } from 'vue'
 
 /**
  * 确认对话框配置
@@ -42,7 +43,7 @@ export function useConfirmDialog() {
 
     const {
       title = '确认操作',
-      message = '确定要执行此操作吗？',
+      message: msg = '确定要执行此操作吗？',
       type = 'warning',
       confirmButtonText = '确定',
       cancelButtonText = '取消',
@@ -58,58 +59,71 @@ export function useConfirmDialog() {
       beforeClose = null
     } = options
 
-    try {
+    return new Promise((resolve) => {
       const config = {
-        type,
-        confirmButtonText,
-        cancelButtonText,
-        showCancelButton,
-        closeOnClickModal,
-        closeOnPressEscape,
-        dangerouslyUseHTMLString,
-        beforeClose
+        title,
+        content: msg,
+        okText: confirmButtonText,
+        cancelText: cancelButtonText,
+        maskClosable: closeOnClickModal,
+        keyboard: closeOnPressEscape,
+        onOk: () => {
+          resolve(true)
+        },
+        onCancel: () => {
+          resolve(false)
+        }
       }
 
-      // 危险操作样式
+      // 设置按钮类型
       if (type === 'warning' || type === 'error') {
-        config.confirmButtonClass = 'el-button--danger'
+        config.okType = 'danger'
       }
 
-      // 需要输入确认
+      // 如果需要输入确认，使用自定义内容
       if (requireInput) {
-        config.showInput = true
-        config.inputPlaceholder = inputPlaceholder
+        let inputValue = ''
+        let errorMsg = ''
 
-        // 自定义验证器
-        if (inputValidator) {
-          config.inputValidator = inputValidator
-          config.inputErrorMessage = inputErrorMessage
-        }
-        // 正则验证
-        else if (inputPattern) {
-          config.inputPattern = inputPattern
-          config.inputErrorMessage = inputErrorMessage
-        }
-        // 默认非空验证
-        else {
-          config.inputValidator = (value) => {
-            return value && value.trim().length > 0
+        config.content = h('div', [
+          h('p', { style: { marginBottom: '12px' } }, msg),
+          h('input', {
+            type: 'text',
+            placeholder: inputPlaceholder,
+            class: 'ant-input',
+            style: { width: '100%', marginBottom: errorMsg ? '4px' : '0' },
+            onInput: (e) => {
+              inputValue = e.target.value
+              errorMsg = ''
+            }
+          }),
+          errorMsg ? h('p', { style: { color: '#ff4d4f', fontSize: '12px', margin: '4px 0 0' } }, errorMsg) : null
+        ])
+
+        const originalOnOk = config.onOk
+        config.onOk = () => {
+          // 验证输入
+          let isValid = false
+          if (inputValidator) {
+            isValid = inputValidator(inputValue)
+          } else if (inputPattern) {
+            isValid = new RegExp(inputPattern).test(inputValue)
+          } else {
+            isValid = inputValue && inputValue.trim().length > 0
           }
-          config.inputErrorMessage = '输入不能为空'
+
+          if (!isValid) {
+            message.error(inputErrorMessage)
+            return Promise.reject()
+          }
+
+          originalOnOk()
+          return Promise.resolve()
         }
       }
 
-      await ElMessageBox.confirm(message, title, config)
-      return true
-    } catch (error) {
-      // 用户取消
-      if (error === 'cancel' || error === 'close') {
-        return false
-      }
-      // 其他错误
-      console.error('Confirm dialog error:', error)
-      return false
-    }
+      Modal.confirm(config)
+    })
   }
 
   /**
@@ -152,7 +166,7 @@ export function useConfirmDialog() {
    */
   const confirmBatchDelete = async (count, customOptions = {}) => {
     if (!count || count === 0) {
-      ElMessage.warning('请选择要删除的项')
+      message.warning('请选择要删除的项')
       return false
     }
 
@@ -169,13 +183,13 @@ export function useConfirmDialog() {
 
   /**
    * 信息提示（仅确认按钮）
-   * @param {string} message 消息内容
+   * @param {string} msg 消息内容
    * @param {Object} customOptions 自定义选项
    */
-  const alert = async (message, customOptions = {}) => {
+  const alert = async (msg, customOptions = {}) => {
     const options = {
       title: '提示',
-      message,
+      message: msg,
       type: 'info',
       confirmButtonText: '知道了',
       showCancelButton: false,
@@ -187,13 +201,13 @@ export function useConfirmDialog() {
 
   /**
    * 警告提示
-   * @param {string} message 消息内容
+   * @param {string} msg 消息内容
    * @param {Object} customOptions 自定义选项
    */
-  const warning = async (message, customOptions = {}) => {
+  const warning = async (msg, customOptions = {}) => {
     const options = {
       title: '警告',
-      message,
+      message: msg,
       type: 'warning',
       confirmButtonText: '知道了',
       showCancelButton: false,
@@ -205,13 +219,13 @@ export function useConfirmDialog() {
 
   /**
    * 错误提示
-   * @param {string} message 消息内容
+   * @param {string} msg 消息内容
    * @param {Object} customOptions 自定义选项
    */
-  const error = async (message, customOptions = {}) => {
+  const error = async (msg, customOptions = {}) => {
     const options = {
       title: '错误',
-      message,
+      message: msg,
       type: 'error',
       confirmButtonText: '知道了',
       showCancelButton: false,
@@ -223,13 +237,13 @@ export function useConfirmDialog() {
 
   /**
    * 成功提示
-   * @param {string} message 消息内容
+   * @param {string} msg 消息内容
    * @param {Object} customOptions 自定义选项
    */
-  const success = async (message, customOptions = {}) => {
+  const success = async (msg, customOptions = {}) => {
     const options = {
       title: '成功',
-      message,
+      message: msg,
       type: 'success',
       confirmButtonText: '知道了',
       showCancelButton: false,
@@ -240,43 +254,69 @@ export function useConfirmDialog() {
   }
 
   /**
-   * 自定义输入对话框
+   * 输入提示框
+   * @param {string} msg 消息内容
+   * @param {string} title 标题
    * @param {Object} options 配置选项
    */
-  const prompt = async (options = {}) => {
+  const prompt = async (msg, title = '请输入', options = {}) => {
     const {
-      title = '请输入',
-      message = '',
-      inputPlaceholder = '请输入内容',
+      inputPlaceholder = '请输入',
       inputType = 'text',
       inputValue = '',
       inputValidator = null,
-      inputErrorMessage = '输入格式不正确',
+      inputErrorMessage = '输入不合法',
       ...restOptions
     } = options
 
-    try {
-      const result = await ElMessageBox.prompt(message, title, {
-        inputPlaceholder,
-        inputType,
-        inputValue,
-        inputValidator,
-        inputErrorMessage,
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+    let value = inputValue
+    let errorMsg = ''
+
+    return new Promise((resolve) => {
+      Modal.confirm({
+        title,
+        content: h('div', [
+          h('p', { style: { marginBottom: '12px' } }, msg),
+          h('input', {
+            type: inputType,
+            placeholder: inputPlaceholder,
+            value: value,
+            class: 'ant-input',
+            style: { width: '100%', marginBottom: errorMsg ? '4px' : '0' },
+            onInput: (e) => {
+              value = e.target.value
+              errorMsg = ''
+            }
+          }),
+          errorMsg ? h('p', { style: { color: '#ff4d4f', fontSize: '12px', margin: '4px 0 0' } }, errorMsg) : null
+        ]),
+        okText: '确定',
+        cancelText: '取消',
+        onOk: () => {
+          // 验证输入
+          if (inputValidator) {
+            const validResult = inputValidator(value)
+            if (validResult !== true) {
+              message.error(inputErrorMessage)
+              return Promise.reject()
+            }
+          }
+
+          resolve({
+            confirmed: true,
+            value: value
+          })
+          return Promise.resolve()
+        },
+        onCancel: () => {
+          resolve({
+            confirmed: false,
+            value: null
+          })
+        },
         ...restOptions
       })
-
-      return {
-        confirmed: true,
-        value: result.value
-      }
-    } catch (error) {
-      return {
-        confirmed: false,
-        value: null
-      }
-    }
+    })
   }
 
   return {

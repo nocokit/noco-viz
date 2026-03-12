@@ -1,23 +1,25 @@
 <template>
-  <el-form
+  <a-form
     ref="formRef"
     :model="modelValue"
     :rules="rules"
-    :label-width="labelWidth"
-    :label-position="labelPosition"
+    layout="horizontal"
+    :label-col="{ style: { width: '115px', flexShrink: 0 } }"
+    :wrapper-col="{ style: { flex: 1 } }"
     :disabled="disabled"
     v-bind="$attrs"
   >
-    <el-form-item
+    <a-form-item
       v-for="field in fields"
       :key="field.prop"
-      :label="field.label"
       :prop="field.prop"
       :rules="field.rules"
-      :required="field.required"
     >
+      <template #label>
+        <RequiredLabel :label="field.label" :required="field.required" />
+      </template>
       <!-- 输入框 -->
-      <el-input
+      <a-input
         v-if="field.type === 'input'"
         v-model="modelValue[field.prop]"
         :type="field.inputType || 'text'"
@@ -30,7 +32,7 @@
       />
 
       <!-- 文本域 -->
-      <el-input
+      <a-input
         v-else-if="field.type === 'textarea'"
         v-model="modelValue[field.prop]"
         type="textarea"
@@ -43,7 +45,7 @@
       />
 
       <!-- 数字输入 -->
-      <el-input-number
+      <a-input-number
         v-else-if="field.type === 'number'"
         v-model="modelValue[field.prop]"
         :min="field.min"
@@ -55,7 +57,7 @@
       />
 
       <!-- 下拉选择 -->
-      <el-select
+      <a-select
         v-else-if="field.type === 'select'"
         v-model="modelValue[field.prop]"
         :placeholder="field.placeholder"
@@ -65,51 +67,51 @@
         :disabled="field.disabled"
         v-bind="field.props"
       >
-        <el-option
+        <a-select-option
           v-for="option in field.options"
           :key="option.value"
           :label="option.label"
           :value="option.value"
           :disabled="option.disabled"
         />
-      </el-select>
+      </a-select>
 
       <!-- 单选框组 -->
-      <el-radio-group
+      <a-radio-group
         v-else-if="field.type === 'radio'"
         v-model="modelValue[field.prop]"
         :disabled="field.disabled"
         v-bind="field.props"
       >
-        <el-radio
+        <a-radio
           v-for="option in field.options"
           :key="option.value"
           :label="option.value"
           :disabled="option.disabled"
         >
           {{ option.label }}
-        </el-radio>
-      </el-radio-group>
+        </a-radio>
+      </a-radio-group>
 
       <!-- 复选框组 -->
-      <el-checkbox-group
+      <a-checkbox-group
         v-else-if="field.type === 'checkbox'"
         v-model="modelValue[field.prop]"
         :disabled="field.disabled"
         v-bind="field.props"
       >
-        <el-checkbox
+        <a-checkbox
           v-for="option in field.options"
           :key="option.value"
           :label="option.value"
           :disabled="option.disabled"
         >
           {{ option.label }}
-        </el-checkbox>
-      </el-checkbox-group>
+        </a-checkbox>
+      </a-checkbox-group>
 
       <!-- 开关 -->
-      <el-switch
+      <a-switch
         v-else-if="field.type === 'switch'"
         v-model="modelValue[field.prop]"
         :disabled="field.disabled"
@@ -119,7 +121,7 @@
       />
 
       <!-- 日期选择 -->
-      <el-date-picker
+      <a-date-picker
         v-else-if="field.type === 'date'"
         v-model="modelValue[field.prop]"
         :type="field.dateType || 'date'"
@@ -132,7 +134,7 @@
       />
 
       <!-- 时间选择 -->
-      <el-time-picker
+      <a-time-picker
         v-else-if="field.type === 'time'"
         v-model="modelValue[field.prop]"
         :placeholder="field.placeholder"
@@ -144,15 +146,17 @@
       />
 
       <!-- 颜色选择 -->
-      <el-color-picker
+      <input
         v-else-if="field.type === 'color'"
+        type="color"
         v-model="modelValue[field.prop]"
         :disabled="field.disabled"
+        style="width: 100%; height: 32px; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer;"
         v-bind="field.props"
       />
 
       <!-- 滑块 -->
-      <el-slider
+      <a-slider
         v-else-if="field.type === 'slider'"
         v-model="modelValue[field.prop]"
         :min="field.min"
@@ -164,7 +168,7 @@
       />
 
       <!-- 评分 -->
-      <el-rate
+      <a-rate
         v-else-if="field.type === 'rate'"
         v-model="modelValue[field.prop]"
         :max="field.max"
@@ -185,22 +189,23 @@
       <template v-if="field.tip" #extra>
         <div class="form-item-tip">{{ field.tip }}</div>
       </template>
-    </el-form-item>
+    </a-form-item>
 
     <!-- 表单操作按钮 -->
-    <el-form-item v-if="showActions">
+    <a-form-item v-if="showActions">
       <slot name="actions">
-        <el-button @click="handleReset">{{ resetText }}</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit">
+        <a-button @click="handleReset">{{ resetText }}</a-button>
+        <a-button type="primary" :loading="submitting" @click="handleSubmit">
           {{ submitText }}
-        </el-button>
+        </a-button>
       </slot>
-    </el-form-item>
-  </el-form>
+    </a-form-item>
+  </a-form>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import RequiredLabel from '../RequiredLabel/index.vue'
 
 const props = defineProps({
   // 表单数据
@@ -330,10 +335,3 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-.form-item-tip {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-  margin-top: var(--spacing-xs);
-}
-</style>

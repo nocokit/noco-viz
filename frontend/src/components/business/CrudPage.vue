@@ -1,5 +1,5 @@
 <template>
-  <div class="crud-page">
+  <a-space direction="vertical" :size="16" :style="{ width: '100%' }">
     <!-- 页面头部 -->
     <PageHeader
       v-if="showHeader"
@@ -50,104 +50,106 @@
     </CrudTable>
 
     <!-- 创建/编辑对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
+    <a-modal
+      v-model:open="dialogVisible"
       :title="dialogTitle"
       :width="dialogWidth"
-      :close-on-click-modal="false"
-      @close="handleDialogClose"
+      :mask-closable="false"
+      @cancel="handleDialogClose"
     >
-      <el-form
+      <a-form
         ref="formRef"
         :model="formData"
         :rules="formRules"
-        label-position="top"
+        layout="vertical"
       >
         <slot name="form" :form-data="formData" :is-edit="isEdit">
           <!-- 默认表单字段 -->
-          <el-form-item
+          <a-form-item
             v-for="field in formFields"
             :key="field.prop"
             :label="field.label"
-            :prop="field.prop"
+            :name="field.prop"
           >
             <!-- 输入框 -->
-            <el-input
+            <a-input
               v-if="!field.type || field.type === 'input'"
-              v-model="formData[field.prop]"
+              v-model:value="formData[field.prop]"
               :placeholder="field.placeholder"
               :maxlength="field.maxlength"
-              :show-word-limit="field.showWordLimit"
+              :show-count="field.showWordLimit"
             />
 
             <!-- 文本域 -->
-            <el-input
+            <a-textarea
               v-else-if="field.type === 'textarea'"
-              v-model="formData[field.prop]"
-              type="textarea"
+              v-model:value="formData[field.prop]"
               :rows="field.rows || 4"
               :placeholder="field.placeholder"
               :maxlength="field.maxlength"
-              :show-word-limit="field.showWordLimit"
+              :show-count="field.showWordLimit"
             />
 
             <!-- 选择器 -->
-            <el-select
+            <a-select
               v-else-if="field.type === 'select'"
-              v-model="formData[field.prop]"
+              v-model:value="formData[field.prop]"
               :placeholder="field.placeholder"
-              :multiple="field.multiple"
-              :clearable="field.clearable"
+              :mode="field.multiple ? 'multiple' : undefined"
+              :allow-clear="field.clearable"
             >
-              <el-option
+              <a-select-option
                 v-for="option in field.options"
                 :key="option.value"
-                :label="option.label"
                 :value="option.value"
-              />
-            </el-select>
+              >
+                {{ option.label }}
+              </a-select-option>
+            </a-select>
 
             <!-- 日期选择器 -->
-            <el-date-picker
+            <a-date-picker
               v-else-if="field.type === 'date'"
-              v-model="formData[field.prop]"
-              :type="field.dateType || 'date'"
+              v-model:value="formData[field.prop]"
+              :show-time="field.dateType === 'datetime'"
               :placeholder="field.placeholder"
+              :style="{ width: '100%' }"
             />
 
             <!-- 数字输入框 -->
-            <el-input-number
+            <a-input-number
               v-else-if="field.type === 'number'"
-              v-model="formData[field.prop]"
+              v-model:value="formData[field.prop]"
               :min="field.min"
               :max="field.max"
               :step="field.step"
+              :style="{ width: '100%' }"
             />
 
             <!-- 开关 -->
-            <el-switch
+            <a-switch
               v-else-if="field.type === 'switch'"
-              v-model="formData[field.prop]"
+              v-model:checked="formData[field.prop]"
             />
-          </el-form-item>
+          </a-form-item>
         </slot>
-      </el-form>
+      </a-form>
 
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" :loading="submitting" @click="handleSubmit">
+        <a-space>
+          <a-button @click="dialogVisible = false">取消</a-button>
+          <a-button type="primary" :loading="submitting" @click="handleSubmit">
             {{ isEdit ? '保存' : '创建' }}
-          </el-button>
-        </span>
+          </a-button>
+        </a-space>
       </template>
-    </el-dialog>
-  </div>
+    </a-modal>
+  </a-space>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, Modal } from 'ant-design-vue'
 import CrudTable from './CrudTable.vue'
 import PageHeader from '../PageHeader.vue'
 
@@ -380,7 +382,7 @@ const loadData = async () => {
     emit('after-load', tableData.value)
   } catch (error) {
     console.error('加载数据失败:', error)
-    ElMessage.error(error.message || '加载数据失败')
+    message.error(error.message || '加载数据失败')
   } finally {
     loading.value = false
   }
@@ -417,22 +419,19 @@ const handleEdit = (row) => {
 const handleDelete = async (row) => {
   try {
     if (props.deleteConfirm) {
-      await ElMessageBox.confirm(
-        props.deleteConfirmMessage(row),
-        '删除确认',
-        {
-          confirmButtonText: '删除',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      )
+      await Modal.confirm({
+        title: '删除确认',
+        content: props.deleteConfirmMessage(row),
+        okText: '删除',
+        cancelText: '取消',
+      })
     }
 
     emit('before-delete', row)
 
     await props.api.delete(row.id)
 
-    ElMessage.success('删除成功')
+    message.success('删除成功')
     emit('after-delete', row)
 
     // 重新加载数据
@@ -440,7 +439,7 @@ const handleDelete = async (row) => {
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除失败:', error)
-      ElMessage.error(error.message || '删除失败')
+      message.error(error.message || '删除失败')
     }
   }
 }
@@ -449,15 +448,12 @@ const handleDelete = async (row) => {
 const handleBatchAction = async (command, selectedRows) => {
   try {
     if (command === 'delete') {
-      await ElMessageBox.confirm(
-        `确定要删除选中的 ${selectedRows.length} 项吗？`,
-        '批量删除确认',
-        {
-          confirmButtonText: '删除',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      )
+      await Modal.confirm({
+        title: '批量删除确认',
+        content: `确定要删除选中的 ${selectedRows.length} 项吗？`,
+        okText: '删除',
+        cancelText: '取消',
+      })
 
       const ids = selectedRows.map(row => row.id)
 
@@ -468,14 +464,14 @@ const handleBatchAction = async (command, selectedRows) => {
         await Promise.all(ids.map(id => props.api.delete(id)))
       }
 
-      ElMessage.success('批量删除成功')
+      message.success('批量删除成功')
       await loadData()
       crudTableRef.value?.clearSelection()
     }
   } catch (error) {
     if (error !== 'cancel') {
       console.error('批量操作失败:', error)
-      ElMessage.error(error.message || '批量操作失败')
+      message.error(error.message || '批量操作失败')
     }
   }
 }
@@ -497,11 +493,11 @@ const handleSubmit = async () => {
 
     if (isEdit.value) {
       await props.api.update(editingRow.value.id, requestData)
-      ElMessage.success('更新成功')
+      message.success('更新成功')
       emit('after-edit', requestData, editingRow.value)
     } else {
       await props.api.create(requestData)
-      ElMessage.success('创建成功')
+      message.success('创建成功')
       emit('after-create', requestData)
     }
 
@@ -510,7 +506,7 @@ const handleSubmit = async () => {
   } catch (error) {
     console.error('提交失败:', error)
     if (error.message) {
-      ElMessage.error(error.message)
+      message.error(error.message)
     }
   } finally {
     submitting.value = false
@@ -582,14 +578,3 @@ defineExpose({
 })
 </script>
 
-<style scoped lang="scss">
-.crud-page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 24px;
-  background: var(--el-bg-color);
-  overflow: hidden;
-}
-</style>

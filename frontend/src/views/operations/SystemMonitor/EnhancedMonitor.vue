@@ -67,11 +67,11 @@
       <div class="chart-card">
         <div class="chart-header">
           <h3>系统资源趋势</h3>
-          <el-radio-group v-model="timeRange" size="small">
-            <el-radio-button label="1h">1小时</el-radio-button>
-            <el-radio-button label="6h">6小时</el-radio-button>
-            <el-radio-button label="24h">24小时</el-radio-button>
-          </el-radio-group>
+          <a-radio-group v-model:value="timeRange" size="small">
+            <a-radio-button label="1h">1小时</a-radio-button>
+            <a-radio-button label="6h">6小时</a-radio-button>
+            <a-radio-button label="24h">24小时</a-radio-button>
+          </a-radio-group>
         </div>
         <div class="chart-body" ref="resourceChart" style="height: 300px;"></div>
       </div>
@@ -87,27 +87,27 @@
     <!-- 数据源健康状态 -->
     <div class="health-section">
       <h3 class="section-title">数据源健康状态</h3>
-      <el-table :data="datasourceHealth" style="width: 100%">
-        <el-table-column prop="name" label="数据源名称" width="200" />
-        <el-table-column prop="type" label="类型" width="120">
+      <a-table :data="datasourceHealth" style="width: 100%">
+        <a-table-column prop="name" label="数据源名称" width="200" />
+        <a-table-column prop="type" label="类型" width="120">
           <template #default="{ row }">
-            <el-tag size="small">{{ row.type }}</el-tag>
+            <a-tag size="small">{{ row.type }}</a-tag>
           </template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态" width="120">
+        </a-table-column>
+        <a-table-column prop="status" label="状态" width="120">
           <template #default="{ row }">
-            <el-tag :type="row.status === 'active' ? 'success' : 'danger'" size="small">
+            <a-tag :type="row.status === 'active' ? 'success' : 'danger'" size="small">
               {{ row.status === 'active' ? '正常' : '异常' }}
-            </el-tag>
+            </a-tag>
           </template>
-        </el-table-column>
-        <el-table-column prop="lastTestAt" label="最后检测时间" width="180">
+        </a-table-column>
+        <a-table-column prop="lastTestAt" label="最后检测时间" width="180">
           <template #default="{ row }">
             {{ formatTime(row.lastTestAt) }}
           </template>
-        </el-table-column>
-        <el-table-column prop="lastTestResult" label="检测结果" />
-      </el-table>
+        </a-table-column>
+        <a-table-column prop="lastTestResult" label="检测结果" />
+      </a-table>
     </div>
 
     <!-- 最近活动 -->
@@ -133,7 +133,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { message } from 'ant-design-vue'
 import * as echarts from 'echarts'
 import PageHeader from '@/components/PageHeader.vue'
 import {
@@ -165,7 +165,7 @@ const loadMonitorData = async () => {
     updateDatasourceChart(data.application)
   } catch (error) {
     console.error('加载监控数据失败:', error)
-    ElMessage.error('加载监控数据失败')
+    message.error('加载监控数据失败')
   }
 }
 
@@ -294,17 +294,17 @@ const formatTime = (time) => {
 // 获取活动图标
 const getActivityIcon = (action) => {
   const iconMap = {
-    create: 'el-icon-plus',
-    update: 'el-icon-edit',
-    delete: 'el-icon-delete',
-    login: 'el-icon-user'
+    create: 'PlusOutlined',
+    update: 'EditOutlined',
+    delete: 'DeleteOutlined',
+    login: 'UserOutlined'
   }
-  return iconMap[action] || 'el-icon-info'
+  return iconMap[action] || 'InfoCircleOutlined'
 }
 
 // 导出报告
 const exportReport = () => {
-  ElMessage.info('导出报告功能开发中...')
+  message.info('导出报告功能开发中...')
 }
 
 // 组件挂载
@@ -335,179 +335,3 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
-.enhanced-monitor {
-  padding: 24px;
-  background: var(--el-bg-color);
-  min-height: 100vh;
-}
-
-/* 指标卡片 */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.metric-card {
-  background: var(--el-bg-color-overlay);
-  border-radius: 12px;
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s;
-}
-
-.metric-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.metric-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-}
-
-.metric-icon.cpu { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-.metric-icon.memory { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
-.metric-icon.users { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
-.metric-icon.projects { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; }
-
-.metric-content {
-  flex: 1;
-}
-
-.metric-label {
-  font-size: 14px;
-  color: var(--el-text-color-secondary);
-  margin-bottom: 8px;
-}
-
-.metric-value {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--el-text-color-primary);
-  line-height: 1;
-  margin-bottom: 4px;
-}
-
-.metric-trend {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-}
-
-.metric-chart {
-  width: 60px;
-  height: 60px;
-}
-
-.progress-ring {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: conic-gradient(
-    var(--el-color-primary) calc(var(--progress) * 1%),
-    var(--el-fill-color-light) 0
-  );
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 图表区域 */
-.charts-section {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.chart-card {
-  background: var(--el-bg-color-overlay);
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.chart-header h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-/* 健康状态 */
-.health-section,
-.activity-section {
-  background: var(--el-bg-color-overlay);
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.section-title {
-  margin: 0 0 20px 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-/* 活动列表 */
-.activity-list {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.activity-item {
-  display: flex;
-  gap: 16px;
-  padding: 16px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-}
-
-.activity-item:last-child {
-  border-bottom: none;
-}
-
-.activity-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--el-fill-color-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--el-color-primary);
-}
-
-.activity-content {
-  flex: 1;
-}
-
-.activity-title {
-  font-size: 14px;
-  color: var(--el-text-color-primary);
-  margin-bottom: 4px;
-}
-
-.activity-meta {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  display: flex;
-  gap: 16px;
-}
-</style>

@@ -2,6 +2,7 @@
  * 项目管理相关 API
  */
 import { createApiService } from './base'
+import request from './http'
 
 const projectApi = createApiService('projects')
 

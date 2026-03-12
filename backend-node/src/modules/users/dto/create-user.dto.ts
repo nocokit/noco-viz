@@ -21,4 +21,7 @@ export class CreateUserDto {
 
   @IsOptionalInt({ description: '角色ID', example: 1 })
   roleId?: number;
+
+  @IsOptionalInt({ description: '部门ID', example: 1 })
+  departmentId?: number;
 }

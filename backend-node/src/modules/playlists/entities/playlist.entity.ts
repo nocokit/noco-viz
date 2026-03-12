@@ -48,6 +48,12 @@ export class Playlist {
   })
   transition: TransitionType;
 
+  @Column({ type: 'int', default: 60, comment: '切换间隔(秒)' })
+  interval: number;
+
+  @Column({ type: 'text', nullable: true, comment: '描述' })
+  description: string;
+
   @Column({ type: 'json', nullable: true })
   slides: any[];
 

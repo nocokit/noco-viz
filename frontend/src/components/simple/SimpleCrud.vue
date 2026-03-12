@@ -1,37 +1,38 @@
 <template>
   <div class="simple-crud-container">
-    <!-- 高级搜索表单 -->
-    <SimpleSearchForm
-      v-if="config.searchForm"
-      :config="config.searchForm"
-      @search="handleSearch"
-      @reset="handleReset"
-    />
-
-    <!-- 工具栏组件 -->
+    <!-- 工具栏组件（包含搜索表单和操作按钮） -->
     <SimpleToolbar
       v-model:search="searchValue"
-      :search-placeholder="config.searchPlaceholder"
-      :show-search="showSearch && !config.searchForm"
-      :show-refresh="config.showRefresh !== false"
-      :actions="config.actions"
+      :search-placeholder="config?.searchPlaceholder || '搜索...'"
+      :show-search="showSearch && !config?.search"
+      :show-refresh="config?.showRefresh !== false"
+      :actions="config?.actions"
+      :search-form="config?.search"
+      :selected-count="selectedKeys.length"
       @action="handleAction"
       @refresh="$emit('refresh')"
+      @search="handleAdvancedSearch"
+      @reset="handleReset"
+      @batch-delete="handleBatchDelete"
     />
 
     <!-- 表格组件 -->
     <SimpleTable
-      :columns="config.columns"
+      :columns="config?.columns || []"
       :data="filteredData"
-      :row-key="config.rowKey"
-      :empty-text="config.emptyText"
+      :row-key="config?.rowKey || 'id'"
+      :empty-text="config?.emptyText"
       :loading="loading"
       :pagination="pagination"
       :sort="sort"
+      :selectable="config?.selectable"
+      :selected-keys="selectedKeys"
       @row-action="handleRowAction"
       @page-change="$emit('page-change', $event)"
       @page-size-change="$emit('page-size-change', $event)"
       @sort-change="$emit('sort-change', $event)"
+      @select="handleSelect"
+      @select-all="handleSelectAll"
     >
       <!-- 透传自定义列插槽 -->
       <template v-for="(_, name) in $slots" #[name]="slotProps">
@@ -51,32 +52,7 @@ const props = defineProps({
   // JSON 配置
   config: {
     type: Object,
-    required: true,
-    // 配置示例：
-    // {
-    //   searchPlaceholder: '搜索...',
-    //   searchForm: {  // 高级搜索表单配置（可选）
-    //     fields: [
-    //       { key: 'keyword', label: '关键词', type: 'text' },
-    //       { key: 'type', label: '类型', type: 'select', options: [...] }
-    //     ]
-    //   },
-    //   rowKey: 'id',
-    //   emptyText: '暂无数据',
-    //   actions: [
-    //     { key: 'add', label: '添加', type: 'primary', icon: 'plus' }
-    //   ],
-    //   columns: [
-    //     { key: 'name', label: '名称', width: '30%' },
-    //     { key: 'desc', label: '描述', width: '40%' },
-    //     { key: 'actions', label: '操作', width: '15%', type: 'actions',
-    //       actions: [
-    //         { key: 'edit', label: '编辑' },
-    //         { key: 'delete', label: '删除', danger: true }
-    //       ]
-    //     }
-    //   ]
-    // }
+    required: true
   },
   // 数据源
   data: {
@@ -97,21 +73,22 @@ const props = defineProps({
   pagination: {
     type: Object,
     default: null
-    // 格式: { page: 1, pageSize: 10, total: 0 }
   },
   // 排序配置
   sort: {
     type: Object,
     default: null
-    // 格式: { key: 'name', order: 'asc' | 'desc' }
   }
 })
 
-const emit = defineEmits(['action', 'row-action', 'refresh', 'page-change', 'page-size-change', 'sort-change'])
+const emit = defineEmits(['action', 'row-action', 'refresh', 'page-change', 'page-size-change', 'sort-change', 'batch-delete'])
 
 // 搜索值
 const searchValue = ref('')
 const advancedSearchData = ref({})
+
+// 选中的行
+const selectedKeys = ref([])
 
 // 过滤后的数据
 const filteredData = computed(() => {
@@ -148,13 +125,15 @@ const filteredData = computed(() => {
 })
 
 // 处理高级搜索
-const handleSearch = (searchData) => {
+const handleAdvancedSearch = (searchData) => {
   advancedSearchData.value = searchData
+  emit('action', 'search', searchData)
 }
 
 // 处理重置
 const handleReset = () => {
   advancedSearchData.value = {}
+  emit('action', 'reset')
 }
 
 // 处理工具栏操作
@@ -166,6 +145,34 @@ const handleAction = (actionKey) => {
 const handleRowAction = (actionKey, row) => {
   emit('row-action', actionKey, row)
 }
+
+// 处理行选择
+const handleSelect = (key) => {
+  const index = selectedKeys.value.indexOf(key)
+  if (index > -1) {
+    selectedKeys.value.splice(index, 1)
+  } else {
+    selectedKeys.value.push(key)
+  }
+}
+
+// 处理全选
+const handleSelectAll = () => {
+  if (selectedKeys.value.length === filteredData.value.length) {
+    selectedKeys.value = []
+  } else {
+    selectedKeys.value = filteredData.value.map(item => item[props.config?.rowKey || 'id'])
+  }
+}
+
+// 处理批量删除
+const handleBatchDelete = () => {
+  const selectedItems = props.data.filter(item =>
+    selectedKeys.value.includes(item[props.config?.rowKey || 'id'])
+  )
+  emit('batch-delete', selectedItems)
+  selectedKeys.value = []
+}
 </script>
 
 <style scoped>
@@ -173,6 +180,11 @@ const handleRowAction = (actionKey, row) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: 16px;
+  gap: 0px;
+}
+
+.simple-crud-container :deep(.simple-table-container) {
+  flex: 1;
+  min-height: 0;
 }
 </style>

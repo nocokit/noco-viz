@@ -4,7 +4,7 @@
  */
 
 import { ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message, Modal } from 'ant-design-vue'
 
 /**
  * @param {Object} options 配置选项
@@ -69,7 +69,7 @@ export function useCrudOperations(options = {}) {
       const success = response?.code === 200 || response?.success === true
 
       if (success) {
-        ElMessage.success(customMessages.success || finalMessages.createSuccess)
+        message.success(customMessages.success || finalMessages.createSuccess)
         await onSuccess('create', response.data)
         return { success: true, data: response.data }
       } else {
@@ -77,7 +77,7 @@ export function useCrudOperations(options = {}) {
       }
     } catch (error) {
       console.error('Create error:', error)
-      ElMessage.error(customMessages.error || finalMessages.createError)
+      message.error(customMessages.error || finalMessages.createError)
       onError('create', error)
       return { success: false, error }
     } finally {
@@ -104,7 +104,7 @@ export function useCrudOperations(options = {}) {
       const success = response?.code === 200 || response?.success === true
 
       if (success) {
-        ElMessage.success(customMessages.success || finalMessages.updateSuccess)
+        message.success(customMessages.success || finalMessages.updateSuccess)
         await onSuccess('update', response.data)
         return { success: true, data: response.data }
       } else {
@@ -112,7 +112,7 @@ export function useCrudOperations(options = {}) {
       }
     } catch (error) {
       console.error('Update error:', error)
-      ElMessage.error(customMessages.error || finalMessages.updateError)
+      message.error(customMessages.error || finalMessages.updateError)
       onError('update', error)
       return { success: false, error }
     } finally {
@@ -140,16 +140,43 @@ export function useCrudOperations(options = {}) {
 
     // 确认对话框
     if (confirmDelete && !skipConfirm) {
-      try {
-        await ElMessageBox.confirm(confirmMessage, confirmTitle, {
-          type: 'warning',
-          confirmButtonText: '删除',
-          cancelButtonText: '取消',
-          confirmButtonClass: 'el-button--danger'
+      return new Promise((resolve) => {
+        Modal.confirm({
+          title: confirmTitle,
+          content: confirmMessage,
+          okText: '删除',
+          cancelText: '取消',
+          okType: 'danger',
+          onOk: async () => {
+            operationLoading.value.delete = true
+            loading.value = true
+
+            try {
+              const response = await api.delete(id)
+              const success = response?.code === 200 || response?.success === true
+
+              if (success) {
+                message.success(successMessage)
+                await onSuccess('delete', id)
+                resolve({ success: true, id })
+              } else {
+                throw new Error(response?.message || 'Delete failed')
+              }
+            } catch (error) {
+              console.error('Delete error:', error)
+              message.error(errorMessage)
+              onError('delete', error)
+              resolve({ success: false, error })
+            } finally {
+              operationLoading.value.delete = false
+              loading.value = false
+            }
+          },
+          onCancel: () => {
+            resolve({ success: false, cancelled: true })
+          }
         })
-      } catch {
-        return { success: false, cancelled: true }
-      }
+      })
     }
 
     operationLoading.value.delete = true
@@ -161,7 +188,7 @@ export function useCrudOperations(options = {}) {
       const success = response?.code === 200 || response?.success === true
 
       if (success) {
-        ElMessage.success(successMessage)
+        message.success(successMessage)
         await onSuccess('delete', id)
         return { success: true, id }
       } else {
@@ -169,7 +196,7 @@ export function useCrudOperations(options = {}) {
       }
     } catch (error) {
       console.error('Delete error:', error)
-      ElMessage.error(errorMessage)
+      message.error(errorMessage)
       onError('delete', error)
       return { success: false, error }
     } finally {
@@ -188,7 +215,7 @@ export function useCrudOperations(options = {}) {
     }
 
     if (!ids || ids.length === 0) {
-      ElMessage.warning('请选择要删除的项')
+      message.warning('请选择要删除的项')
       return { success: false, error: 'No items selected' }
     }
 
@@ -202,16 +229,57 @@ export function useCrudOperations(options = {}) {
 
     // 确认对话框
     if (confirmDelete && !skipConfirm) {
-      try {
-        await ElMessageBox.confirm(confirmMessage, confirmTitle, {
-          type: 'warning',
-          confirmButtonText: '删除',
-          cancelButtonText: '取消',
-          confirmButtonClass: 'el-button--danger'
+      return new Promise((resolve) => {
+        Modal.confirm({
+          title: confirmTitle,
+          content: confirmMessage,
+          okText: '删除',
+          cancelText: '取消',
+          okType: 'danger',
+          onOk: async () => {
+            operationLoading.value.batchDelete = true
+            loading.value = true
+
+            try {
+              let response
+
+              // 优先使用批量删除接口
+              if (api.batchDelete) {
+                response = await api.batchDelete(ids)
+              } else {
+                // 降级为逐个删除
+                const results = await Promise.all(ids.map(id => api.delete(id)))
+                response = {
+                  code: 200,
+                  success: true,
+                  data: results
+                }
+              }
+
+              const success = response?.code === 200 || response?.success === true
+
+              if (success) {
+                message.success(successMessage)
+                await onSuccess('batchDelete', ids)
+                resolve({ success: true, ids })
+              } else {
+                throw new Error(response?.message || 'Batch delete failed')
+              }
+            } catch (error) {
+              console.error('Batch delete error:', error)
+              message.error(errorMessage)
+              onError('batchDelete', error)
+              resolve({ success: false, error })
+            } finally {
+              operationLoading.value.batchDelete = false
+              loading.value = false
+            }
+          },
+          onCancel: () => {
+            resolve({ success: false, cancelled: true })
+          }
         })
-      } catch {
-        return { success: false, cancelled: true }
-      }
+      })
     }
 
     operationLoading.value.batchDelete = true
@@ -236,7 +304,7 @@ export function useCrudOperations(options = {}) {
       const success = response?.code === 200 || response?.success === true
 
       if (success) {
-        ElMessage.success(successMessage)
+        message.success(successMessage)
         await onSuccess('batchDelete', ids)
         return { success: true, ids }
       } else {
@@ -244,7 +312,7 @@ export function useCrudOperations(options = {}) {
       }
     } catch (error) {
       console.error('Batch delete error:', error)
-      ElMessage.error(errorMessage)
+      message.error(errorMessage)
       onError('batchDelete', error)
       return { success: false, error }
     } finally {

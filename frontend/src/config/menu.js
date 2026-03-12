@@ -150,17 +150,17 @@ export const menuConfig = [
         path: '/settings'
       },
       {
+        id: 'branding',
+        title: '品牌化',
+        icon: 'GlobalOutlined',
+        path: '/branding'
+      },
+      {
         id: 'whitelist',
         title: 'IP 白名单',
         icon: 'Lock',
         path: '/whitelist'
       },
-      // {
-      //   id: 'backup',
-      //   title: '备份恢复',
-      //   icon: 'FolderOpened',
-      //   path: '/backup'
-      // },
       {
         id: 'recycle',
         title: '回收站',

@@ -1,63 +1,26 @@
 /**
  * 基础柱状图配置 - 赛博朋克风格
  */
+import { createTitleConfig, commonAxisTooltip, commonGrid, commonCategoryXAxis, commonValueYAxis, cyberpunkColors } from './commonConfig'
 
 export const defaultBarConfig = {
-  title: {
-    text: '基础柱状图',
-    left: 'center',
-    textStyle: {
-      color: '#ffffff',
-      fontSize: 16,
-      fontWeight: 600
-    }
-  },
+  title: createTitleConfig('基础柱状图'),
   tooltip: {
-    trigger: 'axis',
+    ...commonAxisTooltip,
     axisPointer: {
       type: 'shadow'
     },
-    backgroundColor: 'rgba(10, 11, 13, 0.95)',
-    borderColor: 'rgba(185, 103, 255, 0.3)',
-    borderWidth: 1,
-    textStyle: {
-      color: '#e5e5e5'
-    },
-    extraCssText: 'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px);'
+    borderColor: 'rgba(185, 103, 255, 0.3)'
   },
   grid: {
-    left: '3%',
-    right: '4%',
-    bottom: '3%',
-    containLabel: true
+    ...commonGrid,
+    top: '10%'
   },
   xAxis: {
-    type: 'category',
-    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
-    axisLine: {
-      lineStyle: {
-        color: 'rgba(255, 255, 255, 0.15)'
-      }
-    },
-    axisLabel: {
-      color: '#909399'
-    }
+    ...commonCategoryXAxis,
+    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
   },
-  yAxis: {
-    type: 'value',
-    axisLine: {
-      show: false
-    },
-    axisLabel: {
-      color: '#909399'
-    },
-    splitLine: {
-      lineStyle: {
-        color: 'rgba(255, 255, 255, 0.08)',
-        type: 'dashed'
-      }
-    }
-  },
+  yAxis: commonValueYAxis,
   series: [
     {
       name: '销量',
@@ -72,7 +35,7 @@ export const defaultBarConfig = {
           x2: 0,
           y2: 1,
           colorStops: [
-            { offset: 0, color: '#b967ff' },
+            { offset: 0, color: cyberpunkColors.purple },
             { offset: 1, color: '#7b2cbf' }
           ]
         },

@@ -1,190 +1,223 @@
 <template>
   <div class="project-list-page">
-    <!-- 头部区域 -->
-    <PageHeader
-      title="项目管理"
-      description="创建和管理数据可视化大屏与复杂报表项目，支持团队协作与版本控制。"
-      :actions="[
-        { text: '新建项目', icon: 'Plus', type: 'primary', handler: () => modalVisible = true }
-      ]"
-    />
-
-    <!-- 筛选和搜索 -->
-    <FilterBar
-      v-model="activeFilter"
+    <WorkspaceLayout
+      :breadcrumb-items="breadcrumbItems"
       :filters="filters"
-      :search-value="searchQuery"
-      search-placeholder="搜索项目..."
-      @search="searchQuery = $event"
-    />
-
-    <!-- 内容区域 -->
-    <div class="content-scroll">
-      <div class="grid-container">
-        <!-- Project Cards -->
-        <div
-          v-for="project in projects"
+      :search-placeholder="'搜索项目...'"
+      :view-modes="viewModes"
+      :default-view="'grid'"
+      :items="projects"
+      :filter-function="filterProjects"
+      :search-function="searchProjects"
+      @filter-change="handleFilterChange"
+      @search="handleSearch"
+      @view-change="handleViewChange"
+    >
+      <template #toolbar-extra>
+        <a-button @click="loadProjects" title="刷新">
+          <template #icon>
+            <ReloadOutlined />
+          </template>
+        </a-button>
+        <a-button type="primary" @click="openCreateModal">
+          <template #icon>
+            <PlusOutlined />
+          </template>
+          新增
+        </a-button>
+      </template>
+      <!-- Grid 视图 -->
+      <template #grid="{ items }">
+        <ProjectCard
+          v-for="project in items"
           :key="project.id"
-          class="project-card"
-          :class="`type-${project.type}`"
+          :project="project"
+          @enter-editor="handleEnterEditor"
+          @preview="handlePreview"
+          @edit="handleEnterEditor"
+          @duplicate="handleDuplicate"
+          @publish="handlePublish"
+          @unpublish="handleUnpublish"
+          @delete="handleDeleteProject"
+        />
+      </template>
+
+      <!-- List 视图 -->
+      <template #list="{ items }">
+        <div
+          v-for="project in items"
+          :key="project.id"
+          class="project-list-item"
         >
-          <div class="card-image-header">
+          <div class="list-item-thumb">
             <img
               v-if="project.coverImage"
-              :src="project.coverImage"
-              class="header-img"
+              :src="getImageUrl(project.coverImage)"
               :alt="project.title"
-            >
-            <div v-else class="header-img-default" :class="`type-${project.type}`">
-              <component :is="getIcon(project.type)" class="default-icon" />
-              <div class="default-text">{{ project.type === 'screen' ? '数据可视化大屏' : '中国式复杂报表' }}</div>
-            </div>
-            <div class="card-overlay">
-              <button class="overlay-btn btn-edit" @click="handleEnterEditor(project)">
-                {{ project.type === 'screen' ? '进入大屏编辑器' : '进入报表编辑器' }}
-              </button>
-              <button class="overlay-btn btn-preview">预览</button>
+            />
+            <div v-else class="list-item-thumb-default" :class="`type-${project.type}`">
+              <component :is="getIcon(project.type)" class="thumb-icon" />
             </div>
           </div>
-          <div class="card-content">
-            <div class="card-header-row">
-              <div class="card-title">
-                <component :is="getIcon(project.type)" class="type-icon" />
-                {{ project.title }}
+          <div class="list-item-content">
+            <div class="list-item-header">
+              <div class="list-item-title-row">
+                <component :is="getIcon(project.type)" class="title-icon" />
+                <span class="list-item-title">{{ project.title }}</span>
+                <a-tag v-if="project.status === 'published'" color="success">
+                  已发布
+                </a-tag>
+                <a-tag v-else class="draft-tag" color="default">
+                  草稿
+                </a-tag>
               </div>
-              <div class="card-actions-menu">
-                <el-dropdown @command="handleCommand($event, project)">
-                  <span class="el-dropdown-link">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-                    </svg>
-                  </span>
-                  <template #dropdown>
-                    <el-dropdown-menu>
-                      <el-dropdown-item command="edit">编辑</el-dropdown-item>
-                      <el-dropdown-item command="duplicate">复制</el-dropdown-item>
-                      <el-dropdown-item
+              <div class="list-item-actions">
+                <a-button size="small" type="primary" @click="handleEnterEditor(project)">
+                  <template #icon><EditOutlined /></template>
+                  编辑
+                </a-button>
+                <a-button size="small" @click="handlePreview(project)">
+                  <template #icon><EyeOutlined /></template>
+                  预览
+                </a-button>
+                <a-dropdown>
+                  <a-button size="small">
+                    <template #icon><MoreOutlined /></template>
+                  </a-button>
+                  <template #overlay>
+                    <a-menu>
+                      <a-menu-item @click="handleDuplicate(project)">
+                        <CopyOutlined />
+                        复制
+                      </a-menu-item>
+                      <a-menu-item
                         v-if="project.status === 'published'"
-                        command="unpublish"
+                        @click="handleUnpublish(project)"
                       >
+                        <CloseCircleOutlined />
                         取消发布
-                      </el-dropdown-item>
-                      <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
-                    </el-dropdown-menu>
+                      </a-menu-item>
+                      <a-menu-item v-else @click="handlePublish(project)">
+                        <CheckCircleOutlined />
+                        发布
+                      </a-menu-item>
+                      <a-menu-divider />
+                      <a-menu-item danger @click="handleDeleteProject(project)">
+                        <DeleteOutlined />
+                        删除
+                      </a-menu-item>
+                    </a-menu>
                   </template>
-                </el-dropdown>
-                <span
-                  class="status-badge"
-                  :class="{ pub: project.status === 'published' }"
-                >
-                  {{ project.status === 'published' ? '● 已发布' : '草稿' }}
-                </span>
+                </a-dropdown>
               </div>
             </div>
-            <div class="card-desc">{{ project.description }}</div>
-            <div class="card-footer">
-              <span>{{ project.type === 'screen' ? 'Screen Visualization' : 'Enterprise Report' }}</span>
-              <span>{{ project.updatedAt }}</span>
+            <div class="list-item-desc">{{ project.description || '暂无描述' }}</div>
+            <div class="list-item-meta">
+              <a-space :size="16">
+                <span>
+                  <a-tag :bordered="false" color="blue">
+                    {{ project.type === 'screen' ? '数据大屏' : '复杂报表' }}
+                  </a-tag>
+                </span>
+                <span class="meta-text">
+                  <ClockCircleOutlined />
+                  更新于 {{ project.updatedAt }}
+                </span>
+              </a-space>
+            </div>
+          </div>
+        </div>
+      </template>
+    </WorkspaceLayout>
+
+    <!-- 新增/编辑项目模态框 -->
+    <a-modal
+      v-model:open="modalVisible"
+      :title="modalStep === 1 ? '新建项目' : '填写项目信息'"
+      :width="modalStep === 1 ? 800 : 600"
+      :footer="null"
+      :destroy-on-close="true"
+      @cancel="closeModal"
+    >
+      <!-- Step 1: 选择类型 -->
+      <div v-if="modalStep === 1" class="type-selection">
+        <div class="type-grid">
+          <div
+            v-for="type in projectTypes"
+            :key="type.key"
+            class="type-card"
+            :class="type.key"
+            @click="selectType(type.key)"
+          >
+            <div class="type-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="48" height="48">
+                <path :d="type.icon" />
+              </svg>
+            </div>
+            <div class="type-info">
+              <h4>{{ type.title }}</h4>
+              <p class="type-subtitle">{{ type.subtitle }}</p>
+              <p class="type-desc">{{ type.description }}</p>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Create Modal -->
-    <div class="modal-overlay" :class="{ open: modalVisible }" @click.self="closeModal">
-      <div class="type-modal" :class="{ 'step-2': modalStep === 2 }">
-        <div class="modal-header">
-          <div class="header-left">
-            <div v-if="modalStep === 2" class="back-btn" @click="modalStep = 1">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-              </svg>
-            </div>
-            <h3>{{ modalStep === 1 ? '新建项目' : '填写项目信息' }}</h3>
-          </div>
-          <div class="close-btn" @click="closeModal">✕</div>
-        </div>
+      <!-- Step 2: 填写信息 -->
+      <div v-else class="project-form">
+        <a-form
+          ref="projectFormRef"
+          :model="newProject"
+          :rules="projectRules"
+          layout="vertical"
+        >
+          <a-form-item label="项目名称" name="title">
+            <a-input
+              v-model:value="newProject.title"
+              placeholder="请输入项目名称"
+              :maxlength="100"
+              size="large"
+            />
+          </a-form-item>
 
-        <!-- Step 1: 选择类型 -->
-        <div v-show="modalStep === 1" class="type-grid">
-          <!-- Screen Option -->
-          <div class="select-card screen" @click="selectType('screen')">
-            <div class="select-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/></svg>
-            </div>
-            <div class="select-info">
-              <h4>数据可视化大屏</h4>
-              <p>Screen Visualization</p>
-              <div class="select-desc">适用于指挥中心、行业大屏、汇报演示。支持绝对定位画布、3D 模型集成及炫酷动效。</div>
-            </div>
-          </div>
+          <a-form-item label="项目描述" name="description">
+            <a-textarea
+              v-model:value="newProject.description"
+              placeholder="请简要描述项目用途"
+              :rows="4"
+              :maxlength="500"
+              show-count
+            />
+          </a-form-item>
 
-          <!-- Report Option -->
-          <div class="select-card report" @click="selectType('report')">
-            <div class="select-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 19V5h12v14H6zm2-4h8v2H8v-2zm0-4h8v2H8v-2zm0-4h8v2H8V7z"/></svg>
-            </div>
-            <div class="select-info">
-              <h4>中国式复杂报表</h4>
-              <p>Enterprise Report</p>
-              <div class="select-desc">适用于业务清单、财务报表、数据填报。支持类 Excel 布局、分页打印及复杂表头。</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 2: 填写信息 -->
-        <div v-show="modalStep === 2" class="form-content">
-          <el-form :model="newProject" label-position="top" :rules="projectRules" ref="projectFormRef">
-            <el-form-item label="项目名称" prop="title">
-              <el-input
-                v-model="newProject.title"
-                placeholder="请输入项目名称，例如：智慧城市交通大脑"
-                maxlength="50"
-                show-word-limit
-                size="large"
-              />
-            </el-form-item>
-
-            <el-form-item label="项目描述" prop="description">
-              <el-input
-                v-model="newProject.description"
-                type="textarea"
-                :rows="4"
-                placeholder="请简要描述项目用途和功能..."
-                maxlength="200"
-                show-word-limit
-              />
-            </el-form-item>
-
-            <el-form-item label="封面图片 (可选)" prop="coverImage">
-              <div class="cover-upload-container">
-                <!-- 封面预览 -->
-                <div v-if="newProject.coverImage" class="cover-preview-box">
-                  <img :src="getImageUrl(newProject.coverImage)" alt="封面图" class="cover-preview-img">
-                  <div class="cover-actions">
-                    <el-button size="small" @click="showMediaSelector">
-                      <el-icon><Picture /></el-icon>
-                      从资源库选择
-                    </el-button>
-                    <el-button size="small" @click="removeCoverImage">
-                      <el-icon><Delete /></el-icon>
-                      移除封面
-                    </el-button>
-                  </div>
+          <a-form-item label="封面图片">
+            <div class="cover-upload-area">
+              <!-- 已选择封面 -->
+              <div v-if="newProject.coverImage" class="cover-preview">
+                <img :src="getImageUrl(newProject.coverImage)" alt="封面" />
+                <div class="cover-overlay">
+                  <a-space>
+                    <a-button size="small" @click="showMediaSelector">
+                      <template #icon><PictureOutlined /></template>
+                      更换
+                    </a-button>
+                    <a-button size="small" danger @click="removeCoverImage">
+                      <template #icon><DeleteOutlined /></template>
+                      移除
+                    </a-button>
+                  </a-space>
                 </div>
+              </div>
 
-                <!-- 选择封面 -->
-                <div v-else class="cover-select-box">
-                  <el-button type="primary" @click="showMediaSelector" class="select-btn">
-                    <el-icon><Picture /></el-icon>
-                    从资源库选择封面
-                  </el-button>
-                  <div class="or-divider">
-                    <span>或</span>
-                  </div>
-                  <el-upload
-                    class="cover-uploader"
+              <!-- 未选择封面 -->
+              <div v-else class="cover-empty">
+                <a-space direction="vertical" :size="16" style="width: 100%">
+                  <a-button type="primary" block @click="showMediaSelector">
+                    <template #icon><PictureOutlined /></template>
+                    从资源库选择
+                  </a-button>
+                  <a-divider style="margin: 0">或</a-divider>
+                  <a-upload
                     :action="uploadAction"
                     :headers="uploadHeaders"
                     :show-file-list="false"
@@ -194,32 +227,32 @@
                     accept="image/*"
                     :disabled="uploading"
                   >
-                    <el-button :loading="uploading">
-                      <el-icon><Upload /></el-icon>
+                    <a-button block :loading="uploading">
+                      <template #icon><UploadOutlined /></template>
                       {{ uploading ? '上传中...' : '上传本地图片' }}
-                    </el-button>
-                  </el-upload>
-                </div>
-                <div class="upload-description">
-                  建议尺寸: 16:9, 支持 JPG、PNG 格式
-                </div>
+                    </a-button>
+                  </a-upload>
+                  <div class="upload-hint">建议尺寸 16:9，支持 JPG、PNG 格式</div>
+                </a-space>
               </div>
-            </el-form-item>
-          </el-form>
+            </div>
+          </a-form-item>
+        </a-form>
 
-          <div class="form-footer">
-            <el-button @click="modalStep = 1">上一步</el-button>
-            <el-button type="primary" @click="handleCreateProject" :loading="creating">
+        <div class="modal-footer">
+          <a-space>
+            <a-button @click="modalStep = 1">上一步</a-button>
+            <a-button type="primary" @click="handleCreateProject" :loading="creating">
               创建项目
-            </el-button>
-          </div>
+            </a-button>
+          </a-space>
         </div>
       </div>
-    </div>
+    </a-modal>
 
     <!-- 媒体选择器对话框 -->
     <MediaSelector
-      v-model="mediaSelectorVisible"
+      v-model:value="mediaSelectorVisible"
       @select="handleMediaSelect"
     />
   </div>
@@ -227,31 +260,59 @@
 
 <script setup>
 import { ref, h, reactive, onMounted, computed } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Plus, Delete, ZoomIn, Loading, Picture, Upload } from '@element-plus/icons-vue'
-import { useRouter } from 'vue-router'
-import PageHeader from '@/components/PageHeader.vue'
-import FilterBar from '@/components/FilterBar.vue'
-import MediaSelector from '@/components/MediaSelector.vue'
+import { message } from 'ant-design-vue'
 import {
-  getProjectList,
-  createProject,
-  updateProject,
-  deleteProject,
-  cloneProject,
-  unpublishProject
-} from '@/api/project'
-import { uploadMedia } from '@/api/media'
+  PictureOutlined,
+  UploadOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+  ReloadOutlined,
+  EditOutlined,
+  EyeOutlined,
+  MoreOutlined,
+  CopyOutlined,
+  CloseCircleOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined
+} from '@ant-design/icons-vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/store/modules/user'
+import WorkspaceLayout from '@/components/workspace/WorkspaceLayout.vue'
+import ProjectCard from '@/components/workspace/ProjectCard.vue'
+import MediaSelector from '@/components/MediaSelector.vue'
+import { projectTypes } from './crudConfig'
+import { useProjectOperations } from './useProjectOperations'
+import { createProject } from '@/api/project'
 
 const router = useRouter()
-const searchQuery = ref('')
+const userStore = useUserStore()
+
+// 使用项目操作 composable
+const {
+  projects,
+  loading,
+  loadProjects,
+  handleEnterEditor,
+  handlePreview,
+  handleDuplicate,
+  handlePublish,
+  handleUnpublish,
+  handleDeleteProject
+} = useProjectOperations()
+
+// 模态框状态
 const modalVisible = ref(false)
 const modalStep = ref(1) // 1: 选择类型, 2: 填写信息
 const creating = ref(false)
 const projectFormRef = ref(null)
-const loading = ref(false)
 const uploading = ref(false)
-const mediaSelectorVisible = ref(false) // 媒体选择器对话框
+const mediaSelectorVisible = ref(false)
+
+// 面包屑配置
+const breadcrumbItems = [
+  { label: '工作台', path: '/workspace' },
+  { label: '项目管理' }
+]
 
 // 筛选器配置
 const filters = [
@@ -259,21 +320,28 @@ const filters = [
   { id: 'mine', label: '我创建的' },
   { id: 'shared', label: '协作项目' }
 ]
-const activeFilter = ref('all')
 
-// 获取上传配置
-const uploadAction = computed(() => {
-  return '/api/media/upload'
-})
-
-const uploadHeaders = computed(() => {
-  const token = localStorage.getItem('token')
-  return {
-    Authorization: `Bearer ${token}`
+// 视图模式配置
+const viewModes = [
+  {
+    id: 'grid',
+    label: '网格视图',
+    tooltip: '网格视图',
+    icon: h('svg', { width: '16', height: '16', viewBox: '0 0 24 24', fill: 'currentColor' }, [
+      h('path', { d: 'M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z' })
+    ])
+  },
+  {
+    id: 'list',
+    label: '列表视图',
+    tooltip: '列表视图',
+    icon: h('svg', { width: '16', height: '16', viewBox: '0 0 24 24', fill: 'currentColor' }, [
+      h('path', { d: 'M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z' })
+    ])
   }
-})
+]
 
-// Icons components for direct usage in v-for
+// Icons components
 const ScreenIcon = {
   render: () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
     h('path', { d: 'M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z' })
@@ -290,6 +358,27 @@ const getIcon = (type) => {
   return type === 'screen' ? ScreenIcon : ReportIcon
 }
 
+// 获取图片完整URL
+const getImageUrl = (url) => {
+  if (!url) return ''
+  // 如果是完整URL,直接返回
+  if (url.startsWith('http')) return url
+  // 如果是相对路径,直接使用(由vite proxy处理)
+  return url
+}
+
+// 获取上传配置
+const uploadAction = computed(() => {
+  return '/api/media/upload'
+})
+
+const uploadHeaders = computed(() => {
+  const token = localStorage.getItem('token')
+  return {
+    Authorization: `Bearer ${token}`
+  }
+})
+
 // 新项目表单数据
 const newProject = reactive({
   type: '',
@@ -302,48 +391,90 @@ const newProject = reactive({
 const projectRules = {
   title: [
     { required: true, message: '请输入项目名称', trigger: 'blur' },
-    { min: 2, max: 50, message: '项目名称长度在 2 到 50 个字符', trigger: 'blur' }
-  ],
-  description: [
-    { max: 200, message: '项目描述不能超过 200 个字符', trigger: 'blur' }
+    { min: 2, max: 100, message: '项目名称长度在 2 到 100 个字符', trigger: 'blur' }
   ]
 }
 
-// 项目列表数据
-const projects = ref([])
+// 筛选和搜索函数
+const filterProjects = (items, filterId) => {
+  console.log('filterProjects called:', { filterId, itemsCount: items.length, currentUserId: userStore.userInfo?.id })
 
-// 加载项目列表
-const loadProjects = async () => {
-  try {
-    loading.value = true
-    const data = await getProjectList()
-    projects.value = data.map(project => ({
-      ...project,
-      updatedAt: formatTime(project.updatedAt)
-    }))
-  } catch (error) {
-    console.error('加载项目列表失败:', error)
-    ElMessage.error('加载项目列表失败')
-  } finally {
-    loading.value = false
+  if (filterId === 'all') return items
+
+  if (filterId === 'mine') {
+    // 根据当前用户ID筛选我创建的项目
+    const currentUserId = userStore.userInfo?.id
+    if (!currentUserId) {
+      console.log('No current user ID found')
+      return items
+    }
+
+    const filtered = items.filter(item => {
+      // 处理 createdBy 可能是对象或ID的情况
+      const creatorId = typeof item.createdBy === 'object' ? item.createdBy?.id : item.createdBy
+      const userId = typeof item.userId === 'object' ? item.userId?.id : item.userId
+      const createdById = item.createdById
+
+      const isMatch = creatorId === currentUserId || userId === currentUserId || createdById === currentUserId
+      console.log('Checking item:', {
+        title: item.title,
+        creatorId,
+        userId,
+        createdById,
+        currentUserId,
+        isMatch
+      })
+
+      return isMatch
+    })
+
+    console.log('Filtered mine projects:', filtered.length)
+    return filtered
   }
+
+  if (filterId === 'shared') {
+    // 协作项目：排除我创建的项目
+    const currentUserId = userStore.userInfo?.id
+    if (!currentUserId) return []
+
+    const filtered = items.filter(item => {
+      const creatorId = typeof item.createdBy === 'object' ? item.createdBy?.id : item.createdBy
+      const userId = typeof item.userId === 'object' ? item.userId?.id : item.userId
+      const createdById = item.createdById
+
+      // 不是我创建的项目
+      return creatorId !== currentUserId && userId !== currentUserId && createdById !== currentUserId
+    })
+
+    console.log('Filtered shared projects:', filtered.length)
+    return filtered
+  }
+
+  return items
 }
 
-// 格式化时间
-const formatTime = (dateStr) => {
-  if (!dateStr) return '-'
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diff = now - date
-  const minutes = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
+const searchProjects = (items, query) => {
+  if (!query) return items
+  const lowerQuery = query.toLowerCase()
+  return items.filter(project =>
+    project.title?.toLowerCase().includes(lowerQuery) ||
+    project.description?.toLowerCase().includes(lowerQuery)
+  )
+}
 
-  if (minutes < 1) return 'Just now'
-  if (minutes < 60) return `${minutes}m ago`
-  if (hours < 24) return `${hours}h ago`
-  if (days < 7) return `${days}d ago`
-  return date.toLocaleDateString()
+// 处理筛选变化
+const handleFilterChange = (filterId) => {
+  // 筛选逻辑已在 WorkspaceLayout 中处理
+}
+
+// 处理搜索
+const handleSearch = (query) => {
+  // 搜索逻辑已在 WorkspaceLayout 中处理
+}
+
+// 处理视图切换
+const handleViewChange = (viewId) => {
+  // 视图切换逻辑已在 WorkspaceLayout 中处理
 }
 
 // 组件挂载时加载数据
@@ -357,17 +488,22 @@ const selectType = (type) => {
   modalStep.value = 2
 }
 
+// 打开创建模态框
+const openCreateModal = () => {
+  modalVisible.value = true
+}
+
 // 图片上传前验证
 const beforeUpload = (file) => {
   const isImage = file.type.startsWith('image/')
   const isLt5M = file.size / 1024 / 1024 < 5
 
   if (!isImage) {
-    ElMessage.error('只能上传图片文件!')
+    message.error('只能上传图片文件!')
     return false
   }
   if (!isLt5M) {
-    ElMessage.error('图片大小不能超过 5MB!')
+    message.error('图片大小不能超过 5MB!')
     return false
   }
   uploading.value = true
@@ -379,9 +515,9 @@ const handleUploadSuccess = (response) => {
   uploading.value = false
   if (response && response.url) {
     newProject.coverImage = response.url
-    ElMessage.success('封面上传成功')
+    message.success('封面上传成功')
   } else {
-    ElMessage.error('上传失败，请重试')
+    message.error('上传失败，请重试')
   }
 }
 
@@ -389,7 +525,7 @@ const handleUploadSuccess = (response) => {
 const handleUploadError = (error) => {
   uploading.value = false
   console.error('上传失败:', error)
-  ElMessage.error('上传失败，请重试')
+  message.error('上传失败，请重试')
 }
 
 // 移除封面图片
@@ -406,17 +542,8 @@ const showMediaSelector = () => {
 const handleMediaSelect = (media) => {
   if (media && media.url) {
     newProject.coverImage = media.url
-    ElMessage.success('封面选择成功')
+    message.success('封面选择成功')
   }
-}
-
-// 获取图片完整URL
-const getImageUrl = (url) => {
-  if (!url) return ''
-  // 如果是完整URL,直接返回
-  if (url.startsWith('http')) return url
-  // 如果是相对路径,直接使用(由vite proxy处理)
-  return url
 }
 
 // 关闭弹窗
@@ -436,575 +563,318 @@ const closeModal = () => {
 const handleCreateProject = async () => {
   if (!projectFormRef.value) return
 
-  await projectFormRef.value.validate(async (valid) => {
-    if (!valid) return
+  try {
+    // 使用 Promise 方式验证表单
+    await projectFormRef.value.validate()
 
     creating.value = true
 
-    try {
-      const projectData = {
-        title: newProject.title,
-        type: newProject.type,
-        description: newProject.description,
-        coverImage: newProject.coverImage,
-        status: 'draft'
+    const projectData = {
+      title: newProject.title,
+      type: newProject.type,
+      description: newProject.description,
+      coverImage: newProject.coverImage,
+      status: 'draft'
+    }
+
+    const result = await createProject(projectData)
+
+    message.success(`项目 "${newProject.title}" 创建成功`)
+    creating.value = false
+    closeModal()
+
+    // 重新加载项目列表
+    await loadProjects()
+
+    // 跳转到编辑器
+    setTimeout(() => {
+      if (newProject.type === 'report') {
+        router.push(`/editor/report/${result.id}`)
+      } else {
+        router.push(`/editor/screen/${result.id}`)
       }
-
-      const result = await createProject(projectData)
-
-      ElMessage.success(`项目 "${newProject.title}" 创建成功`)
-      creating.value = false
-      closeModal()
-
-      // 重新加载项目列表
-      await loadProjects()
-
-      // 跳转到编辑器
-      setTimeout(() => {
-        if (newProject.type === 'report') {
-          router.push(`/editor/report/${result.id}`)
-        } else {
-          router.push(`/editor/screen/${result.id}`)
-        }
-      }, 500)
-    } catch (error) {
+    }, 500)
+  } catch (error) {
+    // 验证失败或创建失败
+    if (error.errorFields) {
+      // 表单验证失败
+      console.log('表单验证失败:', error)
+    } else {
+      // 创建项目失败
       console.error('创建项目失败:', error)
-      ElMessage.error('创建项目失败')
-      creating.value = false
+      message.error('创建项目失败')
     }
-  })
-}
-
-const handleEnterEditor = (project) => {
-  if (project.type === 'report') {
-    router.push(`/editor/report/${project.id}`)
-  } else {
-    router.push(`/editor/screen/${project.id}`)
-  }
-}
-
-// 处理下拉菜单命令
-const handleCommand = (command, project) => {
-  switch (command) {
-    case 'edit':
-      handleEnterEditor(project)
-      break
-    case 'duplicate':
-      handleDuplicate(project)
-      break
-    case 'unpublish':
-      handleUnpublish(project)
-      break
-    case 'delete':
-      handleDeleteProject(project)
-      break
-  }
-}
-
-// 复制项目
-const handleDuplicate = async (project) => {
-  try {
-    const newTitle = `${project.title} (副本)`
-    await cloneProject(project.id, newTitle)
-    ElMessage.success(`项目 "${project.title}" 已复制`)
-    // 重新加载项目列表
-    await loadProjects()
-  } catch (error) {
-    console.error('复制项目失败:', error)
-    ElMessage.error('复制项目失败')
-  }
-}
-
-// 取消发布项目
-const handleUnpublish = async (project) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要取消发布项目 "${project.title}" 吗？`,
-      '取消发布确认',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    )
-
-    await unpublishProject(project.id)
-    ElMessage.success('项目已取消发布')
-    // 重新加载项目列表
-    await loadProjects()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('取消发布失败:', error)
-      ElMessage.error('取消发布失败')
-    }
-  }
-}
-
-// 删除项目
-const handleDeleteProject = async (project) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除项目 "${project.title}" 吗？此操作不可恢复。`,
-      '删除确认',
-      {
-        confirmButtonText: '删除',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    )
-
-    await deleteProject(project.id)
-    ElMessage.success('项目已删除')
-    // 重新加载项目列表
-    await loadProjects()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除项目失败:', error)
-      ElMessage.error('删除项目失败')
-    }
+    creating.value = false
   }
 }
 </script>
 
 <style scoped>
-/* Global Vars from root (implied) */
-.project-list-page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background-color: var(--el-bg-color);
+/* 类型选择 */
+.type-selection {
+  padding: 8px 0;
+}
+
+.type-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.type-card {
   padding: 24px;
+  border: 2px solid #f0f0f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #fff;
+}
+
+.type-card:hover {
+  border-color: #1890ff;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.type-card.screen {
+  background: linear-gradient(135deg, #f5f7ff 0%, #fff 100%);
+}
+
+.type-card.report {
+  background: linear-gradient(135deg, #f0fff4 0%, #fff 100%);
+}
+
+.type-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 12px;
+  background: rgba(24, 144, 255, 0.1);
+  color: #1890ff;
+}
+
+.type-card.report .type-icon {
+  background: rgba(82, 196, 26, 0.1);
+  color: #52c41a;
+}
+
+.type-info {
+  text-align: center;
+}
+
+.type-info h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+  margin: 0 0 8px;
+}
+
+.type-subtitle {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin: 0 0 12px;
+}
+
+.type-desc {
+  font-size: 13px;
+  color: #bfbfbf;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 项目表单 */
+.project-form {
+  padding: 8px 0;
+}
+
+.modal-footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 封面上传区域 */
+.cover-upload-area {
+  border: 1px dashed #d9d9d9;
+  border-radius: 8px;
   overflow: hidden;
 }
 
-/* Content */
-.content-scroll {
-  flex: 1;
-  overflow-y: auto;
-  margin-top: 0;
-}
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
+.cover-preview {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
 }
 
-/* Project Card */
-.project-card {
-  background: var(--el-bg-color); border: 1px solid var(--el-border-color); border-radius: 12px;
-  overflow: hidden; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  position: relative; display: flex; flex-direction: column;
-}
-.project-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 15px 30px rgba(0,0,0,0.4);
-  border-color: var(--el-text-color-secondary);
+.cover-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-/* Image Header */
-.card-image-header {
-  height: 200px; width: 100%; position: relative; overflow: hidden;
-}
-
-.header-img {
-  width: 100%; height: 100%; object-fit: cover; transition: 0.4s;
-  filter: brightness(0.85);
-}
-.project-card:hover .header-img { transform: scale(1.05); filter: brightness(0.6); }
-
-/* Default Image */
-.header-img-default {
-  width: 100%; height: 100%; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 12px;
-  position: relative; overflow: hidden;
-}
-
-.header-img-default.type-screen {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.25) 100%);
-}
-
-.header-img-default.type-report {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.25) 100%);
-}
-
-.header-img-default::before {
-  content: '';
+.cover-overlay {
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
-  animation: rotate 20s linear infinite;
-}
-
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.default-icon {
-  width: 64px;
-  height: 64px;
-  opacity: 0.6;
-  position: relative;
-  z-index: 1;
-}
-
-.project-card.type-screen .default-icon { color: var(--el-color-primary); }
-.project-card.type-report .default-icon { color: #10b981; }
-
-.default-text {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--el-text-color-secondary);
-  position: relative;
-  z-index: 1;
-  letter-spacing: 0.5px;
-}
-
-/* Overlay */
-.card-overlay {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px;
-  opacity: 0; transition: 0.3s; transform: translateY(10px);
-}
-.project-card:hover .card-overlay { opacity: 1; transform: translateY(0); }
-
-.overlay-btn {
-  padding: 8px 24px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;
-  border: none; display: flex; align-items: center; gap: 6px; transition: 0.2s;
-}
-.project-card.type-screen .btn-edit { background: var(--el-color-primary); color: #fff; }
-.project-card.type-report .btn-edit { background: #10b981; color: #fff; }
-.btn-edit:hover { filter: brightness(1.1); transform: scale(1.05); }
-
-.btn-preview { background: rgba(255,255,255,0.1); color: #fff; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); }
-.btn-preview:hover { background: rgba(255,255,255,0.2); }
-
-/* Card Body */
-.card-content { padding: 16px; flex: 1; display: flex; flex-direction: column; }
-.card-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.card-actions-menu { display: flex; align-items: center; gap: 12px; }
-.el-dropdown-link { cursor: pointer; color: var(--el-text-color-secondary); display: flex; align-items: center; }
-.el-dropdown-link:hover { color: var(--el-text-color-primary); }
-.card-title {
-  font-size: 15px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 6px;
-}
-.type-icon { width: 16px; height: 16px; }
-.project-card.type-screen .type-icon { color: var(--el-color-primary); }
-.project-card.type-report .type-icon { color: #10b981; }
-
-.status-badge { font-size: 10px; padding: 2px 6px; border-radius: 3px; background: rgba(255,255,255,0.1); color: var(--el-text-color-secondary); }
-.status-badge.pub { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-
-.card-desc { font-size: 12px; color: var(--el-text-color-secondary); margin-bottom: 16px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-
-.card-footer {
-  margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05);
-  display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--el-text-color-secondary);
-}
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  pointer-events: none;
   transition: opacity 0.3s;
 }
 
-.modal-overlay.open {
+.cover-preview:hover .cover-overlay {
   opacity: 1;
-  pointer-events: auto;
 }
 
-.type-modal {
-  background: #1e1e20;
-  border: 1px solid #303033;
-  border-radius: 12px;
-  width: 700px;
-  overflow: hidden;
-  transform: scale(0.9);
-  transition: transform 0.3s;
-}
-
-.type-modal.step-2 {
-  width: 600px;
-}
-
-.modal-overlay.open .type-modal {
-  transform: scale(1);
-}
-
-.modal-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid #303033;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.back-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  cursor: pointer;
-  color: #909399;
-  transition: 0.2s;
-  border: 1px solid #303033;
-}
-
-.back-btn:hover {
-  background: #303033;
-  color: #e5e5e5;
-}
-
-.modal-header h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #e5e5e5;
-  margin: 0;
-}
-
-.close-btn {
-  cursor: pointer;
-  color: #909399;
-  font-size: 24px;
-  line-height: 1;
-  transition: 0.2s;
-  padding: 4px;
-}
-
-.close-btn:hover {
-  color: #e5e5e5;
-}
-
-.modal-body {
-  padding: 24px;
-}
-
-.modal-footer {
-  padding: 16px 24px;
-  border-top: 1px solid #303033;
-}
-
-.type-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 40px;
-}
-
-/* Select Card */
-.select-card {
-  background: var(--el-bg-color-page); border: 2px solid transparent; border-radius: 12px;
-  padding: 30px 20px; cursor: pointer; transition: 0.2s; position: relative;
-  display: flex; flex-direction: column; align-items: center; text-align: center;
-}
-.select-card:hover { transform: translateY(-4px); background: var(--el-fill-color); }
-
-.select-card.screen:hover { border-color: var(--el-color-primary); box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15); }
-.select-card.screen .select-icon { background: rgba(59, 130, 246, 0.1); color: var(--el-color-primary); }
-
-.select-card.report:hover { border-color: #10b981; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15); }
-.select-card.report .select-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-
-.select-icon {
-  width: 80px; height: 80px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
-  margin-bottom: 20px; transition: 0.3s;
-}
-.select-icon svg { width: 40px; height: 40px; }
-.select-card:hover .select-icon { transform: scale(1.1); }
-
-.select-info h4 { font-size: 18px; color: #fff; margin-bottom: 6px; }
-.select-info p { font-size: 12px; color: var(--el-text-color-secondary); margin-bottom: 16px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
-.select-desc { font-size: 13px; color: var(--el-text-color-secondary); line-height: 1.6; }
-
-/* Step 2: Form Content */
-.form-content { padding: 30px; }
-
-.form-footer {
-  display: flex; justify-content: flex-end; gap: 12px;
-  margin-top: 32px; padding-top: 24px;
-  border-top: 1px solid #303033;
-}
-
-/* Element Plus Button Overrides for Modal */
-.modal-footer :deep(.el-button),
-.form-footer :deep(.el-button) {
-  background-color: #1c1d21;
-  border-color: #2d2e33;
-  color: #9ca3af;
-}
-
-.modal-footer :deep(.el-button:hover),
-.form-footer :deep(.el-button:hover) {
-  border-color: #fff;
-  color: #fff;
-}
-
-.modal-footer :deep(.el-button--primary),
-.form-footer :deep(.el-button--primary) {
-  background-color: #3b82f6;
-  border-color: #3b82f6;
-  color: #fff;
-}
-
-.modal-footer :deep(.el-button--primary:hover),
-.form-footer :deep(.el-button--primary:hover) {
-  background-color: #2563eb;
-  border-color: #2563eb;
-}
-
-/* Cover Upload Styles */
-.cover-upload-container {
-  width: 100%;
-}
-
-/* 封面选择盒子 */
-.cover-select-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
+.cover-empty {
   padding: 32px;
-  border: 2px dashed #303033;
-  border-radius: 8px;
-  background: #1a1b1e;
-}
-
-.select-btn {
-  min-width: 200px;
-}
-
-.or-divider {
-  position: relative;
-  width: 100%;
   text-align: center;
-  color: #606266;
+}
+
+.upload-hint {
   font-size: 12px;
+  color: #8c8c8c;
+  text-align: center;
 }
 
-.or-divider::before,
-.or-divider::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 40%;
-  height: 1px;
-  background: #303033;
-}
-
-.or-divider::before {
-  left: 0;
-}
-
-.or-divider::after {
-  right: 0;
-}
-
-.or-divider span {
-  padding: 0 12px;
-  background: #1a1b1e;
-}
-
-/* 封面预览盒子 */
-.cover-preview-box {
-  width: 100%;
-  border: 2px solid #303033;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #1a1b1e;
-}
-
-.cover-preview-img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  display: block;
-}
-
-.cover-actions {
+/* 列表视图样式 */
+.project-list-item {
   display: flex;
-  gap: 8px;
-  padding: 12px;
-  background: #1c1d21;
-  border-top: 1px solid #303033;
+  gap: 16px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s;
 }
 
-.cover-actions .el-button {
-  flex: 1;
+.project-list-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-color: #d9d9d9;
 }
 
-.upload-description {
-  margin-top: 8px;
-  font-size: 12px;
-  color: #909399;
-  line-height: 1.5;
-  text-align: center;
+.list-item-thumb {
+  width: 120px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fafafa;
 }
 
-/* 旧样式保留用于兼容 */
-.cover-uploader {
-  width: 100%;
-}
-
-.cover-uploader :deep(.el-upload) {
-  width: 100%;
-}
-
-.cover-mask {
-  position: absolute;
-  top: 0;
-  left: 0;
+.list-item-thumb img {
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.6);
+  object-fit: cover;
+}
+
+.list-item-thumb-default {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  opacity: 0;
-  transition: 0.3s;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.cover-preview:hover .cover-mask {
-  opacity: 1;
+.list-item-thumb-default.type-report {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
-.cover-icon {
-  font-size: 24px;
+.thumb-icon {
+  width: 32px;
+  height: 32px;
   color: #fff;
-  cursor: pointer;
-  transition: 0.2s;
-  padding: 8px;
-  border-radius: 4px;
 }
 
-.cover-icon:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
+.list-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
 }
 
-.upload-description {
-  margin-top: 8px;
+.list-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.list-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.list-item-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title-icon {
+  width: 18px;
+  height: 18px;
+  color: #8c8c8c;
+  flex-shrink: 0;
+}
+
+.list-item-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.list-item-desc {
+  font-size: 14px;
+  color: #8c8c8c;
+  line-height: 1.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.list-item-meta {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+}
+
+.meta-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #8c8c8c;
+}
+
+.meta-text .anticon {
   font-size: 12px;
-  color: #909399;
-  line-height: 1.5;
+}
+
+/* 草稿标签样式 */
+.draft-tag {
+  background: #fff7e6;
+  border-color: #ffd591;
+  color: #fa8c16;
+  font-weight: 500;
 }
 </style>

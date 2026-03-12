@@ -24,7 +24,7 @@ async function seedMockData() {
     connection = await mysql.createConnection(dbConfig);
     console.log('✓ 数据库连接成功');
 
-    // 1. 创建测试用户
+    // 1. 创建测试用户 (跳过已存在的用户)
     console.log('\n👥 创建测试用户...');
 
     const testUsers = [
@@ -37,63 +37,129 @@ async function seedMockData() {
     const hashedPassword = await bcrypt.hash('123456', 10);
 
     for (const user of testUsers) {
-      await connection.execute(
-        `INSERT INTO users (username, email, password, first_name, last_name, role_id, is_active, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-        [user.username, user.email, hashedPassword, user.firstName, user.lastName, user.roleId, true]
-      );
-      console.log(`  ✓ 创建用户: ${user.username}`);
+      try {
+        await connection.execute(
+          `INSERT INTO users (username, email, password, first_name, last_name, role_id, is_active, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+          [user.username, user.email, hashedPassword, user.firstName, user.lastName, user.roleId, true]
+        );
+        console.log(`  ✓ 创建用户: ${user.username}`);
+      } catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') {
+          console.log(`  ⊘ 用户已存在: ${user.username}`);
+        } else {
+          throw error;
+        }
+      }
     }
 
     // 2. 创建数据连接
     console.log('\n🔌 创建数据连接...');
 
-    const connections = [
+    const datasources = [
       {
         name: 'MySQL 生产数据库',
         type: 'mysql',
-        host: 'localhost',
-        port: 3306,
-        database: 'production_db',
-        username: 'prod_user',
-        status: 'connected'
+        config: JSON.stringify({
+          host: 'localhost',
+          port: 3306,
+          database: 'production_db',
+          username: 'prod_user',
+          password: 'prod_pass',
+          ssl: false
+        }),
+        status: 'active'
       },
       {
         name: 'PostgreSQL 分析库',
         type: 'postgresql',
-        host: 'analytics.example.com',
-        port: 5432,
-        database: 'analytics',
-        username: 'analyst',
-        status: 'connected'
+        config: JSON.stringify({
+          host: 'analytics.example.com',
+          port: 5432,
+          database: 'analytics',
+          username: 'analyst',
+          password: 'analyst_pass',
+          ssl: true
+        }),
+        status: 'active'
       },
       {
-        name: 'Oracle 数据仓库',
-        type: 'oracle',
-        host: 'oracle.example.com',
-        port: 1521,
-        database: 'warehouse',
-        username: 'dw_user',
-        status: 'disconnected'
+        name: 'MongoDB 日志库',
+        type: 'mongodb',
+        config: JSON.stringify({
+          host: 'mongo.example.com',
+          port: 27017,
+          database: 'logs',
+          username: 'log_user',
+          password: 'log_pass'
+        }),
+        status: 'active'
       },
       {
-        name: 'SQL Server 报表库',
-        type: 'sqlserver',
-        host: 'sqlserver.example.com',
-        port: 1433,
-        database: 'reports',
-        username: 'report_user',
-        status: 'connected'
+        name: 'Redis 缓存服务',
+        type: 'redis',
+        config: JSON.stringify({
+          host: 'redis.example.com',
+          port: 6379,
+          password: 'redis_pass',
+          database: '0'
+        }),
+        status: 'active'
+      },
+      {
+        name: 'REST API 数据源',
+        type: 'restapi',
+        config: JSON.stringify({
+          url: 'https://api.example.com/v1',
+          headers: {
+            'Authorization': 'Bearer token123',
+            'Content-Type': 'application/json'
+          },
+          authType: 'bearer'
+        }),
+        status: 'active'
+      },
+      {
+        name: 'GraphQL 服务',
+        type: 'graphql',
+        config: JSON.stringify({
+          url: 'https://graphql.example.com/api',
+          headers: {
+            'Authorization': 'Bearer token456'
+          }
+        }),
+        status: 'active'
+      },
+      {
+        name: 'MySQL 测试库',
+        type: 'mysql',
+        config: JSON.stringify({
+          host: 'test-db.local',
+          port: 3306,
+          database: 'test_db',
+          username: 'test_user',
+          password: 'test_pass'
+        }),
+        status: 'error',
+        description: '测试环境数据库'
       }
     ];
 
-    for (const conn of connections) {
-      await connection.execute(
-        `INSERT INTO connections (name, type, host, port, \`database\`, username, password, status, created_by_id, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-        [conn.name, conn.type, conn.host, conn.port, conn.database, conn.username, '', conn.status, 1]
-      );
-      console.log(`  ✓ 创建连接: ${conn.name}`);
+    for (const ds of datasources) {
+      try {
+        await connection.execute(
+          `INSERT INTO datasources (name, type, description, config, status, created_by_id, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+          [ds.name, ds.type, ds.description || null, ds.config, ds.status, 1]
+        );
+        console.log(`  ✓ 创建数据源: ${ds.name}`);
+      } catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') {
+          console.log(`  ⊘ 数据源已存在: ${ds.name}`);
+        } else {
+          throw error;
+        }
+      }
     }
 
     // 3. 创建数据集
@@ -591,7 +657,46 @@ async function seedMockData() {
       console.log(`  ✓ 创建IP白名单: ${ip.ip}`);
     }
 
-    // 9. 创建备份记录
+    // 9. 创建集成发布配置
+    console.log('\n🔗 创建集成发布配置...');
+
+    const integrationPublishConfigs = [
+      {
+        projectId: 1,
+        authType: 'sign',
+        domains: JSON.stringify(['oa.example.com', 'finance.internal.net']),
+        params: 'orgId, year',
+        urlParams: JSON.stringify([
+          { name: 'orgId', required: true, description: '组织ID，用于过滤数据' },
+          { name: 'year', required: false, description: '默认显示年份' },
+          { name: 'token', required: true, description: '免登令牌' }
+        ]),
+        status: 'online',
+        sampleUrl: '?orgId=100&sign=XXX'
+      },
+      {
+        projectId: 2,
+        authType: 'public',
+        domains: JSON.stringify(['*']),
+        params: null,
+        urlParams: JSON.stringify([
+          { name: 'workshopId', required: false, description: '车间ID，用于过滤数据' }
+        ]),
+        status: 'online',
+        sampleUrl: ''
+      }
+    ];
+
+    for (const config of integrationPublishConfigs) {
+      await connection.execute(
+        `INSERT INTO integration_publish (project_id, auth_type, domains, params, url_params, status, sample_url, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+        [config.projectId, config.authType, config.domains, config.params, config.urlParams, config.status, config.sampleUrl]
+      );
+      console.log(`  ✓ 创建集成发布配置: 项目 #${config.projectId}`);
+    }
+
+    // 10. 创建备份记录
     console.log('\n💾 创建备份记录...');
 
     const backups = [
@@ -651,13 +756,14 @@ async function seedMockData() {
     console.log('\n✅ Mock 数据填充完成！\n');
     console.log('📊 数据统计:');
     console.log(`   用户: 5 个 (1个管理员 + 4个测试用户)`);
-    console.log(`   数据连接: ${connections.length} 个`);
+    console.log(`   数据连接: ${datasources.length} 个`);
     console.log(`   数据集: ${datasets.length} 个`);
     console.log(`   模板: ${templates.length} 个`);
     console.log(`   项目: ${projects.length} 个`);
     console.log(`   媒体文件: ${mediaFiles.length} 个`);
     console.log(`   播放列表: ${playlists.length} 个`);
     console.log(`   IP白名单: ${ipWhitelist.length} 个`);
+    console.log(`   集成发布配置: ${integrationPublishConfigs.length} 个`);
     console.log(`   备份记录: ${backups.length} 个\n`);
 
   } catch (error) {
