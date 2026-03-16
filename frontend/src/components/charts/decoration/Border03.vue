@@ -4,7 +4,7 @@
 -->
 <template>
   <div class="border-03" :style="containerStyle">
-    <svg class="border-svg" :width="width" :height="height">
+    <svg class="border-svg" width="100%" height="100%" :viewBox="`0 0 ${width} ${height}`">
       <!-- 顶边 - 断线 -->
       <line x1="0" y1="0" :x2="cornerSize" y2="0" :stroke="color" stroke-width="2" />
       <line :x1="width - cornerSize" y1="0" :x2="width" y2="0" :stroke="color" stroke-width="2" />
@@ -77,17 +77,23 @@ const props = defineProps({
   config: {
     type: Object,
     default: () => ({})
+  },
+  width: {
+    type: Number,
+    default: 400
+  },
+  height: {
+    type: Number,
+    default: 300
   }
 })
 
-const width = computed(() => props.config.width || 400)
-const height = computed(() => props.config.height || 300)
 const color = computed(() => props.config.color || '#ffaa00')
 const cornerSize = computed(() => props.config.cornerSize || 30)
 
 const containerStyle = computed(() => ({
-  width: `${width.value}px`,
-  height: `${height.value}px`
+  width: '100%',
+  height: '100%'
 }))
 </script>
 

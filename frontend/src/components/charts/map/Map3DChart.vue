@@ -10,6 +10,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import * as echarts from 'echarts'
+import 'echarts-gl'
 import { getMap3DOption } from '@/config/charts/map3DConfig'
 
 const props = defineProps({
@@ -25,30 +26,33 @@ const props = defineProps({
 
 const chartRef = ref(null)
 let chartInstance = null
-let hasEchartsGL = false
+const mapReady = ref(false)
 
-// 检查 echarts-gl 是否已加载
-const checkEchartsGL = () => {
+// 加载中国地图数据
+const loadChinaMap = async () => {
+  if (echarts.getMap('china')) {
+    mapReady.value = true
+    return
+  }
+
   try {
-    // 尝试导入 echarts-gl，如果失败则显示提示
-    require('echarts-gl')
-    hasEchartsGL = true
+    const res = await fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
+    const geoJson = await res.json()
+    echarts.registerMap('china', geoJson)
+    mapReady.value = true
   } catch (e) {
-    console.warn('echarts-gl 未安装，3D地图功能不可用')
-    hasEchartsGL = false
+    console.error('中国地图数据加载失败', e)
+    showError('地图数据加载失败')
   }
 }
 
-const initChart = () => {
+const initChart = async () => {
   if (!chartRef.value) return
 
-  checkEchartsGL()
+  // 先加载地图数据
+  await loadChinaMap()
 
-  if (!hasEchartsGL) {
-    // 显示提示信息
-    showPlaceholder()
-    return
-  }
+  if (!mapReady.value) return
 
   // 初始化图表
   chartInstance = echarts.init(chartRef.value)
@@ -63,25 +67,25 @@ const initChart = () => {
   window.addEventListener('resize', handleResize)
 }
 
-const showPlaceholder = () => {
+const showError = (message) => {
   if (!chartRef.value) return
 
   chartRef.value.innerHTML = `
-    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0a1929 0%, #001529 100%); border: 1px solid #00f2f2; border-radius: 4px;">
+    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0a1929 0%, #001529 100%); border: 1px solid #ff4466; border-radius: 4px;">
       <div style="text-align: center; color: #bcd0e3; padding: 30px;">
-        <svg style="width: 64px; height: 64px; margin-bottom: 16px; color: #00f2f2;" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12,3 L21,8 L21,16 L12,21 L3,16 L3,8 Z M12,3 L12,12 M12,12 L21,16 M12,12 L3,16 M8,6 L8,11 L12,13 M16,11 L16,6 L12,4 M6,14 L8,15 M10,16 L12,17 M14,16 L16,15 M18,14 L19,13.5"/>
+        <svg style="width: 64px; height: 64px; margin-bottom: 16px; color: #ff4466;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
-        <div style="font-size: 20px; font-weight: bold; margin-bottom: 12px; color: #00f2f2;">3D地图组件</div>
-        <div style="font-size: 13px; opacity: 0.8; margin-bottom: 16px;">需要安装 echarts-gl 插件支持</div>
-        <code style="display: inline-block; padding: 8px 16px; background: rgba(0, 242, 242, 0.1); border: 1px solid #00f2f2; border-radius: 4px; font-size: 12px; font-family: 'Courier New', monospace; color: #00f2f2;">npm install echarts-gl</code>
+        <div style="font-size: 16px; font-weight: bold; color: #ff4466;">${message}</div>
       </div>
     </div>
   `
 }
 
 const updateChart = () => {
-  if (!chartInstance || !hasEchartsGL) return
+  if (!chartInstance || !mapReady.value) return
 
   const option = getMap3DOption(props.config, props.data)
   chartInstance.setOption(option, true)
@@ -115,3 +119,10 @@ onUnmounted(() => {
 })
 </script>
 
+<style scoped>
+.map-3d-chart {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+}
+</style>

@@ -4,7 +4,7 @@
 -->
 <template>
   <div class="border-04" :style="containerStyle">
-    <svg class="border-svg" :width="width" :height="height">
+    <svg class="border-svg" width="100%" height="100%" :viewBox="`0 0 ${width} ${height}`">
       <defs>
         <!-- 流光渐变定义 -->
         <linearGradient id="flow-gradient-h" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -112,16 +112,22 @@ const props = defineProps({
   config: {
     type: Object,
     default: () => ({})
+  },
+  width: {
+    type: Number,
+    default: 400
+  },
+  height: {
+    type: Number,
+    default: 300
   }
 })
 
-const width = computed(() => props.config.width || 400)
-const height = computed(() => props.config.height || 300)
 const color = computed(() => props.config.color || '#66ffff')
 
 const containerStyle = computed(() => ({
-  width: `${width.value}px`,
-  height: `${height.value}px`
+  width: '100%',
+  height: '100%'
 }))
 </script>
 

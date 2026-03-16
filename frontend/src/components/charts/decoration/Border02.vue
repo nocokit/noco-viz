@@ -4,7 +4,7 @@
 -->
 <template>
   <div class="border-02" :style="containerStyle">
-    <svg class="border-svg" :width="width" :height="height">
+    <svg class="border-svg" width="100%" height="100%" :viewBox="`0 0 ${width} ${height}`">
       <!-- 外层边框 -->
       <rect
         x="2"
@@ -85,16 +85,22 @@ const props = defineProps({
   config: {
     type: Object,
     default: () => ({})
+  },
+  width: {
+    type: Number,
+    default: 400
+  },
+  height: {
+    type: Number,
+    default: 300
   }
 })
 
-const width = computed(() => props.config.width || 400)
-const height = computed(() => props.config.height || 300)
 const color = computed(() => props.config.color || '#0099cc')
 
 const containerStyle = computed(() => ({
-  width: `${width.value}px`,
-  height: `${height.value}px`
+  width: '100%',
+  height: '100%'
 }))
 </script>
 

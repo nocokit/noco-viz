@@ -162,8 +162,8 @@ const modalConfig = computed(() => {
     editTitle: modal.editTitle || '编辑',
     width: modal.width || '520px',
     cancelText: modal.cancelText || '取消',
-    addSubmitText: modal.addSubmitText || '确认添加',
-    editSubmitText: modal.editSubmitText || '保存修改',
+    addSubmitText: modal.addSubmitText || '确认',
+    editSubmitText: modal.editSubmitText || '保存',
     submittingText: modal.submittingText || '保存中...'
   }
 })

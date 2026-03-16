@@ -4,7 +4,7 @@
 -->
 <template>
   <div class="border-01" :style="containerStyle">
-    <svg class="border-svg" :width="width" :height="height">
+    <svg class="border-svg" width="100%" height="100%" :viewBox="`0 0 ${width} ${height}`">
       <!-- 四个角的切角装饰 -->
       <g class="corner top-left">
         <path :d="`M 0,${cornerSize} L 0,0 L ${cornerSize},0`" :stroke="color" stroke-width="2" fill="none" />
@@ -63,17 +63,23 @@ const props = defineProps({
   config: {
     type: Object,
     default: () => ({})
+  },
+  width: {
+    type: Number,
+    default: 400
+  },
+  height: {
+    type: Number,
+    default: 300
   }
 })
 
-const width = computed(() => props.config.width || 400)
-const height = computed(() => props.config.height || 300)
 const color = computed(() => props.config.color || '#00f2f2')
 const cornerSize = computed(() => props.config.cornerSize || 20)
 
 const containerStyle = computed(() => ({
-  width: `${width.value}px`,
-  height: `${height.value}px`
+  width: '100%',
+  height: '100%'
 }))
 </script>
 

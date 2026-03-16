@@ -9,14 +9,65 @@
         @error="handleImageError"
       >
       <div v-else class="header-img-default">
-        <component :is="getCategoryIcon(template.category)" class="default-icon" />
-        <div class="default-text">{{ getCategoryLabel(template.category) }}</div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 180" class="default-cover-svg">
+          <defs>
+            <linearGradient :id="`bgGrad-${template.id}`" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" :style="getCategoryGradient(template.category).start" />
+              <stop offset="100%" :style="getCategoryGradient(template.category).end" />
+            </linearGradient>
+            <pattern :id="`grid-${template.id}`" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
+            </pattern>
+            <radialGradient :id="`glow-${template.id}`" cx="50%" cy="50%">
+              <stop offset="0%" style="stop-color:#fff;stop-opacity:0.2" />
+              <stop offset="100%" style="stop-color:#fff;stop-opacity:0" />
+            </radialGradient>
+          </defs>
+
+          <rect width="400" height="180" :fill="`url(#bgGrad-${template.id})`"/>
+          <rect width="400" height="180" :fill="`url(#grid-${template.id})`"/>
+          <circle cx="200" cy="90" r="60" :fill="`url(#glow-${template.id})`"/>
+
+          <!-- 四角装饰 -->
+          <g stroke="#fff" stroke-width="2" fill="none" opacity="0.5">
+            <path d="M 25,25 L 25,45 M 25,25 L 45,25"/>
+            <circle cx="25" cy="25" r="3" fill="#fff"/>
+            <path d="M 375,25 L 375,45 M 375,25 L 355,25"/>
+            <circle cx="375" cy="25" r="3" fill="#fff"/>
+            <path d="M 25,155 L 25,135 M 25,155 L 45,155"/>
+            <circle cx="25" cy="155" r="3" fill="#fff"/>
+            <path d="M 375,155 L 375,135 M 375,155 L 355,155"/>
+            <circle cx="375" cy="155" r="3" fill="#fff"/>
+          </g>
+
+          <!-- 中心图标 -->
+          <g transform="translate(200, 90)">
+            <circle cx="0" cy="0" r="35" stroke="#fff" stroke-width="2" fill="none" opacity="0.4"/>
+            <circle cx="0" cy="0" r="42" stroke="#fff" stroke-width="1" fill="none" opacity="0.2"/>
+            <component :is="getCategoryIcon(template.category)" class="center-icon" />
+          </g>
+
+          <!-- 底部标签 -->
+          <text x="200" y="150" text-anchor="middle" fill="#fff" font-size="16" font-weight="500" opacity="0.9">
+            {{ getCategoryLabel(template.category) }}
+          </text>
+
+          <!-- 装饰粒子 -->
+          <circle cx="80" cy="50" r="2" fill="#fff" opacity="0.4"/>
+          <circle cx="320" cy="60" r="2" fill="#fff" opacity="0.4"/>
+          <circle cx="100" cy="140" r="2" fill="#fff" opacity="0.4"/>
+          <circle cx="300" cy="130" r="2" fill="#fff" opacity="0.4"/>
+          <circle cx="150" cy="40" r="1.5" fill="#fff" opacity="0.3"/>
+          <circle cx="250" cy="145" r="1.5" fill="#fff" opacity="0.3"/>
+        </svg>
       </div>
       <div class="card-overlay">
         <a-button type="primary" class="overlay-btn" @click="$emit('use', template)">
+          <template #icon><CheckOutlined /></template>
           使用模板
         </a-button>
         <a-button class="overlay-btn" @click.stop="$emit('preview', template)">
+          <template #icon><EyeOutlined /></template>
           预览
         </a-button>
       </div>
@@ -68,7 +119,7 @@
 
 <script setup>
 import { h } from 'vue'
-import { EditOutlined, CopyOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+import { EditOutlined, CopyOutlined, DeleteOutlined, CheckOutlined, EyeOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps({
   template: {
@@ -136,6 +187,28 @@ const getCategoryLabel = (category) => {
   return labels[category] || '企业模板'
 }
 
+const getCategoryGradient = (category) => {
+  const gradients = {
+    dashboard: {
+      start: 'stop-color:#667eea;stop-opacity:1',
+      end: 'stop-color:#764ba2;stop-opacity:1'
+    },
+    report: {
+      start: 'stop-color:#f093fb;stop-opacity:1',
+      end: 'stop-color:#f5576c;stop-opacity:1'
+    },
+    screen: {
+      start: 'stop-color:#4facfe;stop-opacity:1',
+      end: 'stop-color:#00f2fe;stop-opacity:1'
+    },
+    chart: {
+      start: 'stop-color:#43e97b;stop-opacity:1',
+      end: 'stop-color:#38f9d7;stop-opacity:1'
+    }
+  }
+  return gradients[category] || gradients.dashboard
+}
+
 const handleMenuAction = (key) => {
   switch (key) {
     case 'edit':
@@ -193,6 +266,19 @@ const handleImageError = (e) => {
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
+  overflow: hidden;
+}
+
+.default-cover-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.center-icon {
+  width: 40px;
+  height: 40px;
+  color: #fff;
+  opacity: 0.9;
 }
 
 .template-card.category-dashboard .header-img-default {

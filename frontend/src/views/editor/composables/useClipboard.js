@@ -1,27 +1,5 @@
 import { ref, computed } from 'vue'
-import { message } from 'ant-design-vue'
-
-/**
- * 统一的消息提示函数 - 确保同时只显示一个消息
- */
-const showMessage = {
-  success: (content) => {
-    message.destroy()
-    message.success(content)
-  },
-  error: (content) => {
-    message.destroy()
-    message.error(content)
-  },
-  warning: (content) => {
-    message.destroy()
-    message.warning(content)
-  },
-  info: (content) => {
-    message.destroy()
-    message.info(content)
-  }
-}
+import { showMessage } from './useMessage'
 
 /**
  * 剪贴板管理 Composable

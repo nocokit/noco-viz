@@ -6,7 +6,7 @@
 /**
  * 默认标题
  */
-const defaultTitle = 'NocoSpace'
+const defaultTitle = 'NocoViz'
 
 /**
  * 标题守卫

@@ -18,9 +18,14 @@
     <template v-for="(section, sectionIndex) in schema" :key="sectionIndex">
       <EditorFormSection
         :title="section.title"
+        :icon="section.icon"
         :collapsible="section.collapsible"
         :defaultCollapsed="section.defaultCollapsed"
-        :divider="section.divider"
+        :divider="section.divider !== false && sectionIndex < schema.length - 1"
+        :switchKey="section.switchKey"
+        :switchValue="section.switchKey ? modelValue[section.switchKey] : undefined"
+        :switchCondition="section.switchCondition"
+        @switch-change="handleSwitchChange(section.switchKey, $event)"
       >
         <!-- 分段控制 (按钮组) -->
         <template v-if="section.segmented && section.segments">
@@ -107,6 +112,7 @@ import EditorColorPicker from './EditorColorPicker.vue'
 import EditorSlider from './EditorSlider.vue'
 import EditorSelect from './EditorSelect.vue'
 import EditorSwitch from './EditorSwitch.vue'
+import EditorTextAlign from './EditorTextAlign.vue'
 
 const props = defineProps({
   schema: {
@@ -142,7 +148,8 @@ const controlComponents = {
   color: EditorColorPicker,
   slider: EditorSlider,
   select: EditorSelect,
-  switch: EditorSwitch
+  switch: EditorSwitch,
+  textAlign: EditorTextAlign
 }
 
 const getControlComponent = (type) => {
@@ -150,6 +157,16 @@ const getControlComponent = (type) => {
 }
 
 const handleUpdate = (key, value) => {
+  emit('update:modelValue', {
+    ...props.modelValue,
+    [key]: value
+  })
+}
+
+const handleSwitchChange = (key, checked) => {
+  if (!key) return
+  // 当开关打开时设置为1，关闭时设置为0
+  const value = checked ? 1 : 0
   emit('update:modelValue', {
     ...props.modelValue,
     [key]: value

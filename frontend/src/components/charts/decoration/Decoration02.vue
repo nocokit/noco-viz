@@ -4,7 +4,7 @@
 -->
 <template>
   <div class="decoration-02" :style="containerStyle">
-    <svg class="decoration-svg" :width="width" :height="height">
+    <svg class="decoration-svg" width="100%" height="100%" :viewBox="`0 0 ${width} ${height}`">
       <!-- 左上角装饰块 -->
       <g class="corner-block top-left">
         <rect
@@ -152,17 +152,23 @@ const props = defineProps({
   config: {
     type: Object,
     default: () => ({})
+  },
+  width: {
+    type: Number,
+    default: 150
+  },
+  height: {
+    type: Number,
+    default: 150
   }
 })
 
-const width = computed(() => props.config.width || 150)
-const height = computed(() => props.config.height || 150)
 const color = computed(() => props.config.color || '#ffaa00')
 const blockSize = computed(() => props.config.blockSize || 40)
 
 const containerStyle = computed(() => ({
-  width: `${width.value}px`,
-  height: `${height.value}px`
+  width: '100%',
+  height: '100%'
 }))
 </script>
 

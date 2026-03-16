@@ -3,10 +3,69 @@
  * 只包含组件ID、组件名称、布局与变换
  */
 
+// 页面配置 Schema
+export const pageConfigSchema = [
+  {
+    title: '画布尺寸',
+    icon: 'canvas',
+    divider: false,
+    grid: { columns: 2 },
+    fields: [
+      {
+        label: '宽度',
+        key: 'width',
+        type: 'number',
+        props: { min: 800, max: 7680, step: 1 }
+      },
+      {
+        label: '高度',
+        key: 'height',
+        type: 'number',
+        props: { min: 600, max: 4320, step: 1 }
+      }
+    ]
+  },
+  {
+    title: '背景设置',
+    icon: 'background',
+    divider: false,
+    fields: [
+      {
+        label: '背景色',
+        key: 'backgroundColor',
+        type: 'color',
+        inline: true
+      },
+      {
+        label: '背景图',
+        key: 'backgroundImage',
+        type: 'input',
+        inline: true,
+        props: { placeholder: '图片URL' }
+      }
+    ]
+  },
+  {
+    title: '页面信息',
+    icon: 'info',
+    divider: false,
+    fields: [
+      {
+        label: '页面标题',
+        key: 'title',
+        type: 'input',
+        inline: true,
+        props: { placeholder: '请输入页面标题' }
+      }
+    ]
+  }
+]
+
 export const basicComponentSchema = [
   // 基础信息
   {
     title: '基础信息',
+    icon: 'info',
     divider: false,
     fields: [
       {
@@ -34,6 +93,7 @@ export const basicComponentSchema = [
   // 布局与变换
   {
     title: '布局与变换',
+    icon: 'layout',
     divider: false,
     grid: { columns: 2 },
     fields: [
@@ -102,6 +162,7 @@ export const componentFormSchemaFlat = [
   // 基础信息
   {
     title: '基础信息',
+    icon: 'info',
     divider: false,
     fields: [
       {
@@ -129,6 +190,7 @@ export const componentFormSchemaFlat = [
   // 布局与变换 - 尺寸和位置
   {
     title: '布局与变换',
+    icon: 'layout',
     divider: false,
     grid: { columns: 2 },
     fields: [
@@ -192,6 +254,7 @@ export const componentFormSchemaFlat = [
   // 视觉样式
   {
     title: '视觉样式',
+    icon: 'color',
     divider: false,
     fields: [
       {
@@ -256,7 +319,39 @@ export const componentFormSchemaFlat = [
         type: 'color',
         inline: true,
         props: {
-          placeholder: '#3b82f6'
+          placeholder: '#409eff'
+        }
+      }
+    ]
+  },
+
+  // 内边距
+  {
+    title: '内边距',
+    icon: 'padding',
+    divider: false,
+    grid: { columns: 2 },
+    fields: [
+      {
+        label: '上下',
+        key: 'paddingVertical',
+        type: 'number',
+        props: {
+          min: 0,
+          step: 1,
+          suffix: 'px',
+          defaultValue: 8
+        }
+      },
+      {
+        label: '左右',
+        key: 'paddingHorizontal',
+        type: 'number',
+        props: {
+          min: 0,
+          step: 1,
+          suffix: 'px',
+          defaultValue: 8
         }
       }
     ]
@@ -271,6 +366,7 @@ export const fullComponentSchema = [
   // 基础信息 - 可折叠
   {
     title: '基础信息',
+    icon: 'info',
     divider: true,
     collapsible: true,
     defaultCollapsed: false,
@@ -300,6 +396,7 @@ export const fullComponentSchema = [
   // 布局和变换 - 可折叠
   {
     title: '布局和变换',
+    icon: 'layout',
     divider: true,
     collapsible: true,
     defaultCollapsed: false,
@@ -366,6 +463,7 @@ export const fullComponentSchema = [
   // 颜色和背景 - 可折叠
   {
     title: '颜色和背景',
+    icon: 'color',
     divider: true,
     collapsible: true,
     defaultCollapsed: false,
@@ -390,15 +488,23 @@ export const fullComponentSchema = [
           step: 1,
           suffix: '%'
         }
-      },
+      }
+    ]
+  },
+
+  // 边框样式 - 可折叠
+  {
+    title: '边框样式',
+    icon: 'border',
+    divider: true,
+    collapsible: true,
+    defaultCollapsed: false,
+    fields: [
       {
-        label: '边框颜色',
-        key: 'borderColor',
-        type: 'color',
-        inline: true,
-        props: {
-          placeholder: '#3b82f6'
-        }
+        label: '显示边框',
+        key: 'showBorder',
+        type: 'switch',
+        inline: true
       },
       {
         label: '边框宽度',
@@ -408,6 +514,15 @@ export const fullComponentSchema = [
         props: {
           min: 0,
           step: 1
+        }
+      },
+      {
+        label: '边框颜色',
+        key: 'borderColor',
+        type: 'color',
+        inline: true,
+        props: {
+          placeholder: '#409eff'
         }
       },
       {
@@ -423,137 +538,39 @@ export const fullComponentSchema = [
     ]
   },
 
-  // 字体配置 - 可折叠,使用按钮组切换
+  // 内边距 - 可折叠
   {
-    title: '字体配置',
+    title: '内边距',
+    icon: 'padding',
     divider: true,
     collapsible: true,
     defaultCollapsed: false,
-    segmented: true,
-    segments: [
+    grid: { columns: 2 },
+    fields: [
       {
-        label: '标题字体',
-        value: 'title',
-        fields: [
-          {
-            label: '字号',
-            key: 'titleFontSize',
-            type: 'number',
-            inline: true,
-            props: {
-              min: 10,
-              max: 72,
-              step: 1,
-              suffix: 'px'
-            }
-          },
-          {
-            label: '颜色',
-            key: 'titleColor',
-            type: 'color',
-            inline: true,
-            props: {
-              placeholder: '#000000'
-            }
-          },
-          {
-            label: '粗细',
-            key: 'titleFontWeight',
-            type: 'select',
-            inline: true,
-            props: {
-              options: [
-                { label: '正常', value: 'normal' },
-                { label: '粗体', value: 'bold' },
-                { label: '100', value: '100' },
-                { label: '200', value: '200' },
-                { label: '300', value: '300' },
-                { label: '400', value: '400' },
-                { label: '500', value: '500' },
-                { label: '600', value: '600' },
-                { label: '700', value: '700' },
-                { label: '800', value: '800' },
-                { label: '900', value: '900' }
-              ]
-            }
-          }
-        ]
+        label: '上下',
+        key: 'paddingVertical',
+        type: 'number',
+        props: {
+          min: 0,
+          step: 1,
+          suffix: 'px',
+          defaultValue: 8
+        }
       },
       {
-        label: 'Label字体',
-        value: 'label',
-        fields: [
-          {
-            label: '字号',
-            key: 'labelFontSize',
-            type: 'number',
-            inline: true,
-            props: {
-              min: 10,
-              max: 48,
-              step: 1,
-              suffix: 'px'
-            }
-          },
-          {
-            label: '颜色',
-            key: 'labelColor',
-            type: 'color',
-            inline: true,
-            props: {
-              placeholder: '#666666'
-            }
-          }
-        ]
-      },
-      {
-        label: '显示字体',
-        value: 'display',
-        fields: [
-          {
-            label: '字号',
-            key: 'displayFontSize',
-            type: 'number',
-            inline: true,
-            props: {
-              min: 10,
-              max: 96,
-              step: 1,
-              suffix: 'px'
-            }
-          },
-          {
-            label: '颜色',
-            key: 'displayColor',
-            type: 'color',
-            inline: true,
-            props: {
-              placeholder: '#333333'
-            }
-          },
-          {
-            label: '粗细',
-            key: 'displayFontWeight',
-            type: 'select',
-            inline: true,
-            props: {
-              options: [
-                { label: '正常', value: 'normal' },
-                { label: '粗体', value: 'bold' },
-                { label: '100', value: '100' },
-                { label: '200', value: '200' },
-                { label: '300', value: '300' },
-                { label: '400', value: '400' },
-                { label: '500', value: '500' },
-                { label: '600', value: '600' },
-                { label: '700', value: '700' },
-                { label: '800', value: '800' },
-                { label: '900', value: '900' }
-              ]
-            }
-          }
-        ]
+        label: '左右',
+        key: 'paddingHorizontal',
+        type: 'number',
+        props: {
+          min: 0,
+          step: 1,
+          suffix: 'px',
+          defaultValue: 8
+        }
       }
     ]
   }
+
+  // 字体配置已移至 FontConfigPanel 组件（左侧垂直标签页）
 ]

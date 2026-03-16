@@ -40,7 +40,15 @@
             :title="chart.description"
           >
             <div class="chart-preview">
+              <!-- 优先使用 previewSvg（底图装饰专用） -->
+              <div
+                v-if="chart.previewSvg"
+                class="chart-preview-svg"
+                v-html="chart.previewSvg"
+              ></div>
+              <!-- 回退到 icon SVG -->
               <svg
+                v-else
                 class="chart-icon-mini"
                 :viewBox="getChartIconViewBox(chart.icon)"
                 v-html="getChartIcon(chart.icon)"

@@ -7,7 +7,7 @@
     <canvas ref="canvasRef" class="bg-canvas"></canvas>
 
     <!-- SVG装饰层 -->
-    <svg class="bg-svg" :width="width" :height="height">
+    <svg class="bg-svg" width="100%" height="100%" :viewBox="`0 0 ${width} ${height}`">
       <!-- 网格线 -->
       <defs>
         <pattern id="grid-pattern" :width="gridSize" :height="gridSize" patternUnits="userSpaceOnUse">
@@ -82,12 +82,20 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 
 const props = defineProps({
   config: {
     type: Object,
     default: () => ({})
+  },
+  width: {
+    type: Number,
+    default: 500
+  },
+  height: {
+    type: Number,
+    default: 400
   }
 })
 
@@ -95,8 +103,6 @@ const canvasRef = ref(null)
 const scanLineY = ref(0)
 let animationId = null
 
-const width = computed(() => props.config.width || 500)
-const height = computed(() => props.config.height || 400)
 const bgColor = computed(() => props.config.bgColor || '#001529')
 const borderColor = computed(() => props.config.borderColor || '#00f2f2')
 const gridColor = computed(() => props.config.gridColor || '#0099cc')
@@ -105,8 +111,8 @@ const scanLineColor = computed(() => props.config.scanLineColor || '#00f2f2')
 const scanDuration = computed(() => props.config.scanDuration || '6s')
 
 const containerStyle = computed(() => ({
-  width: `${width.value}px`,
-  height: `${height.value}px`,
+  width: '100%',
+  height: '100%',
   background: bgColor.value
 }))
 
@@ -115,8 +121,8 @@ const initParticles = () => {
   const canvas = canvasRef.value
   if (!canvas) return
 
-  canvas.width = width.value
-  canvas.height = height.value
+  canvas.width = props.width
+  canvas.height = props.height
 
   const ctx = canvas.getContext('2d')
   const particles = []
@@ -125,8 +131,8 @@ const initParticles = () => {
   // 创建粒子
   for (let i = 0; i < particleCount; i++) {
     particles.push({
-      x: Math.random() * width.value,
-      y: Math.random() * height.value,
+      x: Math.random() * props.width,
+      y: Math.random() * props.height,
       vx: (Math.random() - 0.5) * 0.3,
       vy: (Math.random() - 0.5) * 0.3,
       radius: Math.random() * 1.5 + 0.5,
@@ -136,7 +142,7 @@ const initParticles = () => {
 
   // 动画循环
   const animate = () => {
-    ctx.clearRect(0, 0, width.value, height.value)
+    ctx.clearRect(0, 0, props.width, props.height)
 
     // 更新和绘制粒子
     particles.forEach(particle => {
@@ -144,8 +150,8 @@ const initParticles = () => {
       particle.y += particle.vy
 
       // 边界检测
-      if (particle.x < 0 || particle.x > width.value) particle.vx *= -1
-      if (particle.y < 0 || particle.y > height.value) particle.vy *= -1
+      if (particle.x < 0 || particle.x > props.width) particle.vx *= -1
+      if (particle.y < 0 || particle.y > props.height) particle.vy *= -1
 
       // 绘制粒子
       ctx.beginPath()
@@ -179,6 +185,11 @@ const initParticles = () => {
 }
 
 onMounted(() => {
+  initParticles()
+})
+
+watch(() => [props.width, props.height], () => {
+  if (animationId) cancelAnimationFrame(animationId)
   initParticles()
 })
 

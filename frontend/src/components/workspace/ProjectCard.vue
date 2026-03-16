@@ -11,14 +11,69 @@
         :alt="project.title"
       >
       <div v-else class="header-img-default" :class="`type-${project.type}`">
-        <component :is="getIcon(project.type)" class="default-icon" />
-        <div class="default-text">{{ project.type === 'screen' ? '数据可视化大屏' : '中国式复杂报表' }}</div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 180" class="default-cover-svg">
+          <defs>
+            <linearGradient :id="`projBgGrad-${project.id}`" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" :style="getTypeGradient(project.type).start" />
+              <stop offset="100%" :style="getTypeGradient(project.type).end" />
+            </linearGradient>
+            <pattern :id="`projGrid-${project.id}`" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
+            </pattern>
+            <radialGradient :id="`projGlow-${project.id}`" cx="50%" cy="50%">
+              <stop offset="0%" style="stop-color:#fff;stop-opacity:0.2" />
+              <stop offset="100%" style="stop-color:#fff;stop-opacity:0" />
+            </radialGradient>
+          </defs>
+
+          <rect width="400" height="180" :fill="`url(#projBgGrad-${project.id})`"/>
+          <rect width="400" height="180" :fill="`url(#projGrid-${project.id})`"/>
+          <circle cx="200" cy="90" r="60" :fill="`url(#projGlow-${project.id})`"/>
+
+          <!-- 四角装饰 -->
+          <g stroke="#fff" stroke-width="2" fill="none" opacity="0.5">
+            <path d="M 25,25 L 25,45 M 25,25 L 45,25"/>
+            <circle cx="25" cy="25" r="3" fill="#fff"/>
+            <path d="M 375,25 L 375,45 M 375,25 L 355,25"/>
+            <circle cx="375" cy="25" r="3" fill="#fff"/>
+            <path d="M 25,155 L 25,135 M 25,155 L 45,155"/>
+            <circle cx="25" cy="155" r="3" fill="#fff"/>
+            <path d="M 375,155 L 375,135 M 375,155 L 355,155"/>
+            <circle cx="375" cy="155" r="3" fill="#fff"/>
+          </g>
+
+          <!-- 中心图标 -->
+          <g transform="translate(200, 90)">
+            <circle cx="0" cy="0" r="35" stroke="#fff" stroke-width="2" fill="none" opacity="0.4"/>
+            <circle cx="0" cy="0" r="42" stroke="#fff" stroke-width="1" fill="none" opacity="0.2"/>
+            <g transform="translate(-12, -12)">
+              <component :is="getIcon(project.type)" class="center-icon" />
+            </g>
+          </g>
+
+          <!-- 底部标签 -->
+          <text x="200" y="150" text-anchor="middle" fill="#fff" font-size="16" font-weight="500" opacity="0.9">
+            {{ project.type === 'screen' ? '数据可视化大屏' : '中国式复杂报表' }}
+          </text>
+
+          <!-- 装饰粒子 -->
+          <circle cx="80" cy="50" r="2" fill="#fff" opacity="0.4"/>
+          <circle cx="320" cy="60" r="2" fill="#fff" opacity="0.4"/>
+          <circle cx="100" cy="140" r="2" fill="#fff" opacity="0.4"/>
+          <circle cx="300" cy="130" r="2" fill="#fff" opacity="0.4"/>
+          <circle cx="150" cy="40" r="1.5" fill="#fff" opacity="0.3"/>
+          <circle cx="250" cy="145" r="1.5" fill="#fff" opacity="0.3"/>
+        </svg>
       </div>
       <div class="card-overlay">
         <a-button type="primary" class="overlay-btn" @click="$emit('enter-editor', project)">
+          <template #icon><EditOutlined /></template>
           {{ project.type === 'screen' ? '进入大屏编辑器' : '进入报表编辑器' }}
         </a-button>
-        <a-button class="overlay-btn" @click="$emit('preview', project)">预览</a-button>
+        <a-button class="overlay-btn" @click="$emit('preview', project)">
+          <template #icon><EyeOutlined /></template>
+          预览
+        </a-button>
       </div>
     </div>
     <div class="card-content">
@@ -102,6 +157,7 @@
 
 <script setup>
 import { h } from 'vue'
+import { EditOutlined, EyeOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps({
   project: {
@@ -129,10 +185,24 @@ const getIcon = (type) => {
   return type === 'screen' ? ScreenIcon : ReportIcon
 }
 
+const getTypeGradient = (type) => {
+  if (type === 'screen') {
+    return {
+      start: 'stop-color:#667eea;stop-opacity:1',
+      end: 'stop-color:#764ba2;stop-opacity:1'
+    }
+  } else {
+    return {
+      start: 'stop-color:#f093fb;stop-opacity:1',
+      end: 'stop-color:#f5576c;stop-opacity:1'
+    }
+  }
+}
+
 const handleMenuAction = (key) => {
   switch (key) {
     case 'edit':
-      emit('enter-editor', props.project)
+      emit('edit', props.project)
       break
     case 'preview':
       emit('preview', props.project)
@@ -191,6 +261,19 @@ const handleMenuAction = (key) => {
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
+  overflow: hidden;
+}
+
+.default-cover-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.center-icon {
+  width: 24px;
+  height: 24px;
+  color: #fff;
+  opacity: 0.9;
 }
 
 .header-img-default.type-report {

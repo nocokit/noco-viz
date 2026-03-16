@@ -15,9 +15,10 @@
       }"
     >
       <!-- Logo -->
-      <a-flex justify="center" align="center" :style="{ height: '64px', padding: '16px', borderBottom: '1px solid #f0f0f0' }">
-        <a-typography-title :level="4" :style="{ margin: 0, color: '#1890ff' }">
-          Noco<span>Viz</span>
+      <a-flex align="center" gap="10" :style="{ height: '64px', padding: '0 16px', borderBottom: '1px solid #f0f0f0' }">
+        <img src="/logo.png" alt="NocoViz Logo" :style="{ width: '32px', height: '32px', objectFit: 'contain' }" />
+        <a-typography-title :level="4" :style="{ margin: 0, color: '#1677ff', letterSpacing: '0.5px' }">
+          Noco<span :style="{ color: '#262626' }">Viz</span>
         </a-typography-title>
       </a-flex>
 

@@ -7,7 +7,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}  Noco-Space 一键启动脚本${NC}"
+echo -e "${GREEN}  NocoViz 一键启动脚本${NC}"
 echo -e "${GREEN}========================================${NC}"
 
 # 获取脚本所在目录

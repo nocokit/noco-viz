@@ -105,12 +105,12 @@
         <table class="sheet-table">
           <thead>
             <tr>
-              <th class="row-header"></th>
-              <th class="col-header" style="width:80px">A</th>
-              <th class="col-header" style="width:120px">B</th>
-              <th class="col-header active" style="width:120px">C</th>
-              <th class="col-header" style="width:120px">D</th>
-              <th class="col-header" style="width:100px">E</th>
+              <th class="row-header" style="width:40px"></th>
+              <th class="col-header" style="width:8%">A</th>
+              <th class="col-header" style="width:18%">B</th>
+              <th class="col-header active" style="width:18%">C</th>
+              <th class="col-header" style="width:18%">D</th>
+              <th class="col-header">E</th>
             </tr>
           </thead>
           <tbody>
@@ -280,3 +280,378 @@ const handleDrop = (event) => {
 }
 </script>
 
+<style scoped>
+.report-editor {
+  --excel-green: #217346;
+  --excel-dark: #1e4620;
+  --excel-border: #d0d0d0;
+  --excel-header-bg: #f3f3f3;
+  --excel-selected: #cce8ff;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #fff;
+  color: #000;
+  font-family: 'Microsoft YaHei', 'Segoe UI', Arial, sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+/* Top bar */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--excel-green);
+  color: #fff;
+  padding: 4px 12px;
+  height: 36px;
+  flex-shrink: 0;
+}
+.file-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.file-status {
+  font-size: 11px;
+  opacity: 0.7;
+}
+.close-editor {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 14px;
+}
+.close-editor:hover { background: rgba(255,255,255,0.2); }
+
+/* Ribbon tabs */
+.ribbon-tabs {
+  display: flex;
+  background: var(--excel-dark);
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+.ribbon-tab {
+  padding: 6px 14px;
+  color: rgba(255,255,255,0.85);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 3px 3px 0 0;
+}
+.ribbon-tab:hover { background: rgba(255,255,255,0.1); }
+.ribbon-tab.active {
+  background: #fff;
+  color: #000;
+}
+
+/* Ribbon toolbar */
+.ribbon-toolbar {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-bottom: 1px solid var(--excel-border);
+  padding: 4px 8px;
+  gap: 4px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.tool-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 8px;
+  border-right: 1px solid #ddd;
+}
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  color: #333;
+  font-size: 13px;
+}
+.tool-btn:hover { background: #e8e8e8; }
+.tool-btn.active { background: #cce8ff; }
+.tool-icon { width: 16px; height: 16px; }
+.font-select, .size-select {
+  height: 26px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 12px;
+  padding: 0 4px;
+  background: #fff;
+  color: #333;
+}
+.font-select { width: 120px; }
+.size-select { width: 48px; }
+
+/* Formula bar */
+.formula-bar {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--excel-border);
+  background: #fff;
+  height: 28px;
+  flex-shrink: 0;
+}
+.name-box {
+  width: 80px;
+  text-align: center;
+  border-right: 1px solid var(--excel-border);
+  font-size: 12px;
+  padding: 0 8px;
+  color: #333;
+}
+.fx-btn {
+  padding: 0 8px;
+  border-right: 1px solid var(--excel-border);
+  font-style: italic;
+  color: #666;
+  font-size: 13px;
+}
+.formula-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 0 8px;
+  font-size: 12px;
+  background: #fff;
+  color: #333;
+}
+
+/* Workspace */
+.workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Sidebars */
+.sidebar-left, .sidebar-right {
+  width: 180px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--excel-border);
+  display: flex;
+  flex-direction: column;
+  background: #fafafa;
+  overflow: hidden;
+}
+.sidebar-right {
+  border-right: none;
+  border-left: 1px solid var(--excel-border);
+}
+.sidebar-header {
+  background: var(--excel-header-bg);
+  border-bottom: 1px solid var(--excel-border);
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  flex-shrink: 0;
+}
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+/* Data source tree */
+.ds-tree { font-size: 12px; }
+.ds-node {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+}
+.ds-node:hover { background: #e8e8e8; border-radius: 3px; }
+.ds-icon { width: 14px; height: 14px; color: var(--excel-green); }
+.ds-children { padding-left: 16px; }
+.field-item {
+  padding: 3px 6px;
+  cursor: grab;
+  border-radius: 3px;
+  color: #555;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.field-item:hover { background: #e0f0e8; }
+.field-type {
+  font-size: 10px;
+  color: #999;
+  background: #eee;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+.ds-divider {
+  border: none;
+  border-top: 1px solid var(--excel-border);
+  margin: 8px 0;
+}
+.param-item {
+  padding: 3px 6px;
+  cursor: grab;
+  border-radius: 3px;
+  color: #555;
+  font-size: 12px;
+}
+.param-item:hover { background: #e0f0e8; }
+
+/* Sheet area */
+.sheet-area,
+.spreadsheet-container {
+  flex: 1;
+  overflow: auto;
+  background: #fff;
+}
+.sheet-table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+  font-size: 12px;
+  color: #333;
+}
+.row-header, .col-header {
+  background: var(--excel-header-bg);
+  border: 1px solid var(--excel-border);
+  text-align: center;
+  font-weight: normal;
+  color: #666;
+  padding: 2px 4px;
+  min-width: 24px;
+  position: sticky;
+  z-index: 1;
+}
+.row-header { left: 0; }
+.col-header { top: 0; }
+.col-header.active, .row-header.active {
+  background: #bdd7ee;
+  color: #000;
+  font-weight: 600;
+}
+.sheet-table td {
+  border: 1px solid var(--excel-border);
+  padding: 2px 6px;
+  min-width: 80px;
+  height: 22px;
+  white-space: nowrap;
+  cursor: cell;
+  background: #fff;
+  color: #333;
+}
+.sheet-table td.selected {
+  background: var(--excel-selected) !important;
+  outline: 2px solid #1a73e8;
+  outline-offset: -2px;
+}
+.sheet-table td:hover { background: #f5f5f5; }
+.data-tag {
+  background: #e8f5e9;
+  color: var(--excel-green);
+  border: 1px solid #a5d6a7;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 11px;
+  font-family: monospace;
+}
+.expand-icon {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--excel-green);
+  border-bottom: 2px solid var(--excel-green);
+}
+
+/* Right sidebar props */
+.prop-section {
+  margin-bottom: 16px;
+}
+.prop-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--excel-border);
+}
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #333;
+}
+.form-select, .form-input {
+  width: 100px;
+  height: 24px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 11px;
+  padding: 0 4px;
+  background: #fff;
+  color: #333;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--excel-green);
+  color: #fff;
+  height: 24px;
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+.sheet-tabs { display: flex; align-items: center; gap: 2px; }
+.sheet-tab {
+  padding: 2px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 3px 3px 0 0;
+  background: rgba(255,255,255,0.15);
+}
+.sheet-tab.active { background: #fff; color: #000; }
+.add-sheet {
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 14px;
+  opacity: 0.8;
+}
+.zoom-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.zoom-slider {
+  width: 80px;
+  height: 4px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 2px;
+  position: relative;
+}
+.zoom-thumb {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+</style>

@@ -23,6 +23,8 @@
       @clear="handleClearCanvas"
       @zoom-in="zoomIn"
       @zoom-out="zoomOut"
+      @zoom-set="zoomSet"
+      @zoom-reset="zoomReset"
       @fit-screen="fitToScreen"
       @preview="handlePreview"
     />
@@ -149,8 +151,9 @@
                   transform: `rotate(${comp.rotation || 0}deg)`,
                   background: comp.bgColor || 'transparent',
                   opacity: (comp.opacity || 100) / 100,
-                  border: `${comp.borderWidth || 0}px solid ${comp.borderColor || 'transparent'}`,
-                  borderRadius: `${comp.borderRadius || 0}px`
+                  border: `${comp.showBorder && comp.borderWidth ? comp.borderWidth : 0}px solid ${comp.borderColor || 'transparent'}`,
+                  borderRadius: `${comp.borderRadius || 0}px`,
+                  padding: `${comp.paddingVertical ?? 8}px ${comp.paddingHorizontal ?? 8}px`
                 }"
                 @click.stop="selectComponent(comp.id, $event)"
                 @mousedown="startDrag($event, comp)"
@@ -244,29 +247,30 @@
     </main>
 
     <!-- 4. 右侧配置面板 (Right Config Panel) -->
-    <aside class="config-panel" v-if="selectedComponent">
+    <aside class="config-panel">
       <!-- 顶部 Tabs -->
       <div class="panel-tabs">
-        <div :class="['tab-item', { active: configTab === 'style' }]" @click="configTab = 'style'">样式</div>
-        <div :class="['tab-item', { active: configTab === 'data' }]" @click="configTab = 'data'">数据</div>
-        <div :class="['tab-item', { active: configTab === 'event' }]" @click="configTab = 'event'">事件</div>
-        <div :class="['tab-item', { active: configTab === 'animation' }]" @click="configTab = 'animation'">动画</div>
+        <div :class="['tab-item', { active: configTab === 'style' }]" @click="configTab = 'style'" v-if="selectedComponent">样式</div>
+        <div :class="['tab-item', { active: configTab === 'data' }]" @click="configTab = 'data'" v-if="selectedComponent">数据</div>
+        <div :class="['tab-item', { active: configTab === 'event' }]" @click="configTab = 'event'" v-if="selectedComponent">事件</div>
+        <div :class="['tab-item', { active: configTab === 'animation' }]" @click="configTab = 'animation'" v-if="selectedComponent">动画</div>
+        <div :class="['tab-item', { active: configTab === 'page' }]" @click="configTab = 'page'">页面</div>
       </div>
 
       <div class="panel-content">
         <!-- Tab 1: 样式配置 -->
-        <div v-show="configTab === 'style'">
+        <div v-show="configTab === 'style'" v-if="selectedComponent">
           <!-- 使用 EditorFormRenderer 渲染完整配置 -->
           <EditorFormRenderer
-            v-if="selectedComponent"
             :schema="fullComponentSchema"
             v-model="selectedComponent"
           />
 
-          <div class="divider"></div>
+          <!-- 字体配置面板（左侧垂直标签页） -->
+          <FontConfigPanel v-model="selectedComponent" />
 
-          <!-- 分组 3: 图表配置 (仅图表组件，排除动画) -->
-          <ConfigFormRenderer
+          <!-- 图表配置面板 (仅图表组件，排除动画) -->
+          <ChartConfigPanel
             v-if="isChartComponent(selectedComponent.type)"
             :schema="chartSchemaWithoutAnimation"
             v-model="selectedComponent.config"
@@ -511,7 +515,7 @@
         </div>
 
         <!-- Tab 4: 动画效果 -->
-        <div v-show="configTab === 'animation'">
+        <div v-show="configTab === 'animation'" v-if="selectedComponent">
           <!-- 图表动画配置 (仅图表组件) -->
           <ConfigFormRenderer
             v-if="isChartComponent(selectedComponent.type) && chartAnimationSchema"
@@ -527,6 +531,14 @@
             </svg>
             <div style="margin-top: 16px; color: #666;">此组件暂无动画配置</div>
           </div>
+        </div>
+
+        <!-- Tab 5: 页面配置 -->
+        <div v-show="configTab === 'page'">
+          <EditorFormRenderer
+            :schema="pageConfigSchema"
+            v-model="pageConfig"
+          />
         </div>
       </div>
     </aside>
@@ -545,7 +557,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted, onUnmounted, nextTick, h } from 'vue'
+import { ref, computed, reactive, onMounted, onUnmounted, nextTick, h, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message as ElMessage, Modal } from 'ant-design-vue'
 const ElMessageBox = Modal
@@ -553,6 +565,8 @@ import { chartCategories, chartIcons, getChartByType } from '@/config/chartCompo
 import { getChartComponent } from '@/components/charts/index'
 import { getComponentSchema, isChartComponent as checkIsChart } from '@/config/componentSchema'
 import ConfigFormRenderer from '@/components/editor/ConfigFormRenderer.vue'
+import ChartConfigPanel from '@/components/editor/ChartConfigPanel.vue'
+import FontConfigPanel from '@/components/editor/FontConfigPanel.vue'
 import { generateMockDataByTemplate, formatJSONString, validateJSON } from '@/utils/mockDataGenerator'
 import MockDataEditor from '@/components/data/MockDataEditor.vue'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
@@ -561,7 +575,7 @@ import ActivityBar from './editor/components/ActivityBar.vue'
 import ComponentsPanel from './editor/components/ComponentsPanel.vue'
 import LayersPanel from './editor/components/LayersPanel.vue'
 import EditorFormRenderer from '@/components/editor/EditorFormRenderer.vue'
-import { fullComponentSchema } from '@/components/editor/formSchemas.js'
+import { fullComponentSchema, pageConfigSchema } from '@/components/editor/formSchemas.js'
 import * as echarts from 'echarts'
 import { getChartPreviewOption } from './editor/config/chartPreviewOptions'
 
@@ -573,26 +587,14 @@ import { useClipboard } from './editor/composables/useClipboard'
 import { useAlignment } from './editor/composables/useAlignment'
 import { useComponents } from './editor/composables/useComponents'
 import { useKeyboardShortcuts } from './editor/composables/useKeyboardShortcuts'
+import { showMessage } from './editor/composables/useMessage'
 
-// 统一的消息提示函数 - 确保同时只显示一个消息
-const showMessage = {
-  success: (content) => {
-    ElMessage.destroy()
-    ElMessage.success(content)
-  },
-  error: (content) => {
-    ElMessage.destroy()
-    ElMessage.error(content)
-  },
-  warning: (content) => {
-    ElMessage.destroy()
-    ElMessage.warning(content)
-  },
-  info: (content) => {
-    ElMessage.destroy()
-    ElMessage.info(content)
-  }
-}
+// 配置消息提示位置
+ElMessage.config({
+  top: '60px',
+  duration: 2,
+  maxCount: 1
+})
 
 
 const route = useRoute()
@@ -774,12 +776,32 @@ const handleBackToHome = () => {
 const SNAP_THRESHOLD = 5 // 吸附阈值(像素)
 
 // 右侧配置面板状态
-const configTab = ref('style')
+const configTab = ref('page')
 const openGroups = reactive({
   basic: true,
   visual: true,
   dataSource: true,
   dataMapping: true
+})
+
+// 页面配置
+const pageConfig = reactive({
+  width: 1920,
+  height: 1080,
+  backgroundColor: '#0a0e27',
+  backgroundImage: '',
+  title: '数据大屏'
+})
+
+// 监听组件选中状态，自动切换配置面板
+watch(selectedComponent, (newVal) => {
+  if (newVal) {
+    // 选中组件时，切换到样式配置
+    configTab.value = 'style'
+  } else {
+    // 取消选中时，切换到页面配置
+    configTab.value = 'page'
+  }
 })
 
 // 数据源配置状态
@@ -1224,6 +1246,19 @@ const zoomOut = () => {
   }
 }
 
+const zoomSet = (scale) => {
+  const clamped = Math.min(4, Math.max(0.1, scale))
+  canvasScale.value = clamped
+  drawRulers()
+}
+
+const zoomReset = () => {
+  canvasScale.value = 1
+  canvasPanX.value = 0
+  canvasPanY.value = 0
+  drawRulers()
+}
+
 const resetZoom = () => {
   canvasScale.value = 1
   canvasPanX.value = 0
@@ -1289,16 +1324,24 @@ const handleClearCanvas = () => {
   // 如果有选中的组件，显示选择菜单
   if (hasSelection) {
     Modal.confirm({
-      title: '清空画布',
+      title: '删除组件',
       content: h('div', { style: 'padding: 10px 0;' }, [
-        h('p', { style: 'margin-bottom: 15px; font-size: 14px;' },
+        h('p', { style: 'margin-bottom: 15px; font-size: 14px; color: #333;' },
           `当前已选中 ${selectedComponentIds.value.length} 个组件，画布共有 ${canvasComponents.value.length} 个组件。`
         ),
-        h('p', { style: 'font-size: 13px; color: #666;' }, '确定要删除选中的组件吗？')
+        h('p', { style: 'font-size: 13px; color: #666;' }, '确定要删除选中的组件吗？此操作不可撤销。')
       ]),
       okText: `删除选中 (${selectedComponentIds.value.length}个)`,
       cancelText: '取消',
       okType: 'danger',
+      okButtonProps: {
+        style: {
+          backgroundColor: '#ff4757',
+          borderColor: '#ff4757',
+          color: '#fff',
+          fontWeight: '500'
+        }
+      },
       onOk: () => {
         const count = selectedComponentIds.value.length
         const idsToRemove = [...selectedComponentIds.value]
@@ -1313,10 +1356,23 @@ const handleClearCanvas = () => {
     // 没有选中组件，直接清空所有
     Modal.confirm({
       title: '清空画布',
-      content: `确定要清空画布吗？这将删除所有 ${canvasComponents.value.length} 个组件。`,
+      content: h('div', { style: 'padding: 10px 0;' }, [
+        h('p', { style: 'margin-bottom: 15px; font-size: 14px; color: #333;' },
+          `确定要清空画布吗？这将删除所有 ${canvasComponents.value.length} 个组件。`
+        ),
+        h('p', { style: 'font-size: 13px; color: #ff4757; font-weight: 500;' }, '此操作不可撤销！')
+      ]),
       okText: '确定清空',
       cancelText: '取消',
       okType: 'danger',
+      okButtonProps: {
+        style: {
+          backgroundColor: '#ff4757',
+          borderColor: '#ff4757',
+          color: '#fff',
+          fontWeight: '500'
+        }
+      },
       onOk: () => {
         canvasComponents.value = []
         selectedComponentIds.value = []

@@ -4,107 +4,6 @@
  */
 
 /**
- * 基础配置 Schema - 所有组件共有
- */
-export const baseConfigSchema = {
-  // 位置和尺寸
-  position: {
-    type: 'object',
-    properties: {
-      x: { type: 'number', default: 0, label: 'X坐标' },
-      y: { type: 'number', default: 0, label: 'Y坐标' },
-      w: { type: 'number', default: 400, label: '宽度', min: 50 },
-      h: { type: 'number', default: 300, label: '高度', min: 50 },
-      rotation: { type: 'number', default: 0, label: '旋转角度', min: 0, max: 360, unit: '°' }
-    }
-  },
-
-  // 视觉样式
-  visual: {
-    type: 'object',
-    properties: {
-      // 边框
-      border: {
-        type: 'object',
-        properties: {
-          show: { type: 'boolean', default: false, label: '显示边框' },
-          color: { type: 'color', default: '#3b82f6', label: '边框颜色' },
-          width: { type: 'number', default: 1, label: '边框宽度', min: 0, max: 20, unit: 'px' },
-          style: {
-            type: 'select',
-            default: 'solid',
-            label: '边框样式',
-            options: [
-              { label: '实线', value: 'solid' },
-              { label: '虚线', value: 'dashed' },
-              { label: '点线', value: 'dotted' }
-            ]
-          },
-          radius: { type: 'number', default: 0, label: '圆角半径', min: 0, max: 100, unit: 'px' }
-        }
-      },
-
-      // 阴影
-      shadow: {
-        type: 'object',
-        properties: {
-          show: { type: 'boolean', default: false, label: '显示阴影' },
-          offsetX: { type: 'number', default: 0, label: '水平偏移', min: -50, max: 50, unit: 'px' },
-          offsetY: { type: 'number', default: 4, label: '垂直偏移', min: -50, max: 50, unit: 'px' },
-          blur: { type: 'number', default: 8, label: '模糊半径', min: 0, max: 50, unit: 'px' },
-          color: { type: 'color', default: 'rgba(0,0,0,0.3)', label: '阴影颜色' }
-        }
-      },
-
-      // 背景
-      background: {
-        type: 'object',
-        properties: {
-          type: {
-            type: 'select',
-            default: 'color',
-            label: '背景类型',
-            options: [
-              { label: '纯色', value: 'color' },
-              { label: '渐变', value: 'gradient' },
-              { label: '图片', value: 'image' }
-            ]
-          },
-          color: { type: 'color', default: 'transparent', label: '背景色' },
-          gradient: {
-            type: 'object',
-            properties: {
-              startColor: { type: 'color', default: '#667eea', label: '起始色' },
-              endColor: { type: 'color', default: '#764ba2', label: '结束色' },
-              angle: { type: 'number', default: 135, label: '渐变角度', min: 0, max: 360, unit: '°' }
-            }
-          },
-          image: {
-            type: 'object',
-            properties: {
-              url: { type: 'string', default: '', label: '图片URL' },
-              fit: {
-                type: 'select',
-                default: 'cover',
-                label: '适应方式',
-                options: [
-                  { label: '覆盖', value: 'cover' },
-                  { label: '包含', value: 'contain' },
-                  { label: '拉伸', value: 'fill' }
-                ]
-              }
-            }
-          }
-        }
-      },
-
-      // 透明度
-      opacity: { type: 'number', default: 100, label: '透明度', min: 0, max: 100, unit: '%' }
-    }
-  }
-}
-
-/**
  * ECharts 图表通用配置 Schema
  */
 export const chartConfigSchema = {
@@ -138,13 +37,7 @@ export const chartConfigSchema = {
               { label: '系统默认', value: 'inherit' },
               { label: 'Arial', value: 'Arial, sans-serif' },
               { label: 'Helvetica', value: 'Helvetica, Arial, sans-serif' },
-              { label: 'Times New Roman', value: '"Times New Roman", Times, serif' },
-              { label: 'Georgia', value: 'Georgia, serif' },
-              { label: 'Courier New', value: '"Courier New", Courier, monospace' },
-              { label: 'Verdana', value: 'Verdana, sans-serif' },
-              { label: 'Trebuchet MS', value: '"Trebuchet MS", sans-serif' },
-              { label: 'Comic Sans MS', value: '"Comic Sans MS", cursive' },
-              { label: 'Impact', value: 'Impact, sans-serif' }
+              { label: 'Verdana', value: 'Verdana, sans-serif' }
             ]
           }
         }
@@ -451,9 +344,7 @@ export const infoComponentSchema = {
           { label: 'Georgia', value: 'Georgia, serif' },
           { label: 'Courier New', value: '"Courier New", Courier, monospace' },
           { label: 'Verdana', value: 'Verdana, sans-serif' },
-          { label: 'Trebuchet MS', value: '"Trebuchet MS", sans-serif' },
-          { label: 'Comic Sans MS', value: '"Comic Sans MS", cursive' },
-          { label: 'Impact', value: 'Impact, sans-serif' }
+          { label: 'Trebuchet MS', value: '"Trebuchet MS", sans-serif' }
         ]
       },
       fontWeight: {
@@ -485,7 +376,7 @@ export const infoComponentSchema = {
   },
 
   // 数字翻牌器
-  numberFlip: {
+  'number-flip': {
     type: 'object',
     properties: {
       value: { type: 'number', default: 12345, label: '数值' },
@@ -499,7 +390,7 @@ export const infoComponentSchema = {
   },
 
   // KPI指标卡
-  kpiCard: {
+  'kpi-card': {
     type: 'object',
     properties: {
       title: { type: 'string', default: 'KPI指标', label: '标题' },
@@ -522,7 +413,7 @@ export const infoComponentSchema = {
   },
 
   // 进度条
-  progressBar: {
+  'progress-bar': {
     type: 'object',
     properties: {
       value: { type: 'number', default: 60, label: '进度值', min: 0, max: 100 },
@@ -553,6 +444,82 @@ export const infoComponentSchema = {
 }
 
 /**
+ * 装饰组件配置 Schema
+ */
+export const decorationComponentSchema = {
+  // 边框装饰
+  'border-01': {
+    type: 'object',
+    properties: {
+      color: { type: 'color', default: '#00f2f2', label: '边框颜色' },
+      borderWidth: { type: 'number', default: 2, label: '边框宽度', min: 1, max: 5, unit: 'px' },
+      opacity: { type: 'number', default: 100, label: '透明度', min: 0, max: 100, unit: '%' }
+    }
+  },
+  'border-02': {
+    type: 'object',
+    properties: {
+      color: { type: 'color', default: '#0099cc', label: '边框颜色' },
+      borderWidth: { type: 'number', default: 1, label: '边框宽度', min: 1, max: 5, unit: 'px' },
+      opacity: { type: 'number', default: 100, label: '透明度', min: 0, max: 100, unit: '%' }
+    }
+  },
+  'border-03': {
+    type: 'object',
+    properties: {
+      color: { type: 'color', default: '#ffaa00', label: '边框颜色' },
+      borderWidth: { type: 'number', default: 2, label: '边框宽度', min: 1, max: 5, unit: 'px' },
+      opacity: { type: 'number', default: 100, label: '透明度', min: 0, max: 100, unit: '%' }
+    }
+  },
+  'border-04': {
+    type: 'object',
+    properties: {
+      color: { type: 'color', default: '#66ffff', label: '边框颜色' },
+      borderWidth: { type: 'number', default: 2, label: '边框宽度', min: 1, max: 5, unit: 'px' },
+      opacity: { type: 'number', default: 100, label: '透明度', min: 0, max: 100, unit: '%' },
+      animated: { type: 'boolean', default: true, label: '流光动画' }
+    }
+  },
+
+  // 装饰元素
+  'decoration-01': {
+    type: 'object',
+    properties: {
+      color: { type: 'color', default: '#00f2f2', label: '装饰颜色' },
+      opacity: { type: 'number', default: 100, label: '透明度', min: 0, max: 100, unit: '%' }
+    }
+  },
+  'decoration-02': {
+    type: 'object',
+    properties: {
+      color: { type: 'color', default: '#ffaa00', label: '装饰颜色' },
+      opacity: { type: 'number', default: 100, label: '透明度', min: 0, max: 100, unit: '%' }
+    }
+  },
+  'decoration-03': {
+    type: 'object',
+    properties: {
+      color: { type: 'color', default: '#0099cc', label: '装饰颜色' },
+      opacity: { type: 'number', default: 100, label: '透明度', min: 0, max: 100, unit: '%' }
+    }
+  },
+
+  // 容器背景
+  'bg-box': {
+    type: 'object',
+    properties: {
+      bgColor: { type: 'color', default: '#001529', label: '背景色' },
+      borderColor: { type: 'color', default: '#00f2f2', label: '边框颜色' },
+      borderWidth: { type: 'number', default: 1.5, label: '边框宽度', min: 0, max: 5, unit: 'px' },
+      showGrid: { type: 'boolean', default: true, label: '显示网格' },
+      gridColor: { type: 'color', default: '#0099cc', label: '网格颜色' },
+      opacity: { type: 'number', default: 100, label: '透明度', min: 0, max: 100, unit: '%' }
+    }
+  }
+}
+
+/**
  * 根据组件类型获取配置 Schema
  */
 export function getComponentSchema(componentType) {
@@ -571,22 +538,32 @@ export function getComponentSchema(componentType) {
 
     // 地图
     'map-china': ['title', 'tooltip', 'animation'],
-    'map-3d': ['title', 'tooltip'],
+    'map-3d': ['title', 'tooltip', 'animation'],
     heatmap: ['title', 'tooltip', 'grid', 'xAxis', 'yAxis', 'animation'],
 
     // 特效图表
     liquid: ['title', 'animation'],
-    'word-cloud': ['tooltip'],
+    'word-cloud': ['tooltip', 'animation'],
     sankey: ['title', 'tooltip', 'animation'],
     treemap: ['title', 'tooltip', 'animation'],
     sunburst: ['title', 'tooltip', 'animation'],
 
     // 信息组件
     text: ['text'],
-    'number-flip': ['numberFlip'],
-    'kpi-card': ['kpiCard'],
-    'progress-bar': ['progressBar'],
-    table: ['table']
+    'number-flip': ['number-flip'],
+    'kpi-card': ['kpi-card'],
+    'progress-bar': ['progress-bar'],
+    table: ['table'],
+
+    // 装饰组件
+    'border-01': ['border-01'],
+    'border-02': ['border-02'],
+    'border-03': ['border-03'],
+    'border-04': ['border-04'],
+    'decoration-01': ['decoration-01'],
+    'decoration-02': ['decoration-02'],
+    'decoration-03': ['decoration-03'],
+    'bg-box': ['bg-box']
   }
 
   const configKeys = schemas[componentType] || []
@@ -597,6 +574,8 @@ export function getComponentSchema(componentType) {
       result[key] = chartConfigSchema[key]
     } else if (infoComponentSchema[key]) {
       result[key] = infoComponentSchema[key]
+    } else if (decorationComponentSchema[key]) {
+      result[key] = decorationComponentSchema[key]
     }
   })
 
@@ -633,7 +612,9 @@ export function getDefaultConfig(schema) {
 export const componentCategories = {
   chart: ['bar', 'line', 'pie', 'area', 'scatter', 'radar', 'gauge', 'funnel',
           'map-china', 'map-3d', 'heatmap', 'liquid', 'word-cloud', 'sankey', 'treemap', 'sunburst'],
-  info: ['text', 'number-flip', 'kpi-card', 'progress-bar', 'table']
+  info: ['text', 'number-flip', 'kpi-card', 'progress-bar', 'table'],
+  decoration: ['border-01', 'border-02', 'border-03', 'border-04',
+               'decoration-01', 'decoration-02', 'decoration-03', 'bg-box']
 }
 
 /**
@@ -641,4 +622,11 @@ export const componentCategories = {
  */
 export function isChartComponent(componentType) {
   return componentCategories.chart.includes(componentType)
+}
+
+/**
+ * 判断组件是否为装饰类型
+ */
+export function isDecorationComponent(componentType) {
+  return componentCategories.decoration.includes(componentType)
 }

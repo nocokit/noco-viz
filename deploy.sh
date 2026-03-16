@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # ============================================
-# Noco Space 一键部署脚本
+# NocoViz 一键部署脚本
 # 用途: 快速部署到生产服务器
 # ============================================
 
 set -e
 
 # 配置变量
-PROJECT_NAME="noco-space"
+PROJECT_NAME="noco-viz"
 DEPLOY_USER="www-data"
 DEPLOY_PATH="/var/www/${PROJECT_NAME}"
 BACKUP_PATH="${DEPLOY_PATH}/backups"
@@ -62,7 +62,7 @@ deploy_backend() {
     log_info "部署后端..."
 
     # 停止后端服务
-    pm2 stop noco-backend || true
+    pm2 stop noco-viz-backend || true
 
     # 复制代码
     cp -r backend-node/* ${DEPLOY_PATH}/backend/
@@ -75,7 +75,7 @@ deploy_backend() {
     npm run build
 
     # 启动服务
-    pm2 start dist/main.js --name noco-backend --max-memory-restart 500M
+    pm2 start dist/main.js --name noco-viz-backend --max-memory-restart 500M
     pm2 save
 
     log_info "后端部署完成"
@@ -118,7 +118,7 @@ server {
 
     # 前端静态文件
     location / {
-        root /var/www/noco-space/frontend;
+        root /var/www/noco-viz/frontend;
         try_files $uri $uri/ /index.html;
 
         # 缓存静态资源
@@ -147,7 +147,7 @@ server {
 
     # 上传文件
     location /uploads {
-        alias /var/www/noco-space/uploads;
+        alias /var/www/noco-viz/uploads;
         expires 1y;
         add_header Cache-Control "public";
     }
@@ -208,7 +208,7 @@ main() {
     log_info "后端服务: http://localhost:8000"
     log_info "前端服务: http://your-domain.com"
     log_info ""
-    log_info "查看后端日志: pm2 logs noco-backend"
+    log_info "查看后端日志: pm2 logs noco-viz-backend"
     log_info "查看Nginx日志: tail -f /var/log/nginx/access.log"
 }
 

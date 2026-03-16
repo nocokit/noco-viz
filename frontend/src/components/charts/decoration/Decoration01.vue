@@ -4,7 +4,7 @@
 -->
 <template>
   <div class="decoration-01" :style="containerStyle">
-    <svg class="decoration-svg" :width="width" :height="height">
+    <svg class="decoration-svg" width="100%" height="100%" :viewBox="`0 0 ${width} ${height}`">
       <defs>
         <!-- 脉冲动画 -->
         <radialGradient id="pulse-gradient">
@@ -80,17 +80,23 @@ const props = defineProps({
   config: {
     type: Object,
     default: () => ({})
+  },
+  width: {
+    type: Number,
+    default: 200
+  },
+  height: {
+    type: Number,
+    default: 50
   }
 })
 
-const width = computed(() => props.config.width || 200)
-const height = computed(() => props.config.height || 50)
 const color = computed(() => props.config.color || '#00f2f2')
-const lineLength = computed(() => Math.min(width.value - 40, 180))
+const lineLength = computed(() => Math.min(props.width - 40, 180))
 
 const containerStyle = computed(() => ({
-  width: `${width.value}px`,
-  height: `${height.value}px`
+  width: '100%',
+  height: '100%'
 }))
 </script>
 

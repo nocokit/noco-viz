@@ -160,13 +160,27 @@
             <line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
         </button>
-        <span class="zoom-text" :title="`缩放: ${Math.round(canvasScale * 100)}%\n偏移: X=${Math.round(canvasPanX)}px, Y=${Math.round(canvasPanY)}px`">
-          {{ Math.round(canvasScale * 100) }}%
-        </span>
+        <input
+          class="zoom-input"
+          type="number"
+          :value="Math.round(canvasScale * 100)"
+          min="10"
+          max="400"
+          :title="`缩放: ${Math.round(canvasScale * 100)}%`"
+          @change="e => $emit('zoom-set', Number(e.target.value) / 100)"
+          @keydown.enter="e => e.target.blur()"
+        />
+        <span class="zoom-unit">%</span>
         <button class="zoom-btn" @click="$emit('zoom-in')" title="放大">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"/>
             <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+        <button class="zoom-btn" @click="$emit('zoom-reset')" title="重置为100%">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
           </svg>
         </button>
         <button class="zoom-btn" @click="$emit('fit-screen')" title="适应屏幕">
@@ -187,18 +201,11 @@
       </button>
 
       <button class="btn btn-primary" @click="handleSave" :disabled="isSaving">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-          <path d="M9.5 3.5L4 4v16l5.5-.5 6 1.5 5.5-1V4l-5.5 1-6-1.5z"/>
-        </svg>
+        <SendOutlined />
         {{ isSaving ? '发布中...' : '发布' }}
       </button>
 
       <!-- 更多设置 -->
-      <button class="btn btn-ghost btn-more">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-          <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81a.488.488 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-        </svg>
-      </button>
     </div>
   </header>
 </template>
@@ -206,6 +213,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { SendOutlined } from '@ant-design/icons-vue'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 
 const props = defineProps({
@@ -234,6 +242,8 @@ const emit = defineEmits([
   'clear',
   'zoom-in',
   'zoom-out',
+  'zoom-set',
+  'zoom-reset',
   'fit-screen',
   'preview'
 ])
@@ -494,6 +504,35 @@ const handleSave = () => {
   text-align: center;
   font-family: monospace;
   font-weight: 500;
+}
+
+.zoom-input {
+  width: 40px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  color: #d4d4d4;
+  font-size: 12px;
+  font-family: monospace;
+  font-weight: 500;
+  text-align: center;
+  padding: 2px 4px;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.zoom-input::-webkit-inner-spin-button,
+.zoom-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+.zoom-input:focus {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.zoom-unit {
+  font-size: 12px;
+  color: #888;
+  margin-left: 1px;
 }
 
 .btn {

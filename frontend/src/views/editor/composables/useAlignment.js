@@ -1,27 +1,5 @@
 import { reactive } from 'vue'
-import { message } from 'ant-design-vue'
-
-/**
- * 统一的消息提示函数 - 确保同时只显示一个消息
- */
-const showMessage = {
-  success: (content) => {
-    message.destroy()
-    message.success(content)
-  },
-  error: (content) => {
-    message.destroy()
-    message.error(content)
-  },
-  warning: (content) => {
-    message.destroy()
-    message.warning(content)
-  },
-  info: (content) => {
-    message.destroy()
-    message.info(content)
-  }
-}
+import { showMessage } from './useMessage'
 
 /**
  * 对齐辅助线 Composable
@@ -257,20 +235,49 @@ export function useAlignment(canvasComponents, selectedComponentIds) {
       )
 
       const n = sorted.length
-      if (n > 2) {
+      if (n >= 3) {
         if (type === 'dist-h') {
-          const totalDist = sorted[n - 1].x - sorted[0].x
-          const step = totalDist / (n - 1)
-          sorted.forEach((comp, index) => {
-            comp.x = sorted[0].x + index * step
+          // 计算总宽度（最右边组件的右边界 - 最左边组件的左边界）
+          const leftMost = sorted[0].x
+          const rightMost = sorted[n - 1].x + sorted[n - 1].w
+          const totalWidth = rightMost - leftMost
+
+          // 计算所有组件的总宽度
+          const sumWidths = sorted.reduce((sum, comp) => sum + comp.w, 0)
+
+          // 计算间距
+          const totalGap = totalWidth - sumWidths
+          const gap = totalGap / (n - 1)
+
+          // 重新分布
+          let currentX = leftMost
+          sorted.forEach((comp) => {
+            comp.x = currentX
+            currentX += comp.w + gap
           })
         } else {
-          const totalDist = sorted[n - 1].y - sorted[0].y
-          const step = totalDist / (n - 1)
-          sorted.forEach((comp, index) => {
-            comp.y = sorted[0].y + index * step
+          // 计算总高度（最下边组件的下边界 - 最上边组件的上边界）
+          const topMost = sorted[0].y
+          const bottomMost = sorted[n - 1].y + sorted[n - 1].h
+          const totalHeight = bottomMost - topMost
+
+          // 计算所有组件的总高度
+          const sumHeights = sorted.reduce((sum, comp) => sum + comp.h, 0)
+
+          // 计算间距
+          const totalGap = totalHeight - sumHeights
+          const gap = totalGap / (n - 1)
+
+          // 重新分布
+          let currentY = topMost
+          sorted.forEach((comp) => {
+            comp.y = currentY
+            currentY += comp.h + gap
           })
         }
+      } else if (n === 2) {
+        showMessage.warning('等间距分布需要至少3个组件')
+        return
       }
     }
 

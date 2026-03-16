@@ -7,7 +7,77 @@
         :alt="playlist.name"
       >
       <div v-else class="cover-placeholder">
-        <PlayCircleOutlined :style="{ fontSize: '48px', color: '#bfbfbf' }" />
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" class="default-cover">
+          <!-- 深色科技背景 -->
+          <defs>
+            <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#0a1628;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#001529;stop-opacity:1" />
+            </linearGradient>
+            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(0,242,242,0.1)" stroke-width="0.5"/>
+            </pattern>
+            <radialGradient id="glow" cx="50%" cy="50%">
+              <stop offset="0%" style="stop-color:#00f2f2;stop-opacity:0.3" />
+              <stop offset="100%" style="stop-color:#00f2f2;stop-opacity:0" />
+            </radialGradient>
+          </defs>
+
+          <!-- 背景 -->
+          <rect width="400" height="225" fill="url(#bgGrad)"/>
+          <rect width="400" height="225" fill="url(#grid)"/>
+
+          <!-- 中心光晕 -->
+          <circle cx="200" cy="112" r="80" fill="url(#glow)"/>
+
+          <!-- 科技线条装饰 -->
+          <g stroke="#00f2f2" stroke-width="1.5" fill="none" opacity="0.6">
+            <!-- 左上角 -->
+            <path d="M 30,30 L 30,50 M 30,30 L 50,30"/>
+            <circle cx="30" cy="30" r="3" fill="#00f2f2"/>
+
+            <!-- 右上角 -->
+            <path d="M 370,30 L 370,50 M 370,30 L 350,30"/>
+            <circle cx="370" cy="30" r="3" fill="#00f2f2"/>
+
+            <!-- 左下角 -->
+            <path d="M 30,195 L 30,175 M 30,195 L 50,195"/>
+            <circle cx="30" cy="195" r="3" fill="#00f2f2"/>
+
+            <!-- 右下角 -->
+            <path d="M 370,195 L 370,175 M 370,195 L 350,195"/>
+            <circle cx="370" cy="195" r="3" fill="#00f2f2"/>
+          </g>
+
+          <!-- 中心播放图标 -->
+          <g transform="translate(200, 112)">
+            <!-- 外圈 -->
+            <circle cx="0" cy="0" r="35" stroke="#00f2f2" stroke-width="2" fill="none" opacity="0.4"/>
+            <circle cx="0" cy="0" r="42" stroke="#00f2f2" stroke-width="1" fill="none" opacity="0.2"/>
+
+            <!-- 播放按钮 -->
+            <path d="M -12,-15 L -12,15 L 18,0 Z" fill="#00f2f2" opacity="0.8"/>
+
+            <!-- 装饰点 -->
+            <circle cx="-30" cy="0" r="2" fill="#00f2f2" opacity="0.6"/>
+            <circle cx="30" cy="0" r="2" fill="#00f2f2" opacity="0.6"/>
+            <circle cx="0" cy="-30" r="2" fill="#00f2f2" opacity="0.6"/>
+            <circle cx="0" cy="30" r="2" fill="#00f2f2" opacity="0.6"/>
+          </g>
+
+          <!-- 底部文字 -->
+          <text x="200" y="180" text-anchor="middle" fill="#00f2f2" font-size="14" font-family="Arial, sans-serif" opacity="0.5">
+            轮播大屏
+          </text>
+
+          <!-- 装饰粒子 -->
+          <circle cx="80" cy="60" r="1.5" fill="#00f2f2" opacity="0.4"/>
+          <circle cx="320" cy="80" r="1.5" fill="#00f2f2" opacity="0.4"/>
+          <circle cx="100" cy="170" r="1.5" fill="#00f2f2" opacity="0.4"/>
+          <circle cx="300" cy="160" r="1.5" fill="#00f2f2" opacity="0.4"/>
+          <circle cx="150" cy="50" r="1" fill="#66ffff" opacity="0.3"/>
+          <circle cx="250" cy="180" r="1" fill="#66ffff" opacity="0.3"/>
+        </svg>
       </div>
       <div class="card-overlay">
         <a-space direction="vertical" :size="8">
@@ -34,7 +104,7 @@
             <a-menu @click="({ key }) => $emit('action', key, playlist)">
               <a-menu-item key="edit">
                 <EditOutlined />
-                编辑信息
+                编辑
               </a-menu-item>
               <a-menu-item key="toggle">
                 <SwapOutlined />
@@ -143,7 +213,12 @@ defineEmits(['config', 'copy-url', 'action'])
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f5f5;
+  background: #0a1628;
+}
+
+.default-cover {
+  width: 100%;
+  height: 100%;
 }
 
 .card-overlay {

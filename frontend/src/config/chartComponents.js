@@ -13,7 +13,8 @@ export const chartCategories = [
         type: 'bar',
         name: '基础柱状图',
         icon: 'bar',
-        defaultSize: { w: 400, h: 300 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '用于对比不同类目的数据',
         color: '#00f2f2' // DataV 青色
       },
@@ -21,7 +22,8 @@ export const chartCategories = [
         type: 'line',
         name: '折线图',
         icon: 'line',
-        defaultSize: { w: 400, h: 300 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '展示数据趋势变化',
         color: '#0099cc' // 科技蓝
       },
@@ -29,7 +31,8 @@ export const chartCategories = [
         type: 'pie',
         name: '饼图',
         icon: 'pie',
-        defaultSize: { w: 350, h: 350 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '展示数据占比关系',
         color: '#ffaa00' // 橙色强调
       },
@@ -37,7 +40,8 @@ export const chartCategories = [
         type: 'area',
         name: '面积图',
         icon: 'area',
-        defaultSize: { w: 400, h: 300 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '强调数量随时间变化',
         color: '#66ffff' // 亮青色
       }
@@ -52,7 +56,8 @@ export const chartCategories = [
         type: 'scatter',
         name: '散点图',
         icon: 'scatter',
-        defaultSize: { w: 400, h: 300 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '展示变量之间的关系',
         color: '#ff6b9d' // 粉红
       },
@@ -60,7 +65,8 @@ export const chartCategories = [
         type: 'radar',
         name: '雷达图',
         icon: 'radar',
-        defaultSize: { w: 350, h: 350 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '多维度数据对比',
         color: '#00f2f2' // 主题青色
       },
@@ -68,7 +74,8 @@ export const chartCategories = [
         type: 'gauge',
         name: '仪表盘',
         icon: 'gauge',
-        defaultSize: { w: 300, h: 300 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '展示进度或指标完成度',
         color: '#ffaa00' // 橙色
       },
@@ -76,7 +83,8 @@ export const chartCategories = [
         type: 'funnel',
         name: '漏斗图',
         icon: 'funnel',
-        defaultSize: { w: 350, h: 350 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '业务流程转化率分析',
         color: '#006699' // 深蓝
       }
@@ -91,7 +99,8 @@ export const chartCategories = [
         type: 'map-china',
         name: '中国地图',
         icon: 'map-china',
-        defaultSize: { w: 500, h: 400 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '展示中国各省市数据分布',
         color: '#00f2f2'
       },
@@ -99,7 +108,8 @@ export const chartCategories = [
         type: 'map-3d',
         name: '3D地图',
         icon: 'map-3d',
-        defaultSize: { w: 500, h: 400 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '立体地图可视化',
         color: '#0099cc'
       },
@@ -107,7 +117,8 @@ export const chartCategories = [
         type: 'heatmap',
         name: '热力图',
         icon: 'heatmap',
-        defaultSize: { w: 400, h: 300 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '展示数据密度分布',
         color: '#ff4466' // 红色热力
       }
@@ -122,7 +133,8 @@ export const chartCategories = [
         type: 'liquid',
         name: '水波图',
         icon: 'liquid',
-        defaultSize: { w: 250, h: 250 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '动态展示百分比数据',
         color: '#00f2f2' // 青色水波
       },
@@ -130,7 +142,8 @@ export const chartCategories = [
         type: 'word-cloud',
         name: '词云图',
         icon: 'word-cloud',
-        defaultSize: { w: 400, h: 300 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '关键词频率可视化',
         color: '#9966ff' // 紫色
       },
@@ -138,7 +151,8 @@ export const chartCategories = [
         type: 'sankey',
         name: '桑基图',
         icon: 'sankey',
-        defaultSize: { w: 500, h: 400 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '展示数据流向关系',
         color: '#00cc99' // 青绿
       },
@@ -146,7 +160,8 @@ export const chartCategories = [
         type: 'treemap',
         name: '矩形树图',
         icon: 'treemap',
-        defaultSize: { w: 400, h: 350 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '层级数据占比可视化',
         color: '#ffaa00' // 橙色
       },
@@ -154,59 +169,65 @@ export const chartCategories = [
         type: 'sunburst',
         name: '旭日图',
         icon: 'sunburst',
-        defaultSize: { w: 350, h: 350 },
+        defaultSize: { w: 450, h: 300 },
+        defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
         description: '多层级关系展示',
         color: '#ff88cc' // 粉色
       }
     ]
   },
-  {
-    id: 'info',
-    name: '信息组件',
-    icon: 'info',
-    charts: [
-      {
-        type: 'text',
-        name: '通用标题',
-        icon: 'text',
-        defaultSize: { w: 300, h: 60 },
-        description: '可自定义样式的文本',
-        color: '#bcd0e3' // 浅蓝灰
-      },
-      {
-        type: 'number-flip',
-        name: '数字翻牌器',
-        icon: 'number',
-        defaultSize: { w: 200, h: 100 },
-        description: '动态数字展示',
-        color: '#00f2f2' // 青色
-      },
-      {
-        type: 'kpi-card',
-        name: 'KPI指标卡',
-        icon: 'kpi',
-        defaultSize: { w: 250, h: 120 },
-        description: '关键指标展示卡片',
-        color: '#00cc99' // 青绿
-      },
-      {
-        type: 'progress-bar',
-        name: '进度条',
-        icon: 'progress',
-        defaultSize: { w: 300, h: 40 },
-        description: '展示任务完成进度',
-        color: '#66ffff' // 亮青
-      },
-      {
-        type: 'table',
-        name: '数据表格',
-        icon: 'table',
-        defaultSize: { w: 500, h: 300 },
-        description: '结构化数据展示',
-        color: '#8899aa' // 灰蓝
-      }
-    ]
-  },
+  // {
+  //   id: 'info',
+  //   name: '信息组件',
+  //   icon: 'info',
+  //   charts: [
+  //     {
+  //       type: 'text',
+  //       name: '通用标题',
+  //       icon: 'text',
+  //       defaultSize: { w: 300, h: 60 },
+  //       defaultBorder: { width: 0, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
+  //       description: '可自定义样式的文本',
+  //       color: '#bcd0e3' // 浅蓝灰
+  //     },
+  //     {
+  //       type: 'number-flip',
+  //       name: '数字翻牌器',
+  //       icon: 'number',
+  //       defaultSize: { w: 200, h: 100 },
+  //       defaultBorder: { width: 0, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
+  //       description: '动态数字展示',
+  //       color: '#00f2f2' // 青色
+  //     },
+  //     {
+  //       type: 'kpi-card',
+  //       name: 'KPI指标卡',
+  //       icon: 'kpi',
+  //       defaultSize: { w: 250, h: 120 },
+  //       defaultBorder: { width: 0, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
+  //       description: '关键指标展示卡片',
+  //       color: '#00cc99' // 青绿
+  //     },
+  //     {
+  //       type: 'progress-bar',
+  //       name: '进度条',
+  //       icon: 'progress',
+  //       defaultSize: { w: 300, h: 40 },
+  //       defaultBorder: { width: 0, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
+  //       description: '展示任务完成进度',
+  //       color: '#66ffff' // 亮青
+  //     },
+  //     {
+  //       type: 'table',
+  //       name: '数据表格',
+  //       icon: 'table',
+  //       defaultSize: { w: 500, h: 300 },
+  //       defaultBorder: { width: 1, color: 'rgba(64, 158, 255, 0.4)', radius: 4 },
+  //       description: '结构化数据展示',
+  //       color: '#8899aa' // 灰蓝
+  //     }
+  //   ]
+  // },
   {
     id: 'decoration',
     name: '底图装饰',
@@ -216,65 +237,81 @@ export const chartCategories = [
         type: 'border-01',
         name: '边框01',
         icon: 'border-01',
-        defaultSize: { w: 400, h: 300 },
+        defaultSize: { w: 466, h: 316 },
+        defaultBorder: { width: 0, color: 'rgba(64, 158, 255, 0.4)', radius: 0 },
         description: '科技感边框装饰',
-        color: '#00f2f2'
+        color: '#00f2f2',
+        previewSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60" viewBox="0 0 80 60"><g stroke="#00f2f2" fill="none"><path d="M0,14 L0,0 L14,0" stroke-width="2"/><line x1="14" y1="0" x2="14" y2="8" stroke-width="1" opacity="0.5"/><line x1="0" y1="14" x2="8" y2="14" stroke-width="1" opacity="0.5"/><circle cx="4" cy="4" r="2" fill="#00f2f2" opacity="0.8"/><path d="M80,0 L66,0 M80,0 L80,14" stroke-width="2"/><line x1="66" y1="0" x2="66" y2="8" stroke-width="1" opacity="0.5"/><line x1="80" y1="14" x2="72" y2="14" stroke-width="1" opacity="0.5"/><circle cx="76" cy="4" r="2" fill="#00f2f2" opacity="0.8"/><path d="M80,60 L66,60 M80,60 L80,46" stroke-width="2"/><circle cx="76" cy="56" r="2" fill="#00f2f2" opacity="0.8"/><path d="M0,60 L14,60 M0,60 L0,46" stroke-width="2"/><circle cx="4" cy="56" r="2" fill="#00f2f2" opacity="0.8"/><line x1="22" y1="0" x2="58" y2="0" stroke-width="1" opacity="0.3"/><line x1="22" y1="60" x2="58" y2="60" stroke-width="1" opacity="0.3"/><line x1="0" y1="22" x2="0" y2="38" stroke-width="1" opacity="0.3"/><line x1="80" y1="22" x2="80" y2="38" stroke-width="1" opacity="0.3"/></g></svg>`
       },
       {
         type: 'border-02',
         name: '边框02',
         icon: 'border-02',
-        defaultSize: { w: 400, h: 300 },
+        defaultSize: { w: 466, h: 316 },
+        defaultBorder: { width: 0, color: 'rgba(64, 158, 255, 0.4)', radius: 0 },
         description: '双线边框',
-        color: '#0099cc'
+        color: '#0099cc',
+        previewSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60" viewBox="0 0 80 60"><g stroke="#0099cc" fill="none"><rect x="2" y="2" width="76" height="56" stroke-width="1" opacity="0.6"/><rect x="6" y="6" width="68" height="48" stroke-width="1" opacity="0.8"/><line x1="2" y1="2" x2="6" y2="6" stroke-width="1" opacity="0.6"/><line x1="78" y1="2" x2="74" y2="6" stroke-width="1" opacity="0.6"/><line x1="78" y1="58" x2="74" y2="54" stroke-width="1" opacity="0.6"/><line x1="2" y1="58" x2="6" y2="54" stroke-width="1" opacity="0.6"/><circle cx="40" cy="2" r="2" fill="#0099cc" opacity="0.8"/><circle cx="40" cy="58" r="2" fill="#0099cc" opacity="0.8"/><circle cx="78" cy="30" r="2" fill="#0099cc" opacity="0.8"/><circle cx="2" cy="30" r="2" fill="#0099cc" opacity="0.8"/><circle cx="6" cy="6" r="1.5" fill="#0099cc" opacity="0.6"/><circle cx="74" cy="6" r="1.5" fill="#0099cc" opacity="0.6"/><circle cx="74" cy="54" r="1.5" fill="#0099cc" opacity="0.6"/><circle cx="6" cy="54" r="1.5" fill="#0099cc" opacity="0.6"/></g></svg>`
       },
       {
         type: 'border-03',
         name: '边框03',
         icon: 'border-03',
-        defaultSize: { w: 400, h: 300 },
+        defaultSize: { w: 466, h: 316 },
+        defaultBorder: { width: 0, color: 'rgba(64, 158, 255, 0.4)', radius: 0 },
         description: '四角装饰边框',
-        color: '#ffaa00'
+        color: '#ffaa00',
+        previewSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60" viewBox="0 0 80 60"><g stroke="#ffaa00" fill="none"><line x1="0" y1="0" x2="20" y2="0" stroke-width="2"/><line x1="60" y1="0" x2="80" y2="0" stroke-width="2"/><line x1="80" y1="0" x2="80" y2="18" stroke-width="2"/><line x1="80" y1="42" x2="80" y2="60" stroke-width="2"/><line x1="80" y1="60" x2="60" y2="60" stroke-width="2"/><line x1="20" y1="60" x2="0" y2="60" stroke-width="2"/><line x1="0" y1="60" x2="0" y2="42" stroke-width="2"/><line x1="0" y1="18" x2="0" y2="0" stroke-width="2"/><line x1="0" y1="0" x2="11" y2="11" stroke-width="1" opacity="0.5"/><line x1="80" y1="0" x2="69" y2="11" stroke-width="1" opacity="0.5"/><line x1="80" y1="60" x2="69" y2="49" stroke-width="1" opacity="0.5"/><line x1="0" y1="60" x2="11" y2="49" stroke-width="1" opacity="0.5"/><circle cx="8" cy="8" r="2" fill="#ffaa00" opacity="0.8"/><circle cx="72" cy="8" r="2" fill="#ffaa00" opacity="0.8"/><circle cx="72" cy="52" r="2" fill="#ffaa00" opacity="0.8"/><circle cx="8" cy="52" r="2" fill="#ffaa00" opacity="0.8"/><line x1="28" y1="0" x2="52" y2="0" stroke-width="1" opacity="0.2" stroke-dasharray="4,3"/><line x1="28" y1="60" x2="52" y2="60" stroke-width="1" opacity="0.2" stroke-dasharray="4,3"/></g></svg>`
       },
       {
         type: 'border-04',
         name: '边框04',
         icon: 'border-04',
-        defaultSize: { w: 400, h: 300 },
+        defaultSize: { w: 466, h: 316 },
+        defaultBorder: { width: 0, color: 'rgba(64, 158, 255, 0.4)', radius: 0 },
         description: '动态流光边框',
-        color: '#66ffff'
+        color: '#66ffff',
+        previewSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60" viewBox="0 0 80 60"><defs><linearGradient id="p4h" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#66ffff" stop-opacity="0"/><stop offset="50%" stop-color="#66ffff" stop-opacity="1"/><stop offset="100%" stop-color="#66ffff" stop-opacity="0"/></linearGradient><linearGradient id="p4v" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#66ffff" stop-opacity="0"/><stop offset="50%" stop-color="#66ffff" stop-opacity="1"/><stop offset="100%" stop-color="#66ffff" stop-opacity="0"/></linearGradient></defs><rect x="1" y="1" width="78" height="58" stroke="#66ffff" stroke-width="1" fill="none" opacity="0.3"/><line x1="40" y1="1" x2="40" y2="59" stroke="#66ffff" stroke-width="0.5" opacity="0.15"/><line x1="1" y1="30" x2="79" y2="30" stroke="#66ffff" stroke-width="0.5" opacity="0.15"/><line x1="0" y1="0" x2="80" y2="0" stroke="url(#p4h)" stroke-width="2"/><line x1="80" y1="0" x2="80" y2="60" stroke="url(#p4v)" stroke-width="2"/><line x1="80" y1="60" x2="0" y2="60" stroke="url(#p4h)" stroke-width="2"/><line x1="0" y1="60" x2="0" y2="0" stroke="url(#p4v)" stroke-width="2"/><circle cx="0" cy="0" r="3" fill="#66ffff" opacity="0.8"/><circle cx="80" cy="0" r="3" fill="#66ffff" opacity="0.8"/><circle cx="80" cy="60" r="3" fill="#66ffff" opacity="0.8"/><circle cx="0" cy="60" r="3" fill="#66ffff" opacity="0.8"/><line x1="20" y1="0" x2="20" y2="8" stroke="#66ffff" stroke-width="1" opacity="0.5"/><line x1="60" y1="0" x2="60" y2="8" stroke="#66ffff" stroke-width="1" opacity="0.5"/></svg>`
       },
       {
         type: 'decoration-01',
         name: '装饰01',
         icon: 'decoration-01',
-        defaultSize: { w: 200, h: 50 },
+        defaultSize: { w: 466, h: 316 },
+        defaultBorder: { width: 0, color: 'rgba(64, 158, 255, 0.4)', radius: 0 },
         description: '标题装饰线',
-        color: '#00f2f2'
+        color: '#00f2f2',
+        previewSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60" viewBox="0 0 80 60"><g transform="translate(40,30)"><circle cx="0" cy="0" r="4" fill="#00f2f2" opacity="0.9"/><circle cx="0" cy="0" r="10" stroke="#00f2f2" stroke-width="1" fill="none" opacity="0.5"/><circle cx="0" cy="0" r="16" stroke="#00f2f2" stroke-width="0.5" fill="none" opacity="0.25"/><line x1="-35" y1="0" x2="-12" y2="0" stroke="#00f2f2" stroke-width="2"/><line x1="12" y1="0" x2="35" y2="0" stroke="#00f2f2" stroke-width="2"/><line x1="-38" y1="0" x2="-35" y2="0" stroke="#00f2f2" stroke-width="1" opacity="0.5"/><line x1="35" y1="0" x2="38" y2="0" stroke="#00f2f2" stroke-width="1" opacity="0.5"/><circle cx="-38" cy="0" r="2" fill="#00f2f2" opacity="0.7"/><circle cx="38" cy="0" r="2" fill="#00f2f2" opacity="0.7"/><line x1="-10" y1="-10" x2="-6" y2="-6" stroke="#00f2f2" stroke-width="1" opacity="0.4"/><line x1="10" y1="-10" x2="6" y2="-6" stroke="#00f2f2" stroke-width="1" opacity="0.4"/><line x1="10" y1="10" x2="6" y2="6" stroke="#00f2f2" stroke-width="1" opacity="0.4"/><line x1="-10" y1="10" x2="-6" y2="6" stroke="#00f2f2" stroke-width="1" opacity="0.4"/></g></svg>`
       },
       {
         type: 'decoration-02',
         name: '装饰02',
         icon: 'decoration-02',
-        defaultSize: { w: 150, h: 150 },
+        defaultSize: { w: 466, h: 316 },
+        defaultBorder: { width: 0, color: 'rgba(64, 158, 255, 0.4)', radius: 0 },
         description: '角标装饰',
-        color: '#ffaa00'
+        color: '#ffaa00',
+        previewSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60" viewBox="0 0 80 60"><g stroke="#ffaa00" fill="none"><rect x="3" y="3" width="26" height="22" stroke-width="2"/><rect x="7" y="7" width="18" height="14" stroke-width="1" opacity="0.6"/><line x1="3" y1="3" x2="29" y2="25" stroke-width="1" opacity="0.35"/><circle cx="16" cy="14" r="3" fill="#ffaa00" opacity="0.8"/><line x1="29" y1="3" x2="45" y2="3" stroke-width="1" opacity="0.5"/><line x1="3" y1="25" x2="3" y2="41" stroke-width="1" opacity="0.5"/><rect x="51" y="35" width="26" height="22" stroke-width="2"/><rect x="55" y="39" width="18" height="14" stroke-width="1" opacity="0.6"/><line x1="51" y1="35" x2="77" y2="57" stroke-width="1" opacity="0.35"/><circle cx="64" cy="46" r="3" fill="#ffaa00" opacity="0.8"/><line x1="35" y1="57" x2="51" y2="57" stroke-width="1" opacity="0.5"/><line x1="77" y1="35" x2="77" y2="19" stroke-width="1" opacity="0.5"/><line x1="16" y1="14" x2="64" y2="46" stroke="#ffaa00" stroke-width="0.5" opacity="0.15" stroke-dasharray="4,4"/></g></svg>`
       },
       {
         type: 'decoration-03',
         name: '装饰03',
         icon: 'decoration-03',
-        defaultSize: { w: 300, h: 100 },
+        defaultSize: { w: 466, h: 316 },
+        defaultBorder: { width: 0, color: 'rgba(64, 158, 255, 0.4)', radius: 0 },
         description: '分隔线装饰',
-        color: '#0099cc'
+        color: '#0099cc',
+        previewSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60" viewBox="0 0 80 60"><g transform="translate(0,30)"><line x1="0" y1="-1" x2="80" y2="-1" stroke="#0099cc" stroke-width="2"/><line x1="0" y1="1" x2="80" y2="1" stroke="#0099cc" stroke-width="1" opacity="0.4"/><line x1="0" y1="0" x2="80" y2="0" stroke="#0099cc" stroke-width="1" opacity="0.2" stroke-dasharray="6,4"/><line x1="14" y1="-8" x2="14" y2="8" stroke="#0099cc" stroke-width="1" opacity="0.8"/><circle cx="14" cy="0" r="2" fill="#0099cc" opacity="0.6"/><line x1="66" y1="-8" x2="66" y2="8" stroke="#0099cc" stroke-width="1" opacity="0.8"/><circle cx="66" cy="0" r="2" fill="#0099cc" opacity="0.6"/><path d="M40,-7 L36,-3 L38,-3 L38,0 L42,0 L42,-3 L44,-3 Z" fill="#0099cc" opacity="0.6"/><path d="M40,7 L36,3 L38,3 L38,0 L42,0 L42,3 L44,3 Z" fill="#0099cc" opacity="0.6"/><circle cx="40" cy="0" r="3" fill="#0099cc" opacity="0.8"/><circle cx="0" cy="0" r="4" fill="#0099cc" opacity="0.4"/><circle cx="80" cy="0" r="4" fill="#0099cc" opacity="0.4"/></g></svg>`
       },
       {
         type: 'bg-box',
         name: '容器背景',
         icon: 'bg-box',
-        defaultSize: { w: 500, h: 400 },
+        defaultSize: { w: 466, h: 316 },
+        defaultBorder: { width: 0, color: 'rgba(64, 158, 255, 0.4)', radius: 0 },
         description: '数据展示容器背景',
-        color: '#003366'
+        color: '#003366',
+        previewSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60" viewBox="0 0 80 60"><rect width="80" height="60" fill="#001529"/><defs><pattern id="pg" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0 L0 0 0 10" fill="none" stroke="#0099cc" stroke-width="0.4" opacity="0.3"/></pattern></defs><rect width="80" height="60" fill="url(#pg)"/><rect x="1" y="1" width="78" height="58" stroke="#00f2f2" stroke-width="1.5" fill="none" opacity="0.6"/><line x1="0" y1="0" x2="14" y2="0" stroke="#00f2f2" stroke-width="3"/><line x1="0" y1="0" x2="0" y2="14" stroke="#00f2f2" stroke-width="3"/><line x1="66" y1="0" x2="80" y2="0" stroke="#00f2f2" stroke-width="3"/><line x1="80" y1="0" x2="80" y2="14" stroke="#00f2f2" stroke-width="3"/><line x1="66" y1="60" x2="80" y2="60" stroke="#00f2f2" stroke-width="3"/><line x1="80" y1="46" x2="80" y2="60" stroke="#00f2f2" stroke-width="3"/><line x1="0" y1="60" x2="14" y2="60" stroke="#00f2f2" stroke-width="3"/><line x1="0" y1="46" x2="0" y2="60" stroke="#00f2f2" stroke-width="3"/><circle cx="0" cy="0" r="3" fill="#00f2f2"/><circle cx="80" cy="0" r="3" fill="#00f2f2"/><circle cx="80" cy="60" r="3" fill="#00f2f2"/><circle cx="0" cy="60" r="3" fill="#00f2f2"/><circle cx="20" cy="15" r="1" fill="#00f2f2" opacity="0.5"/><circle cx="40" cy="30" r="1.5" fill="#00f2f2" opacity="0.4"/><circle cx="60" cy="20" r="1" fill="#00f2f2" opacity="0.5"/><circle cx="30" cy="45" r="1" fill="#00f2f2" opacity="0.4"/><circle cx="55" cy="48" r="1.5" fill="#00f2f2" opacity="0.3"/></svg>`
       }
     ]
   }

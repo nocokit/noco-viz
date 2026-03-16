@@ -1,27 +1,5 @@
-import { message } from 'ant-design-vue'
+import { showMessage } from './useMessage'
 import { getChartByType } from '@/config/chartComponents'
-
-/**
- * 统一的消息提示函数 - 确保同时只显示一个消息
- */
-const showMessage = {
-  success: (content) => {
-    message.destroy()
-    message.success(content)
-  },
-  error: (content) => {
-    message.destroy()
-    message.error(content)
-  },
-  warning: (content) => {
-    message.destroy()
-    message.warning(content)
-  },
-  info: (content) => {
-    message.destroy()
-    message.info(content)
-  }
-}
 
 /**
  * 组件操作 Composable
@@ -63,12 +41,13 @@ export function useComponents(canvasComponents, selectedComponentIds, canvasScal
       // 视觉样式
       bgColor: 'transparent',
       opacity: 100,
-      borderWidth: 0,
-      borderColor: '#3b82f6',
-      borderRadius: 4,
+      showBorder: chartConfig.defaultBorder?.width > 0,
+      borderWidth: chartConfig.defaultBorder?.width ?? 1,
+      borderColor: chartConfig.defaultBorder?.color ?? 'rgba(64, 158, 255, 0.4)',
+      borderRadius: chartConfig.defaultBorder?.radius ?? 4,
 
       color: chartConfig.color,
-      config: {}, // 图表配置项
+      config: {}, // 图表配置项（空对象，使用图表组件的默认配置）
       data: null // 后续绑定数据
     }
 

@@ -41,89 +41,16 @@
 
       <!-- List 视图 -->
       <template #list="{ items }">
-        <div
+        <PlaylistListItem
           v-for="playlist in items"
           :key="playlist.id"
-          class="playlist-list-item"
-        >
-          <div class="list-item-thumb">
-            <img
-              v-if="playlist.coverImage"
-              :src="playlist.coverImage"
-              :alt="playlist.name"
-            />
-            <div v-else class="list-item-thumb-default">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" class="thumb-icon">
-                <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/>
-              </svg>
-            </div>
-          </div>
-          <div class="list-item-content">
-            <div class="list-item-header">
-              <div class="list-item-title-row">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="title-icon">
-                  <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/>
-                </svg>
-                <span class="list-item-title">{{ playlist.name }}</span>
-                <a-tag v-if="playlist.status === 'playing'" color="success">
-                  播放中
-                </a-tag>
-                <a-tag v-else class="draft-tag">
-                  闲置
-                </a-tag>
-              </div>
-              <div class="list-item-actions">
-                <a-button size="small" type="primary" @click="handleConfigPlaylist(playlist)">
-                  <template #icon><SettingOutlined /></template>
-                  配置轮播
-                </a-button>
-                <a-button size="small" @click="copyPlaylistUrl(playlist)">
-                  <template #icon><LinkOutlined /></template>
-                  复制链接
-                </a-button>
-                <a-dropdown>
-                  <a-button size="small">
-                    <template #icon><MoreOutlined /></template>
-                  </a-button>
-                  <template #overlay>
-                    <a-menu @click="({ key }) => handleMenuAction(key, playlist)">
-                      <a-menu-item key="edit">
-                        <EditOutlined />
-                        编辑信息
-                      </a-menu-item>
-                      <a-menu-item key="toggle">
-                        <SwapOutlined />
-                        {{ playlist.status === 'playing' ? '设为闲置' : '设为播放中' }}
-                      </a-menu-item>
-                      <a-menu-divider />
-                      <a-menu-item key="delete" danger>
-                        <DeleteOutlined />
-                        删除
-                      </a-menu-item>
-                    </a-menu>
-                  </template>
-                </a-dropdown>
-              </div>
-            </div>
-            <div class="list-item-desc">{{ playlist.description || '暂无描述' }}</div>
-            <div class="list-item-meta">
-              <a-space :size="16">
-                <span class="meta-text">
-                  <PlayCircleOutlined />
-                  <span class="meta-number">{{ playlist.screenCount || 0 }}</span> 个大屏
-                </span>
-                <span class="meta-text">
-                  <ClockCircleOutlined />
-                  间隔 <span class="meta-number">{{ playlist.interval || 10 }}</span> 秒
-                </span>
-                <span class="meta-text">
-                  <CalendarOutlined />
-                  更新于 {{ playlist.updatedAt }}
-                </span>
-              </a-space>
-            </div>
-          </div>
-        </div>
+          :playlist="playlist"
+          @config="handleConfigPlaylist"
+          @copy-url="copyPlaylistUrl"
+          @edit="handleEditPlaylist"
+          @toggle="handleToggleStatus"
+          @delete="handleDeletePlaylist"
+        />
       </template>
     </WorkspaceLayout>
 
@@ -433,43 +360,25 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, h } from 'vue'
-import { message, Empty } from 'ant-design-vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { message } from 'ant-design-vue'
 import {
-  PlusOutlined,
-  ReloadOutlined,
-  SettingOutlined,
-  LinkOutlined,
-  MoreOutlined,
-  EditOutlined,
-  SwapOutlined,
-  DeleteOutlined,
-  PlayCircleOutlined,
-  ClockCircleOutlined,
-  CalendarOutlined,
-  SearchOutlined,
-  FileImageOutlined,
-  CheckOutlined,
-  SaveOutlined,
-  HolderOutlined
+  PlusOutlined, ReloadOutlined, SearchOutlined,
+  FileImageOutlined, CheckOutlined, SaveOutlined, HolderOutlined
 } from '@ant-design/icons-vue'
+import { useViewModes } from '@/composables/useViewModes'
+import { getImageUrl } from '@/utils/image'
 import WorkspaceLayout from '@/components/workspace/WorkspaceLayout.vue'
 import PlaylistCard from '@/components/workspace/PlaylistCard.vue'
+import PlaylistListItem from './components/PlaylistListItem.vue'
 import { usePlaylistOperations } from './usePlaylistOperations'
 import draggable from 'vuedraggable'
-import {
-  createPlaylist,
-  updatePlaylist,
-  getPlaylistDetail,
-  updateSlides
-} from '@/api/playlist'
+import { createPlaylist, updatePlaylist, getPlaylistDetail, updateSlides } from '@/api/playlist'
 import { getProjectList } from '@/api/project'
 
-const router = useRouter()
 const formRef = ref()
+const { viewModes } = useViewModes()
 
-// 使用轮播操作 hook
 const {
   playlists,
   loading,
@@ -493,31 +402,10 @@ const filters = [
   { id: 'idle', label: '闲置', count: computed(() => playlists.value.filter(p => p.status === 'idle').length) }
 ]
 
-// 视图模式
-const viewModes = [
-  {
-    id: 'grid',
-    label: '网格视图',
-    tooltip: '网格视图',
-    icon: h('svg', { width: '16', height: '16', viewBox: '0 0 24 24', fill: 'currentColor' }, [
-      h('path', { d: 'M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z' })
-    ])
-  },
-  {
-    id: 'list',
-    label: '列表视图',
-    tooltip: '列表视图',
-    icon: h('svg', { width: '16', height: '16', viewBox: '0 0 24 24', fill: 'currentColor' }, [
-      h('path', { d: 'M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z' })
-    ])
-  }
-]
-
 // 当前筛选
 const currentFilter = ref('all')
 const searchKeyword = ref('')
 
-// 筛选和搜索函数
 const filterPlaylists = (items, filterValue) => {
   if (filterValue === 'all') return items
   return items.filter(item => item.status === filterValue)
@@ -532,20 +420,9 @@ const searchPlaylists = (items, keyword) => {
   )
 }
 
-// 处理筛选变化
-const handleFilterChange = (value) => {
-  currentFilter.value = value
-}
-
-// 处理搜索
-const handleSearch = (keyword) => {
-  searchKeyword.value = keyword
-}
-
-// 处理视图变化
-const handleViewChange = (view) => {
-  console.log('View changed to:', view)
-}
+const handleFilterChange = (value) => { currentFilter.value = value }
+const handleSearch = (keyword) => { searchKeyword.value = keyword }
+const handleViewChange = () => {}
 
 // 弹窗相关
 const modalVisible = ref(false)
@@ -791,83 +668,17 @@ const handleRemoveSlide = (index) => {
   message.success('页面已移除')
 }
 
-// 获取图片URL
-const getImageUrl = (path) => {
-  if (!path) return ''
-  if (path.startsWith('http://') || path.startsWith('https://')) return path
-  // 如果路径以 / 开头，直接使用（由 vite proxy 处理）
-  if (path.startsWith('/')) return path
-  // 否则拼接完整路径
-  return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/${path}`
-}
-
-// 弹窗确认
-const handleModalOk = async () => {
-  try {
-    await formRef.value.validate()
-
-    submitting.value = true
-
-    if (modalMode.value === 'create') {
-      await createPlaylist(formData)
-      message.success('轮播组创建成功')
-    } else {
-      await updatePlaylist(currentPlaylist.value.id, formData)
-      message.success('轮播组更新成功')
-    }
-
-    submitting.value = false
-    modalVisible.value = false
-    await loadPlaylists()
-  } catch (error) {
-    submitting.value = false
-    if (error.errorFields) {
-      // 表单验证错误
-      return
-    }
-    console.error('操作失败:', error)
-    message.error('操作失败')
-  }
-}
-
-// 弹窗取消
-const handleModalCancel = () => {
-  modalVisible.value = false
-}
-
-// 菜单操作
 const handleMenuAction = (key, playlist) => {
-  switch (key) {
-    case 'edit':
-      handleEditPlaylist(playlist)
-      break
-    case 'toggle':
-      handleToggleStatus(playlist)
-      break
-    case 'copy':
-      copyPlaylistUrl(playlist)
-      break
-    case 'delete':
-      handleDeletePlaylist(playlist)
-      break
+  const actions = {
+    edit: () => handleEditPlaylist(playlist),
+    toggle: () => handleToggleStatus(playlist),
+    copy: () => copyPlaylistUrl(playlist),
+    delete: () => handleDeletePlaylist(playlist)
   }
+  actions[key]?.()
 }
 
-// 获取切换效果标签
-const getTransitionLabel = (transition) => {
-  const labels = {
-    fade: '淡入淡出',
-    slide: '滑动',
-    zoom: '缩放',
-    none: '无'
-  }
-  return labels[transition] || transition
-}
-
-// 初始化
-onMounted(() => {
-  loadPlaylists()
-})
+onMounted(() => loadPlaylists())
 </script>
 
 <style scoped>
@@ -884,7 +695,6 @@ onMounted(() => {
   overflow: hidden;
 }
 
-/* 左侧页面列表 */
 .slides-panel {
   flex: 1;
   display: flex;
@@ -1041,15 +851,6 @@ onMounted(() => {
   color: #8c8c8c;
 }
 
-.meta-text :deep(.anticon) {
-  font-size: 12px;
-}
-
-.meta-number {
-  color: #1890ff;
-  font-size: 13px;
-}
-
 .slide-actions {
   display: flex;
   align-items: center;
@@ -1057,7 +858,6 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-/* 右侧配置面板 */
 .config-panel {
   width: 320px;
   display: flex;
@@ -1071,7 +871,6 @@ onMounted(() => {
   padding: 16px;
 }
 
-/* 页面选择器样式 */
 .page-selector-content {
   max-height: 500px;
   overflow-y: auto;
@@ -1147,105 +946,4 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
-/* 列表视图样式 */
-.playlist-list-item {
-  display: flex;
-  gap: 16px;
-  padding: 16px;
-  background: #fff;
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  transition: all 0.3s ease;
-}
-
-.playlist-list-item:hover {
-  border-color: #d9d9d9;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.list-item-thumb {
-  width: 160px;
-  height: 90px;
-  border-radius: 4px;
-  overflow: hidden;
-  background: #f5f5f5;
-  flex-shrink: 0;
-}
-
-.list-item-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.list-item-thumb-default {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #f5f5f5 0%, #fafafa 100%);
-}
-
-.list-item-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.list-item-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.list-item-title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-}
-
-.list-item-title {
-  font-size: 16px;
-  font-weight: 500;
-  color: #262626;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.list-item-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.list-item-desc {
-  font-size: 13px;
-  color: #8c8c8c;
-  margin-bottom: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.list-item-meta {
-  margin-top: auto;
-}
-
-.draft-tag {
-  background: #fff7e6;
-  border-color: #ffd591;
-  color: #fa8c16;
-  font-weight: 500;
-}
 </style>
-
-

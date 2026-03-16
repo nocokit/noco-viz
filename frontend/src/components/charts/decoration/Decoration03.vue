@@ -4,7 +4,7 @@
 -->
 <template>
   <div class="decoration-03" :style="containerStyle">
-    <svg class="decoration-svg" :width="width" :height="height">
+    <svg class="decoration-svg" width="100%" height="100%" :viewBox="`0 0 ${width} ${height}`">
       <defs>
         <!-- 箭头标记 -->
         <marker
@@ -155,17 +155,23 @@ const props = defineProps({
   config: {
     type: Object,
     default: () => ({})
+  },
+  width: {
+    type: Number,
+    default: 300
+  },
+  height: {
+    type: Number,
+    default: 100
   }
 })
 
-const width = computed(() => props.config.width || 300)
-const height = computed(() => props.config.height || 100)
 const color = computed(() => props.config.color || '#0099cc')
 const arrowSpacing = computed(() => props.config.arrowSpacing || 40)
 
 const containerStyle = computed(() => ({
-  width: `${width.value}px`,
-  height: `${height.value}px`
+  width: '100%',
+  height: '100%'
 }))
 </script>
 

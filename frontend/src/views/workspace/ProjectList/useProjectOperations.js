@@ -8,7 +8,8 @@ import {
   deleteProject,
   cloneProject,
   publishProject,
-  unpublishProject
+  unpublishProject,
+  updateProject
 } from '@/api/project'
 
 export function useProjectOperations() {
@@ -158,6 +159,7 @@ export function useProjectOperations() {
     handleDuplicate,
     handlePublish,
     handleUnpublish,
-    handleDeleteProject
+    handleDeleteProject,
+    updateProject
   }
 }

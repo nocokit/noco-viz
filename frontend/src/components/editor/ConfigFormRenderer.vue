@@ -15,7 +15,7 @@
       :title="getSectionLabel(sectionKey)"
       :collapsible="true"
       :defaultCollapsed="false"
-      :divider="true"
+      :divider="sectionKey !== Object.keys(schema)[Object.keys(schema).length - 1]"
     >
       <template v-if="sectionSchema.properties">
         <template v-for="(propSchema, propKey) in sectionSchema.properties" :key="propKey">
