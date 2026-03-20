@@ -30,55 +30,39 @@
 
     <!-- 中间：对齐工具和状态指示 -->
     <div class="header-center">
-      <!-- 复制粘贴工具 -->
-      <div class="edit-controls">
+ 
+
+            <!-- 撤销重做 -->
+      <div class="history-controls">
         <button
+          v-for="btn in historyButtons"
+          :key="btn.action"
           class="icon-btn"
-          :class="{ disabled: selectedCount === 0 }"
-          @click="$emit('copy')"
-          title="复制 (Ctrl+C)"
-          :disabled="selectedCount === 0"
+          :class="{ disabled: !btn.canDo }"
+          @click="btn.handler"
+          :title="btn.title"
         >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-          </svg>
-        </button>
-        <button
-          class="icon-btn"
-          :class="{ disabled: !hasCopied }"
-          @click="$emit('paste')"
-          title="粘贴 (Ctrl+V)"
-          :disabled="!hasCopied"
-        >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-            <path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/>
-          </svg>
-        </button>
-        <button
-          class="icon-btn"
-          :class="{ disabled: selectedCount === 0 }"
-          @click="$emit('duplicate')"
-          title="快速复制 (Ctrl+D)"
-          :disabled="selectedCount === 0"
-        >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm-1 4l6 6v10c0 1.1-.9 2-2 2H7.99C6.89 23 6 22.1 6 21l.01-14c0-1.1.89-2 1.99-2h7zm-1 7h5.5L14 6.5V12z"/>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path :d="btn.iconPath"/>
           </svg>
         </button>
       </div>
 
       <div class="divider-v" style="margin: 0 12px;"></div>
 
-      <!-- 撤销重做 -->
-      <div class="history-controls">
-        <button class="icon-btn" :class="{ disabled: !canUndo }" @click="handleUndo" title="撤销 (Ctrl+Z)">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 7v6h6M21 17a9 9 0 0 0-9-9 9 9 0 0 0-9 9"/>
-          </svg>
-        </button>
-        <button class="icon-btn" :class="{ disabled: !canRedo }" @click="handleRedo" title="重做 (Ctrl+Y)">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 7v6h-6M3 17a9 9 0 0 1 9-9 9 9 0 0 1 9 9"/>
+     <!-- 复制粘贴工具 -->
+      <div class="edit-controls">
+        <button
+          v-for="btn in editButtons"
+          :key="btn.action"
+          class="icon-btn"
+          :class="{ disabled: btn.disabled }"
+          @click="$emit(btn.action)"
+          :title="btn.title"
+          :disabled="btn.disabled"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path :d="btn.iconPath"/>
           </svg>
         </button>
       </div>
@@ -87,36 +71,21 @@
 
       <!-- 对齐和分布工具 -->
       <div class="align-controls">
-        <button class="icon-btn" :class="{ disabled: selectedCount < 2 }" @click="$emit('align', 'left')" title="左对齐" :disabled="selectedCount < 2">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 22H2V2h2v20zM22 7H6v3h16V7zm-6 7H6v3h10v-3z"/></svg>
-        </button>
-        <button class="icon-btn" :class="{ disabled: selectedCount < 2 }" @click="$emit('align', 'center-x')" title="水平居中" :disabled="selectedCount < 2">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M11 2h2v5h8v3h-8v4h5v3h-5v5h-2v-5H6v-3h5v-4H3V7h8z"/></svg>
-        </button>
-        <button class="icon-btn" :class="{ disabled: selectedCount < 2 }" @click="$emit('align', 'right')" title="右对齐" :disabled="selectedCount < 2">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20 2h2v20h-2V2zM2 7h16v3H2V7zm6 7h10v3H8v-3z"/></svg>
-        </button>
-
-        <div class="divider-mini"></div>
-
-        <button class="icon-btn" :class="{ disabled: selectedCount < 2 }" @click="$emit('align', 'top')" title="顶对齐" :disabled="selectedCount < 2">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M2 2h20v2H2V2zm5 16h3V6H7v12zm7-6h3V6h-3v6z"/></svg>
-        </button>
-        <button class="icon-btn" :class="{ disabled: selectedCount < 2 }" @click="$emit('align', 'center-y')" title="垂直居中" :disabled="selectedCount < 2">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M22 11v2h-5v8h-3v-8H10v5H7v-5H2v-2h5V6h3v5h4V3h3v8z"/></svg>
-        </button>
-        <button class="icon-btn" :class="{ disabled: selectedCount < 2 }" @click="$emit('align', 'bottom')" title="底对齐" :disabled="selectedCount < 2">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M22 22H2v-2h20v2zM7 6h3v12H7V6zm7 6h3v6h-3v-6z"/></svg>
-        </button>
-
-        <div class="divider-mini"></div>
-
-        <button class="icon-btn" :class="{ disabled: selectedCount < 3 }" @click="$emit('align', 'dist-h')" title="水平分布" :disabled="selectedCount < 3">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 22H2V2h2v20zM22 2h-2v20h2V2zm-5 5H7v10h10V7z"/></svg>
-        </button>
-        <button class="icon-btn" :class="{ disabled: selectedCount < 3 }" @click="$emit('align', 'dist-v')" title="垂直分布" :disabled="selectedCount < 3">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M22 4v2H2V4h20zM2 22h20v-2H2v2zm5-5h10V7H7v10z"/></svg>
-        </button>
+        <template v-for="(btn, index) in alignButtons" :key="btn.type">
+          <div v-if="btn.divider" class="divider-mini"></div>
+          <button
+            v-else
+            class="icon-btn"
+            :class="{ disabled: selectedCount < btn.minCount }"
+            @click="$emit('align', btn.type)"
+            :title="btn.title"
+            :disabled="selectedCount < btn.minCount"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path :d="btn.iconPath"/>
+            </svg>
+          </button>
+        </template>
       </div>
 
       <div class="divider-v" style="margin: 0 12px;"></div>
@@ -148,8 +117,58 @@
 
     <!-- 右侧：协作与发布 -->
     <div class="header-right">
-      <!-- 主题切换器 -->
-      <ThemeSwitcher />
+      <!-- 主题切换器 - 暂时屏蔽 -->
+      <!-- <ThemeSwitcher /> -->
+
+      <!-- <div class="divider-v"></div> -->
+
+      <!-- 网格辅助线控制 -->
+      <div class="grid-controls">
+        <button
+          class="icon-btn"
+          :class="{ active: gridEnabled }"
+          @click="$emit('toggle-grid')"
+          title="显示/隐藏网格"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M10 10h4v4h-4v-4zm0-6h4v4h-4V4zm0 12h4v4h-4v-4zM4 10h4v4H4v-4zm0-6h4v4H4V4zm0 12h4v4H4v-4zm12-6h4v4h-4v-4zm0-6h4v4h-4V4zm0 12h4v4h-4v-4z"/>
+          </svg>
+        </button>
+        <a-dropdown v-if="gridEnabled" trigger="click">
+          <button class="icon-btn" title="网格类型">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+              <path d="M7 10l5 5 5-5z"/>
+            </svg>
+          </button>
+          <template #overlay>
+            <a-menu @click="({ key }) => $emit('change-grid-type', key)">
+              <template v-for="item in gridTypeOptions">
+                <a-menu-divider v-if="item.divider" :key="'divider-' + item.key" />
+                <a-menu-item v-else :key="item.key">
+                  <span :style="{ fontWeight: gridType === item.key ? 'bold' : 'normal' }">{{ item.label }}</span>
+                </a-menu-item>
+              </template>
+            </a-menu>
+          </template>
+        </a-dropdown>
+      </div>
+
+      <template v-if="gridEnabled">
+        <div class="divider-v"></div>
+
+        <!-- 智能布局按钮 -->
+        <button
+          class="icon-btn"
+          :class="{ disabled: componentCount === 0 }"
+          @click="$emit('auto-layout')"
+          title="智能布局"
+          :disabled="componentCount === 0"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/>
+          </svg>
+        </button>
+      </template>
 
       <div class="divider-v"></div>
 
@@ -171,21 +190,15 @@
           @keydown.enter="e => e.target.blur()"
         />
         <span class="zoom-unit">%</span>
-        <button class="zoom-btn" @click="$emit('zoom-in')" title="放大">
+        <button
+          v-for="btn in zoomButtons"
+          :key="btn.action"
+          class="zoom-btn"
+          @click="$emit(btn.action)"
+          :title="btn.title"
+        >
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-        </button>
-        <button class="zoom-btn" @click="$emit('zoom-reset')" title="重置为100%">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-            <path d="M3 3v5h5"/>
-          </svg>
-        </button>
-        <button class="zoom-btn" @click="$emit('fit-screen')" title="适应屏幕">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+            <path v-for="(path, idx) in btn.iconPaths" :key="idx" :d="path"/>
           </svg>
         </button>
       </div>
@@ -215,6 +228,13 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { SendOutlined } from '@ant-design/icons-vue'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
+import {
+  historyButtonsConfig,
+  editButtonsConfig,
+  alignButtonsConfig,
+  zoomButtonsConfig,
+  gridTypeOptionsConfig
+} from '../config/toolbarConfig.js'
 
 const props = defineProps({
   projectName: String,
@@ -227,7 +247,9 @@ const props = defineProps({
   hasCopied: Boolean,
   canvasScale: Number,
   canvasPanX: Number,
-  canvasPanY: Number
+  canvasPanY: Number,
+  gridEnabled: Boolean,
+  gridType: String
 })
 
 const emit = defineEmits([
@@ -245,7 +267,10 @@ const emit = defineEmits([
   'zoom-set',
   'zoom-reset',
   'fit-screen',
-  'preview'
+  'preview',
+  'toggle-grid',
+  'change-grid-type',
+  'auto-layout'
 ])
 
 const router = useRouter()
@@ -265,6 +290,28 @@ const handleRedo = () => {
 const handleSave = () => {
   emit('save')
 }
+
+// 撤销重做按钮配置
+const historyButtons = computed(() => historyButtonsConfig.map(btn => ({
+  ...btn,
+  canDo: btn.action === 'undo' ? props.canUndo : props.canRedo,
+  handler: btn.action === 'undo' ? handleUndo : handleRedo
+})))
+
+// 编辑控制按钮配置
+const editButtons = computed(() => editButtonsConfig.map(btn => ({
+  ...btn,
+  disabled: btn.action === 'paste' ? !props.hasCopied : props.selectedCount === 0
+})))
+
+// 对齐按钮配置
+const alignButtons = alignButtonsConfig
+
+// 缩放按钮配置
+const zoomButtons = zoomButtonsConfig
+
+// 网格类型选项配置
+const gridTypeOptions = gridTypeOptionsConfig
 </script>
 
 <style scoped>
@@ -367,6 +414,12 @@ const handleSave = () => {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
+.icon-btn.active {
+  color: var(--primary);
+  background: rgba(22, 119, 255, 0.15);
+  border-color: rgba(22, 119, 255, 0.3);
+}
+
 .icon-btn.disabled {
   opacity: 0.95;
   cursor: not-allowed;
@@ -466,6 +519,13 @@ const handleSave = () => {
   justify-content: flex-end;
 }
 
+/* 网格控制 */
+.grid-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .canvas-zoom-controls {
   display: flex;
   align-items: center;
@@ -563,6 +623,22 @@ const handleSave = () => {
 .btn-ghost:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.18);
   border-color: rgba(255, 255, 255, 0.25);
+}
+
+.btn-auto-layout {
+  background: rgba(22, 119, 255, 0.12);
+  border-color: rgba(22, 119, 255, 0.35);
+  color: #4096ff;
+  font-size: 13px;
+  padding: 0 12px;
+  height: 32px;
+  gap: 6px;
+}
+
+.btn-auto-layout:hover:not(:disabled) {
+  background: rgba(22, 119, 255, 0.22);
+  border-color: rgba(22, 119, 255, 0.6);
+  color: #69b1ff;
 }
 
 .btn-primary {

@@ -43,6 +43,7 @@ import Decoration01 from './decoration/Decoration01.vue'
 import Decoration02 from './decoration/Decoration02.vue'
 import Decoration03 from './decoration/Decoration03.vue'
 import BgBox from './decoration/BgBox.vue'
+import BgImage from './decoration/BgImage.vue'
 
 // 组件映射表
 export const chartComponents = {
@@ -85,7 +86,8 @@ export const chartComponents = {
   'decoration-01': Decoration01,
   'decoration-02': Decoration02,
   'decoration-03': Decoration03,
-  'bg-box': BgBox
+  'bg-box': BgBox,
+  'bg-image': BgImage
 }
 
 /**
@@ -128,5 +130,6 @@ export {
   Decoration01,
   Decoration02,
   Decoration03,
-  BgBox
+  BgBox,
+  BgImage
 }

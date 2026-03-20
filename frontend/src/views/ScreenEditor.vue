@@ -13,6 +13,8 @@
       :canvas-scale="canvasScale"
       :canvas-pan-x="canvasPanX"
       :canvas-pan-y="canvasPanY"
+      :grid-enabled="gridConfig.enabled"
+      :grid-type="gridConfig.type"
       @save="handleSave"
       @undo="handleUndo"
       @redo="handleRedo"
@@ -27,6 +29,9 @@
       @zoom-reset="zoomReset"
       @fit-screen="fitToScreen"
       @preview="handlePreview"
+      @toggle-grid="gridConfig.enabled = !gridConfig.enabled"
+      @change-grid-type="(type) => gridConfig.type = type"
+      @auto-layout="handleAutoLayout"
     />
 
     <!-- 主体容器 -->
@@ -131,8 +136,79 @@
               transformOrigin: '0 0'
             }"
           >
-            <div class="screen-container">
+            <div class="screen-container" :style="screenContainerStyle">
               <div v-if="canvasComponents.length === 0" class="screen-watermark">NocoViz Canvas</div>
+
+              <!-- 网格辅助线 -->
+              <svg v-if="gridConfig.enabled" class="grid-overlay" :style="{ pointerEvents: 'none', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }">
+                <defs>
+                  <pattern
+                    v-if="gridConfig.type === '3x3'"
+                    id="grid-3x3"
+                    width="33.333%"
+                    height="33.333%"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <rect width="100%" height="100%" fill="none" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  </pattern>
+                  <pattern
+                    v-if="gridConfig.type === '4x4'"
+                    id="grid-4x4"
+                    width="25%"
+                    height="25%"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <rect width="100%" height="100%" fill="none" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  </pattern>
+                  <pattern
+                    v-if="gridConfig.type === '5x5'"
+                    id="grid-5x5"
+                    width="20%"
+                    height="20%"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <rect width="100%" height="100%" fill="none" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  </pattern>
+                </defs>
+
+                <!-- 3x3 网格 -->
+                <g v-if="gridConfig.type === '3x3'">
+                  <line x1="33.333%" y1="0" x2="33.333%" y2="100%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  <line x1="66.666%" y1="0" x2="66.666%" y2="100%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  <line x1="0" y1="33.333%" x2="100%" y2="33.333%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  <line x1="0" y1="66.666%" x2="100%" y2="66.666%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                </g>
+
+                <!-- 4x4 网格 -->
+                <g v-if="gridConfig.type === '4x4'">
+                  <line x1="25%" y1="0" x2="25%" y2="100%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  <line x1="50%" y1="0" x2="50%" y2="100%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  <line x1="75%" y1="0" x2="75%" y2="100%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  <line x1="0" y1="25%" x2="100%" y2="25%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  <line x1="0" y1="50%" x2="100%" y2="50%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  <line x1="0" y1="75%" x2="100%" y2="75%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                </g>
+
+                <!-- 5x5 网格 -->
+                <g v-if="gridConfig.type === '5x5'">
+                  <line x1="20%" y1="0" x2="20%" y2="100%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  <line x1="40%" y1="0" x2="40%" y2="100%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  <line x1="60%" y1="0" x2="60%" y2="100%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  <line x1="80%" y1="0" x2="80%" y2="100%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  <line x1="0" y1="20%" x2="100%" y2="20%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  <line x1="0" y1="40%" x2="100%" y2="40%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  <line x1="0" y1="60%" x2="100%" y2="60%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                  <line x1="0" y1="80%" x2="100%" y2="80%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth" />
+                </g>
+
+                <!-- 黄金分割 -->
+                <g v-if="gridConfig.type === 'golden'">
+                  <line x1="38.2%" y1="0" x2="38.2%" y2="100%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth * 1.5" stroke-dasharray="5,5" />
+                  <line x1="61.8%" y1="0" x2="61.8%" y2="100%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth * 1.5" stroke-dasharray="5,5" />
+                  <line x1="0" y1="38.2%" x2="100%" y2="38.2%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth * 1.5" stroke-dasharray="5,5" />
+                  <line x1="0" y1="61.8%" x2="100%" y2="61.8%" :stroke="gridConfig.color" :stroke-width="gridConfig.lineWidth * 1.5" stroke-dasharray="5,5" />
+                </g>
+              </svg>
 
               <!-- Rendered Components -->
               <div
@@ -153,7 +229,8 @@
                   opacity: (comp.opacity || 100) / 100,
                   border: `${comp.showBorder && comp.borderWidth ? comp.borderWidth : 0}px solid ${comp.borderColor || 'transparent'}`,
                   borderRadius: `${comp.borderRadius || 0}px`,
-                  padding: `${comp.paddingVertical ?? 8}px ${comp.paddingHorizontal ?? 8}px`
+                  padding: `${comp.paddingVertical ?? (/^(border|decoration|bgbox)-/.test(comp.type) ? 0 : 8)}px ${comp.paddingHorizontal ?? (/^(border|decoration|bgbox)-/.test(comp.type) ? 0 : 8)}px`,
+                  zIndex: getComponentZIndex(comp)
                 }"
                 @click.stop="selectComponent(comp.id, $event)"
                 @mousedown="startDrag($event, comp)"
@@ -247,301 +324,12 @@
     </main>
 
     <!-- 4. 右侧配置面板 (Right Config Panel) -->
-    <aside class="config-panel">
-      <!-- 顶部 Tabs -->
-      <div class="panel-tabs">
-        <div :class="['tab-item', { active: configTab === 'style' }]" @click="configTab = 'style'" v-if="selectedComponent">样式</div>
-        <div :class="['tab-item', { active: configTab === 'data' }]" @click="configTab = 'data'" v-if="selectedComponent">数据</div>
-        <div :class="['tab-item', { active: configTab === 'event' }]" @click="configTab = 'event'" v-if="selectedComponent">事件</div>
-        <div :class="['tab-item', { active: configTab === 'animation' }]" @click="configTab = 'animation'" v-if="selectedComponent">动画</div>
-        <div :class="['tab-item', { active: configTab === 'page' }]" @click="configTab = 'page'">页面</div>
-      </div>
-
-      <div class="panel-content">
-        <!-- Tab 1: 样式配置 -->
-        <div v-show="configTab === 'style'" v-if="selectedComponent">
-          <!-- 使用 EditorFormRenderer 渲染完整配置 -->
-          <EditorFormRenderer
-            :schema="fullComponentSchema"
-            v-model="selectedComponent"
-          />
-
-          <!-- 字体配置面板（左侧垂直标签页） -->
-          <FontConfigPanel v-model="selectedComponent" />
-
-          <!-- 图表配置面板 (仅图表组件，排除动画) -->
-          <ChartConfigPanel
-            v-if="isChartComponent(selectedComponent.type)"
-            :schema="chartSchemaWithoutAnimation"
-            v-model="selectedComponent.config"
-          />
-        </div>
-
-        <!-- Tab 2: 数据 - 全新三模式架构 -->
-        <div v-show="configTab === 'data'" class="data-tab-container">
-          <!-- 模式切换 Tabs -->
-          <div class="mode-tabs">
-            <div :class="['mode-tab', { active: dataMode === 'ref' }]" @click="dataMode = 'ref'">引用数据集</div>
-            <div :class="['mode-tab', { active: dataMode === 'static' }]" @click="dataMode = 'static'">静态 JSON</div>
-            <div :class="['mode-tab', { active: dataMode === 'local' }]" @click="dataMode = 'local'">临时 API</div>
-          </div>
-
-          <!-- 场景 A: 引用数据集 (推荐) -->
-          <div v-if="dataMode === 'ref'" class="mode-content">
-            <div class="form-group">
-              <div class="form-label">选择数据集</div>
-              <div class="input-with-button">
-                <a-select
-                  v-model:value="selectedDatasetId"
-                  placeholder="请选择数据集..."
-                  size="small"
-                  style="flex: 1"
-                >
-                  <a-select-option value="">请选择数据集...</a-select-option>
-                  <a-select-option value="dataset_1">比亚迪_车辆实时监控</a-select-option>
-                  <a-select-option value="dataset_2">腾讯_服务器热力图</a-select-option>
-                  <a-select-option value="dataset_3">2025Q1_销售总表</a-select-option>
-                </a-select>
-                <button class="btn-icon-square" @click="editCurrentDataset" title="编辑数据集">✎</button>
-              </div>
-            </div>
-
-            <div v-if="selectedDatasetId" class="data-status-info">
-              <div class="form-label" style="margin-bottom: 8px;">数据状态:
-                <span class="status-success">● 正常 ({{ dataRowCount }} 行)</span>
-              </div>
-            </div>
-
-            <div v-if="selectedDatasetId" class="divider"></div>
-
-            <div v-if="selectedDatasetId" class="form-group">
-              <div class="form-label">字段映射 (Mapping)</div>
-              <div class="field-mapping-simple">
-                <div class="mapping-item">X轴: <span class="field-value">category</span></div>
-                <div class="mapping-item">Y轴: <span class="field-value">value</span></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 场景 B: 静态 JSON -->
-          <div v-if="dataMode === 'static'" class="mode-content">
-            <div class="tip-box">
-              适用于展示固定内容或开发调试。数据保存在组件内部,不会随数据源更新。
-            </div>
-
-            <div class="form-group">
-              <div class="form-label">JSON 数据</div>
-              <a-textarea
-                v-model:value="staticJsonData"
-                placeholder='[
-  {"name": "A", "value": 10},
-  {"name": "B", "value": 20}
-]'
-                :rows="8"
-                size="small"
-              />
-            </div>
-
-            <div class="form-group grid-2">
-              <button class="btn-secondary" @click="formatJSON">格式化</button>
-              <button class="btn-primary" @click="applyStaticJSON">应用数据</button>
-            </div>
-          </div>
-
-          <!-- 场景 C: 临时 API -->
-          <div v-if="dataMode === 'local'" class="mode-content">
-            <div class="tip-box">
-              注意:此配置仅当前组件可见。如需复用或统一管理 Token,建议保存为公共数据集。
-            </div>
-
-            <div class="form-group">
-              <div class="form-label">接口地址</div>
-              <a-input
-                v-model:value="apiUrl"
-                placeholder="https://api.example.com/test"
-                size="small"
-              />
-            </div>
-
-            <div class="form-group">
-              <div class="form-label">Method</div>
-              <a-select
-                v-model:value="apiMethod"
-                size="small"
-              >
-                <a-select-option value="GET">GET</a-select-option>
-                <a-select-option value="POST">POST</a-select-option>
-              </a-select>
-            </div>
-
-            <div class="form-group">
-              <button class="btn-secondary btn-full" @click="testAPIConnection">测试请求</button>
-            </div>
-
-            <div class="divider"></div>
-
-            <!-- 核心功能:转正 -->
-            <div class="form-group" style="text-align: center;">
-              <button class="btn-upgrade" @click="saveAsDataset">
-                ⬆ 保存为公共数据集
-              </button>
-            </div>
-          </div>
-
-          <!-- Datasets 视图 -->
-          <div v-show="dataLayerTab === 'datasets'" class="datasets-view">
-            <div class="datasets-header">
-              <span class="datasets-title">业务数据集</span>
-              <button class="create-dataset-btn" @click="createDataset">
-                <svg viewBox="0 0 1024 1024" width="14" height="14" fill="currentColor">
-                  <path d="M482 152h60q8 0 8 8v704q0 8-8 8h-60q-8 0-8-8V160q0-8 8-8z"/>
-                  <path d="M176 474h672q8 0 8 8v60q0 8-8 8H176q-8 0-8-8v-60q0-8 8-8z"/>
-                </svg>
-                新建数据集
-              </button>
-            </div>
-
-            <!-- 数据集列表 -->
-            <div class="datasets-list">
-              <div v-if="datasets.length === 0" class="empty-datasets">
-                <svg viewBox="0 0 1024 1024" width="40" height="40" fill="currentColor">
-                  <path d="M928 160H96c-17.7 0-32 14.3-32 32v640c0 17.7 14.3 32 32 32h832c17.7 0 32-14.3 32-32V192c0-17.7-14.3-32-32-32zm-40 632H136V232h752v560z"/>
-                </svg>
-                <p>暂无数据集</p>
-                <p class="hint">创建数据集来组织和处理数据连接</p>
-              </div>
-
-              <div v-for="dataset in datasets" :key="dataset.id" class="dataset-card">
-                <div class="dataset-header">
-                  <div class="dataset-title-row">
-                    <span class="dataset-name">{{ dataset.name }}</span>
-                    <div class="dataset-actions">
-                      <button class="icon-btn" @click="editDataset(dataset.id)" title="编辑">
-                        <svg viewBox="0 0 1024 1024" width="14" height="14" fill="currentColor">
-                          <path d="M257.7 752c2 0 4-.2 6-.5L431.9 722c2-.4 3.9-1.3 5.3-2.8l423.9-423.9a9.96 9.96 0 0 0 0-14.1L694.9 114.9c-1.9-1.9-4.4-2.9-7.1-2.9s-5.2 1-7.1 2.9L256.8 538.8c-1.5 1.5-2.4 3.3-2.8 5.3l-29.5 168.2a33.5 33.5 0 0 0 9.4 29.8c6.6 6.4 14.9 9.9 23.8 9.9z"/>
-                        </svg>
-                      </button>
-                      <button class="icon-btn" @click="deleteDataset(dataset.id)" title="删除">
-                        <svg viewBox="0 0 1024 1024" width="14" height="14" fill="currentColor">
-                          <path d="M360 184h-8c4.4 0 8-3.6 8-8v8h304v-8c0 4.4 3.6 8 8 8h-8v72h72v-80c0-35.3-28.7-64-64-64H352c-35.3 0-64 28.7-64 64v80h72v-72zm504 72H160c-17.7 0-32 14.3-32 32v32c0 4.4 3.6 8 8 8h60.4l24.7 523c1.6 34.1 29.8 61 63.9 61h454c34.2 0 62.3-26.8 63.9-61l24.7-523H888c4.4 0 8-3.6 8-8v-32c0-17.7-14.3-32-32-32z"/>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                  <p class="dataset-desc">{{ dataset.description }}</p>
-                </div>
-
-                <div class="dataset-body">
-                  <!-- 数据源血缘 -->
-                  <div class="dataset-lineage">
-                    <div class="lineage-label">数据来源</div>
-                    <div class="lineage-connection">
-                      <span :class="['connection-badge', dataset.sourceType]">
-                        {{ dataset.sourceType === 'database' ? 'SQL' : dataset.sourceType === 'file' ? 'XLS' : 'API' }}
-                      </span>
-                      <span class="connection-name">{{ dataset.sourceName }}</span>
-                    </div>
-                  </div>
-
-                  <!-- 更新策略 -->
-                  <div class="dataset-strategy">
-                    <div class="strategy-label">更新策略</div>
-                    <div class="strategy-value">
-                      <span :class="['strategy-badge', dataset.updateStrategy]">
-                        <span class="strategy-dot"></span>
-                        {{ getStrategyText(dataset.updateStrategy) }}
-                      </span>
-                      <span v-if="dataset.cacheTime" class="cache-time">TTL: {{ dataset.cacheTime }}s</span>
-                    </div>
-                  </div>
-
-                  <!-- 数据统计 -->
-                  <div class="dataset-stats">
-                    <div class="stat-item">
-                      <span class="stat-label">数据行数</span>
-                      <span class="stat-value">{{ dataset.rowCount || '-' }}</span>
-                    </div>
-                    <div class="stat-item">
-                      <span class="stat-label">数据大小</span>
-                      <span class="stat-value">{{ dataset.dataSize || '-' }}</span>
-                    </div>
-                  </div>
-
-                  <button class="use-dataset-btn" @click="useDataset(dataset.id)">使用此数据集</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 数据映射配置 -->
-          <div class="group-section open">
-            <div class="group-header" @click="toggleGroup('dataMapping')">
-              <div class="group-arrow"></div>
-              <div class="group-title">数据映射</div>
-            </div>
-            <div class="group-body" v-show="openGroups.dataMapping">
-              <div class="prop-row-full">
-                <div class="prop-label">X轴字段</div>
-                <div class="input-group">
-                  <input type="text" class="dv-input" v-model="dataMapping.xField" placeholder="categories">
-                </div>
-              </div>
-
-              <div class="prop-row-full">
-                <div class="prop-label">Y轴字段</div>
-                <div class="input-group">
-                  <input type="text" class="dv-input" v-model="dataMapping.yField" placeholder="values">
-                </div>
-              </div>
-
-              <div class="mapping-info">
-                <svg viewBox="0 0 1024 1024" width="14" height="14" fill="currentColor">
-                  <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z"/>
-                  <path d="M464 336a48 48 0 1 0 96 0 48 48 0 1 0-96 0zm72 112h-48c-4.4 0-8 3.6-8 8v272c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V456c0-4.4-3.6-8-8-8z"/>
-                </svg>
-                <span>数据映射用于指定如何从数据源提取图表所需字段</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 3: 交互事件 -->
-        <div v-show="configTab === 'event'" class="empty-state">
-          <svg viewBox="0 0 1024 1024" width="40" height="40" fill="rgba(255,255,255,0.2)">
-            <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z"/>
-            <path d="M464 336a48 48 0 1 0 96 0 48 48 0 1 0-96 0zm72 112h-48c-4.4 0-8 3.6-8 8v272c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V456c0-4.4-3.6-8-8-8z"/>
-          </svg>
-          <div style="margin-top: 16px; color: #666;">交互事件配置开发中...</div>
-        </div>
-
-        <!-- Tab 4: 动画效果 -->
-        <div v-show="configTab === 'animation'" v-if="selectedComponent">
-          <!-- 图表动画配置 (仅图表组件) -->
-          <ConfigFormRenderer
-            v-if="isChartComponent(selectedComponent.type) && chartAnimationSchema"
-            :schema="chartAnimationSchema"
-            v-model="selectedComponent.config"
-          />
-
-          <!-- 非图表组件的空状态 -->
-          <div v-if="!isChartComponent(selectedComponent.type)" class="empty-state">
-            <svg viewBox="0 0 1024 1024" width="40" height="40" fill="rgba(255,255,255,0.2)">
-              <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z"/>
-              <path d="M464 336a48 48 0 1 0 96 0 48 48 0 1 0-96 0zm72 112h-48c-4.4 0-8 3.6-8 8v272c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V456c0-4.4-3.6-8-8-8z"/>
-            </svg>
-            <div style="margin-top: 16px; color: #666;">此组件暂无动画配置</div>
-          </div>
-        </div>
-
-        <!-- Tab 5: 页面配置 -->
-        <div v-show="configTab === 'page'">
-          <EditorFormRenderer
-            :schema="pageConfigSchema"
-            v-model="pageConfig"
-          />
-        </div>
-      </div>
-    </aside>
+    <ConfigPanel
+      :selected-component="selectedComponent"
+      :page-config="pageConfig"
+      @update:selected-component="updateSelectedComponent"
+      @update:page-config="updatePageConfig"
+    />
 
     <!-- Mock 数据源编辑器弹窗 -->
     <MockDataEditor
@@ -564,18 +352,12 @@ const ElMessageBox = Modal
 import { chartCategories, chartIcons, getChartByType } from '@/config/chartComponents'
 import { getChartComponent } from '@/components/charts/index'
 import { getComponentSchema, isChartComponent as checkIsChart } from '@/config/componentSchema'
-import ConfigFormRenderer from '@/components/editor/ConfigFormRenderer.vue'
-import ChartConfigPanel from '@/components/editor/ChartConfigPanel.vue'
-import FontConfigPanel from '@/components/editor/FontConfigPanel.vue'
-import { generateMockDataByTemplate, formatJSONString, validateJSON } from '@/utils/mockDataGenerator'
 import MockDataEditor from '@/components/data/MockDataEditor.vue'
-import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import EditorHeader from './editor/components/EditorHeader.vue'
 import ActivityBar from './editor/components/ActivityBar.vue'
 import ComponentsPanel from './editor/components/ComponentsPanel.vue'
 import LayersPanel from './editor/components/LayersPanel.vue'
-import EditorFormRenderer from '@/components/editor/EditorFormRenderer.vue'
-import { fullComponentSchema, pageConfigSchema } from '@/components/editor/formSchemas.js'
+import ConfigPanel from './editor/components/ConfigPanel/index.vue'
 import * as echarts from 'echarts'
 import { getChartPreviewOption } from './editor/config/chartPreviewOptions'
 
@@ -602,6 +384,14 @@ const router = useRouter()
 
 const currentTab = ref('components')
 const isPanelOpen = ref(true)
+
+// 网格辅助线配置
+const gridConfig = reactive({
+  enabled: true, // 默认打开
+  type: '3x3', // '3x3' | '4x4' | '5x5' | 'golden' | 'custom'
+  color: 'rgba(100, 150, 255, 0.3)',
+  lineWidth: 1
+})
 
 // 图表预览 refs
 const chartPreviewRefs = reactive({})
@@ -716,6 +506,10 @@ const handleSave = async () => {
       id: projectId,
       name: projectName.value,
       components: canvasComponents.value,
+      canvasWidth: pageConfig.width,
+      canvasHeight: pageConfig.height,
+      screenBackground: pageConfig.backgroundColor,
+      screenBackgroundImage: pageConfig.backgroundImage,
       canvasScale: canvasScale.value,
       canvasPanX: canvasPanX.value,
       canvasPanY: canvasPanY.value,
@@ -776,7 +570,6 @@ const handleBackToHome = () => {
 const SNAP_THRESHOLD = 5 // 吸附阈值(像素)
 
 // 右侧配置面板状态
-const configTab = ref('page')
 const openGroups = reactive({
   basic: true,
   visual: true,
@@ -793,102 +586,39 @@ const pageConfig = reactive({
   title: '数据大屏'
 })
 
-// 监听组件选中状态，自动切换配置面板
-watch(selectedComponent, (newVal) => {
-  if (newVal) {
-    // 选中组件时，切换到样式配置
-    configTab.value = 'style'
-  } else {
-    // 取消选中时，切换到页面配置
-    configTab.value = 'page'
+// 更新选中组件
+const updateSelectedComponent = (value) => {
+  if (selectedComponent.value) {
+    // 确保 w、h、x、y 为整数
+    if (value.w !== undefined) value.w = Math.round(value.w)
+    if (value.h !== undefined) value.h = Math.round(value.h)
+    if (value.x !== undefined) value.x = Math.round(value.x)
+    if (value.y !== undefined) value.y = Math.round(value.y)
+
+    Object.assign(selectedComponent.value, value)
   }
-})
+}
 
-// 数据源配置状态
-const dataLayerTab = ref('connections') // 'connections' | 'datasets'
-const dataSourceType = ref('file')
-const dataMode = ref('ref') // 'ref' | 'static' | 'local'
-const selectedDatasetId = ref('')
-const dataRowCount = ref(2845)
-const autoRefreshInterval = ref(0)
-const staticJsonData = ref('')
-const mappingFields = reactive({
-  xAxis: 'category_name',
-  yAxis: 'sales_amount',
-  group: ''
-})
+// 更新页面配置
+const updatePageConfig = (value) => {
+  Object.assign(pageConfig, value)
+}
 
-// 本地文件
-const fileType = ref('excel')
-const currentMockData = ref('')
-const showMockEditor = ref(false)
-const mockDataCount = computed(() => {
-  if (!currentMockData.value) return 0
-  try {
-    const data = JSON.parse(currentMockData.value)
-    return Array.isArray(data) ? data.length : 1
-  } catch {
-    return 0
+// 画布背景样式
+const screenContainerStyle = computed(() => {
+  const style = {
+    width: `${pageConfig.width}px`,
+    height: `${pageConfig.height}px`,
+    backgroundColor: pageConfig.backgroundColor
   }
-})
-
-// 数据库
-const dbType = ref('mysql')
-const dbHost = ref('')
-const dbName = ref('')
-const dbUser = ref('')
-const dbPassword = ref('')
-const dbQuery = ref('')
-
-// API接口
-const apiMethod = ref('GET')
-const apiUrl = ref('')
-const apiHeaders = ref('')
-const apiBody = ref('')
-const apiRefreshInterval = ref(0)
-
-// 数据映射
-const dataMapping = reactive({
-  xField: 'categories',
-  yField: 'values'
-})
-
-// 业务数据集
-const datasets = ref([
-  {
-    id: 1,
-    name: '华东区_2025Q1_销售汇总',
-    description: '已清洗数据，过滤掉退款订单，按城市聚合计算总额',
-    sourceType: 'database', // 'database' | 'file' | 'api'
-    sourceName: '阿里云_交易主库',
-    updateStrategy: 'realtime', // 'realtime' | 'cached' | 'static'
-    cacheTime: null,
-    rowCount: '2,845',
-    dataSize: '125 KB'
-  },
-  {
-    id: 2,
-    name: 'Q1销售数据_Excel导入',
-    description: '2025年第一季度销售原始数据',
-    sourceType: 'file',
-    sourceName: 'sales_q1_2025.xlsx',
-    updateStrategy: 'static',
-    cacheTime: null,
-    rowCount: '1,200',
-    dataSize: '86 KB'
-  },
-  {
-    id: 3,
-    name: '天气API_实时数据',
-    description: '从第三方API获取的实时天气数据',
-    sourceType: 'api',
-    sourceName: 'weather.api.com/v3',
-    updateStrategy: 'cached',
-    cacheTime: 300,
-    rowCount: '50',
-    dataSize: '12 KB'
+  if (pageConfig.backgroundImage) {
+    style.backgroundImage = `url(${pageConfig.backgroundImage})`
+    style.backgroundSize = '100% 100%'
+    style.backgroundRepeat = 'no-repeat'
+    style.backgroundPosition = 'center'
   }
-])
+  return style
+})
 
 // 获取当前组件的配置 Schema
 const currentComponentSchema = computed(() => {
@@ -896,24 +626,36 @@ const currentComponentSchema = computed(() => {
   return getComponentSchema(selectedComponent.value.type)
 })
 
-// 获取排除动画的图表配置 Schema
-const chartSchemaWithoutAnimation = computed(() => {
-  if (!selectedComponent.value) return {}
-  const schema = getComponentSchema(selectedComponent.value.type)
-  const { animation, ...rest } = schema
-  return rest
-})
-
-// 获取仅动画的图表配置 Schema
-const chartAnimationSchema = computed(() => {
-  if (!selectedComponent.value) return null
-  const schema = getComponentSchema(selectedComponent.value.type)
-  return schema.animation ? { animation: schema.animation } : null
-})
-
 // 判断是否为图表组件
 const isChartComponent = (type) => {
   return checkIsChart(type)
+}
+
+// 判断是否为边框/底图组件
+const isBorderOrDecoration = (type) => {
+  return /^(border|decoration|bgbox)-/.test(type)
+}
+
+// 获取组件的 z-index
+const getComponentZIndex = (comp) => {
+  // 如果组件有自定义 zIndex，使用自定义值
+  if (comp.zIndex !== undefined && comp.zIndex !== null) {
+    return comp.zIndex
+  }
+
+  // 如果是选中状态，提升到最上层（除非是边框/底图组件）
+  const isSelected = selectedComponentIds.value.includes(comp.id)
+  if (isSelected && !isBorderOrDecoration(comp.type)) {
+    return 10
+  }
+
+  // 边框/底图组件默认在底层
+  if (isBorderOrDecoration(comp.type)) {
+    return 0
+  }
+
+  // 其他组件默认在内容层
+  return 1
 }
 
 // 面板切换
@@ -1253,9 +995,9 @@ const zoomSet = (scale) => {
 }
 
 const zoomReset = () => {
-  canvasScale.value = 1
-  canvasPanX.value = 0
-  canvasPanY.value = 0
+  canvasScale.value = 1  // 重置为 100%
+  canvasPanX.value = 20  // 左侧预留 20px 间距
+  canvasPanY.value = 20  // 顶部预留 20px 间距
   drawRulers()
 }
 
@@ -1290,6 +1032,12 @@ const loadProject = async () => {
     if (projectData) {
       projectName.value = projectData.name || '未命名大屏项目'
       canvasComponents.value = projectData.components || []
+
+      // 恢复页面配置
+      if (projectData.screenBackground) pageConfig.backgroundColor = projectData.screenBackground
+      if (projectData.screenBackgroundImage) pageConfig.backgroundImage = projectData.screenBackgroundImage
+      if (projectData.canvasWidth) pageConfig.width = projectData.canvasWidth
+      if (projectData.canvasHeight) pageConfig.height = projectData.canvasHeight
 
       // 恢复画布视图状态
       canvasScale.value = projectData.canvasScale || 0.4
@@ -1427,8 +1175,51 @@ const handlePreview = () => {
 
   // 打开预览窗口
   const projectId = route.params.id
-  const previewUrl = `/preview/${projectId}`
+  const previewUrl = `${window.location.origin}${window.location.pathname}#/preview/${projectId}`
   window.open(previewUrl, '_blank')
+}
+
+// 智能网格布局
+const handleAutoLayout = () => {
+  if (canvasComponents.value.length === 0) {
+    ElMessage.warning('画布中没有组件')
+    return
+  }
+
+  const gridType = gridConfig.type
+  let rows = 3
+  let cols = 3
+  switch (gridType) {
+    case '4x4': rows = 4; cols = 4; break
+    case '5x5': rows = 5; cols = 5; break
+    default:    rows = 3; cols = 3
+  }
+
+  const canvasWidth = pageConfig.width
+  const canvasHeight = pageConfig.height
+  const gap = 8
+
+  const cellWidth = Math.round((canvasWidth - gap * (cols + 1)) / cols)
+  const cellHeight = Math.round((canvasHeight - gap * (rows + 1)) / rows)
+
+  // 根据组件左上角坐标判断所在格子，将其对齐到该格子
+  canvasComponents.value.forEach(comp => {
+    // 组件中心点所在格子
+    const centerX = comp.x + comp.w / 2
+    const centerY = comp.y + comp.h / 2
+
+    const col = Math.max(0, Math.min(Math.floor(centerX / (canvasWidth / cols)), cols - 1))
+    const row = Math.max(0, Math.min(Math.floor(centerY / (canvasHeight / rows)), rows - 1))
+
+    // 对齐到格子，保持间距 8px
+    comp.x = Math.round(gap + col * (cellWidth + gap))
+    comp.y = Math.round(gap + row * (cellHeight + gap))
+    comp.w = cellWidth
+    comp.h = cellHeight
+  })
+
+  addHistory()
+  ElMessage.success(`已按 ${gridType} 网格对齐 ${canvasComponents.value.length} 个组件`)
 }
 
 // 右侧配置面板方法
@@ -1445,37 +1236,6 @@ const copyToClipboard = async (text) => {
   }
 }
 
-// Mock 数据源管理方法
-// 数据集模式相关方法
-const handleDatasetChange = () => {
-  if (selectedDatasetId.value) {
-    showMessage.success('数据集已加载')
-    // TODO: 实际加载数据集数据
-    // 模拟设置字段映射
-    mappingFields.xAxis = 'category_name'
-    mappingFields.yAxis = 'sales_amount'
-  }
-}
-
-const editCurrentDataset = () => {
-  if (!selectedDatasetId.value) {
-    showMessage.warning('请先选择数据集')
-    return
-  }
-  showMessage.info('跳转到数据集编辑页面...')
-  // TODO: 跳转到数据集管理页面
-}
-
-const createDataset = () => {
-  showMessage.info('跳转到创建数据集页面...')
-  router.push('/datasets/create')
-}
-
-const refreshData = () => {
-  showMessage.success('数据已刷新')
-  // TODO: 实际刷新数据
-}
-
 const openMockEditor = () => {
   showMockEditor.value = true
 }
@@ -1485,193 +1245,6 @@ const handleMockDataSave = (data) => {
   showMessage.success('Mock 数据已保存')
 }
 
-const getMockDataSize = () => {
-  const bytes = new Blob([currentMockData.value]).size
-  if (bytes < 1024) return bytes + ' B'
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB'
-  return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
-}
-
-const getCurrentTime = () => {
-  const now = new Date()
-  return now.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-const applyMockData = () => {
-  if (!selectedComponent.value || !currentMockData.value) {
-    showMessage.warning('请先创建 Mock 数据')
-    return
-  }
-
-  try {
-    const data = JSON.parse(currentMockData.value)
-    selectedComponent.value.data = data
-    showMessage.success('Mock数据已应用到组件')
-  } catch (err) {
-    showMessage.error('数据格式错误')
-  }
-}
-
-// 数据库方法
-const testDBConnection = async () => {
-  if (!dbHost.value || !dbName.value) {
-    showMessage.warning('请填写主机地址和数据库名')
-    return
-  }
-
-  showMessage.info('测试连接中...')
-  // TODO: 实际数据库连接测试
-  setTimeout(() => {
-    showMessage.success('数据库连接成功')
-  }, 1000)
-}
-
-const applyDBData = async () => {
-  if (!selectedComponent.value || !dbQuery.value) {
-    showMessage.warning('请输入 SQL 查询语句')
-    return
-  }
-
-  showMessage.info('查询数据中...')
-  // TODO: 实际数据库查询
-  setTimeout(() => {
-    showMessage.success('数据已应用到组件')
-  }, 1000)
-}
-
-// API方法
-const testAPIConnection = async () => {
-  if (!apiUrl.value) {
-    showMessage.warning('请输入接口地址')
-    return
-  }
-
-  try {
-    showMessage.info('测试请求中...')
-    const response = await fetch(apiUrl.value, {
-      method: apiMethod.value,
-      headers: apiHeaders.value ? JSON.parse(apiHeaders.value) : {},
-    })
-
-    if (response.ok) {
-      showMessage.success('接口请求成功')
-    } else {
-      showMessage.error(`请求失败: ${response.status} ${response.statusText}`)
-    }
-  } catch (error) {
-    showMessage.error(`接口请求失败: ${error.message}`)
-  }
-}
-
-const applyAPIData = async () => {
-  if (!selectedComponent.value || !apiUrl.value) {
-    showMessage.warning('请输入接口地址')
-    return
-  }
-
-  try {
-    showMessage.info('获取接口数据中...')
-    const response = await fetch(apiUrl.value, {
-      method: apiMethod.value,
-      headers: apiHeaders.value ? JSON.parse(apiHeaders.value) : {},
-      body: apiMethod.value !== 'GET' && apiBody.value ? apiBody.value : undefined
-    })
-
-    if (response.ok) {
-      const data = await response.json()
-
-      // 处理数据路径
-      let finalData = data
-      if (apiDataPath.value) {
-        const paths = apiDataPath.value.split('.')
-        for (const path of paths) {
-          if (finalData && typeof finalData === 'object') {
-            finalData = finalData[path]
-          }
-        }
-      }
-
-      selectedComponent.value.data = finalData
-      showMessage.success('接口数据已应用到组件')
-    } else {
-      showMessage.error(`请求失败: ${response.status} ${response.statusText}`)
-    }
-  } catch (error) {
-    showMessage.error(`接口数据获取失败: ${error.message}`)
-  }
-}
-
-// 业务数据集方法
-const editDataset = (id) => {
-  showMessage.info(`编辑数据集 ${id}`)
-  // TODO: 打开数据集编辑弹窗
-}
-
-const deleteDataset = (id) => {
-  datasets.value = datasets.value.filter(d => d.id !== id)
-  showMessage.success('数据集已删除')
-}
-
-const useDataset = (id) => {
-  if (!selectedComponent.value) {
-    showMessage.warning('请先选择一个组件')
-    return
-  }
-  const dataset = datasets.value.find(d => d.id === id)
-  if (dataset) {
-    showMessage.success(`已应用数据集: ${dataset.name}`)
-    // TODO: 实际应用数据集到组件
-  }
-}
-
-// 新增方法:格式化JSON
-const formatJSON = () => {
-  try {
-    const parsed = JSON.parse(staticJsonData.value)
-    staticJsonData.value = JSON.stringify(parsed, null, 2)
-    showMessage.success('JSON 已格式化')
-  } catch (error) {
-    showMessage.error('JSON 格式错误')
-  }
-}
-
-// 应用静态JSON数据
-const applyStaticJSON = () => {
-  try {
-    const data = JSON.parse(staticJsonData.value)
-    if (selectedComponent.value) {
-      selectedComponent.value.data = data
-      showMessage.success('静态数据已应用')
-    }
-  } catch (error) {
-    showMessage.error('JSON 格式错误')
-  }
-}
-
-// 保存为公共数据集
-const saveAsDataset = () => {
-  if (!apiUrl.value) {
-    showMessage.warning('请先配置接口地址')
-    return
-  }
-  showMessage.info('保存为数据集功能开发中...')
-  // TODO: 打开数据集创建弹窗并预填API配置
-}
-
-const getStrategyText = (strategy) => {
-  const strategyMap = {
-    realtime: '实时直连',
-    cached: '缓存模式',
-    static: '静态数据'
-  }
-  return strategyMap[strategy] || strategy
-}
 </script>
 
-<style scoped src="./ScreenEditor.css"></style>
+<style src="./ScreenEditor.css"></style>

@@ -94,14 +94,14 @@ const handleSwitchChange = (checked) => {
 
 <style scoped>
 .editor-form-section {
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 10px 0;
+  margin: 6px 0;
   margin-left: -13px;
   border-left: 4px solid #409eff;
   background: rgba(255, 255, 255, 0.02);
@@ -185,7 +185,7 @@ const handleSwitchChange = (checked) => {
 }
 
 .section-content {
-  padding: 16px 0 8px 0;
+  padding: 8px 0 4px 0;
   animation: slideDown 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
@@ -206,6 +206,6 @@ const handleSwitchChange = (checked) => {
 .section-divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.06);
-  margin: 12px -16px;
+  margin: 8px -16px;
 }
 </style>

@@ -48,13 +48,13 @@
           </svg>
           <!-- 删除按钮 -->
           <svg
-            class="action-mini"
+            class="action-mini action-delete"
             viewBox="0 0 24 24"
             fill="currentColor"
             @click.stop="$emit('delete', comp.id)"
             title="删除"
           >
-            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
           </svg>
         </div>
       </div>
@@ -188,10 +188,24 @@ const reversedComponents = computed(() => {
   height: 14px;
   cursor: pointer;
   transition: all 0.15s ease;
+  color: rgba(255, 255, 255, 0.35);
+  padding: 3px;
+  border-radius: 3px;
+  box-sizing: content-box;
 }
 
 .action-mini:hover {
-  color: #3b82f6;
-  transform: scale(1.2);
+  color: #60a5fa;
+  background: rgba(96, 165, 250, 0.1);
+}
+
+.action-delete {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.action-delete:hover {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.12);
+  transform: none;
 }
 </style>

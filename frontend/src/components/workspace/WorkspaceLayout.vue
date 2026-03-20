@@ -229,7 +229,7 @@ defineExpose({
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 16px;
+  padding: 8px;
   overflow: hidden;
 }
 
@@ -241,7 +241,7 @@ defineExpose({
 .grid-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  gap: 8px;
 }
 
 .list-container {

@@ -49,9 +49,9 @@ if lsof -ti:8000 >/dev/null 2>&1; then
     sleep 1
 fi
 
-if lsof -ti:5173 >/dev/null 2>&1; then
-    echo -e "${YELLOW}端口 5173 被占用，正在清理...${NC}"
-    lsof -ti:5173 | xargs kill -9 2>/dev/null
+if lsof -ti:5174 >/dev/null 2>&1; then
+    echo -e "${YELLOW}端口 5174 被占用，正在清理...${NC}"
+    lsof -ti:5174 | xargs kill -9 2>/dev/null
     sleep 1
 fi
 
@@ -90,7 +90,7 @@ echo -e "\n${GREEN}========================================${NC}"
 echo -e "${GREEN}  服务启动成功！${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}后端服务: http://localhost:8000${NC}"
-echo -e "${GREEN}前端服务: http://localhost:5173${NC}"
+echo -e "${GREEN}前端服务: http://localhost:5174${NC}"
 echo -e "${GREEN}API文档:  http://localhost:8000/api${NC}"
 echo -e "\n${YELLOW}按 Ctrl+C 停止所有服务${NC}"
 echo -e "${GREEN}========================================${NC}\n"

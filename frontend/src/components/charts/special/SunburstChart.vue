@@ -7,25 +7,15 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import BaseChart from '../BaseChart.vue'
 import { defaultSunburstConfig } from '../configs/sunburstConfig'
+import { useChartOption } from '../utils/useChartOption'
 
 const props = defineProps({
-  config: {
-    type: Object,
-    default: () => ({})
-  },
-  data: {
-    type: Array,
-    default: null
-  }
+  config: { type: Object, default: () => ({}) },
+  data: { type: Array, default: null },
+  transform: { type: Function, default: null }
 })
 
-const chartOption = computed(() => {
-  return {
-    ...defaultSunburstConfig,
-    ...props.config
-  }
-})
+const chartOption = useChartOption(props, defaultSunburstConfig, 'sunburst')
 </script>

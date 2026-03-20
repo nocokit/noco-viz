@@ -12,6 +12,7 @@ import { computed, ref, onMounted } from 'vue'
 import * as echarts from 'echarts'
 import BaseChart from '../BaseChart.vue'
 import { defaultChinaMapConfig } from '../configs/chinaMapConfig'
+import { safeChartConfigMerge } from '../utils/configMerge'
 
 const props = defineProps({
   config: {
@@ -44,23 +45,18 @@ onMounted(async () => {
 const chartOption = computed(() => {
   if (!mapReady.value) return {}
 
+  let baseConfig = { ...defaultChinaMapConfig }
+
   if (props.data && Array.isArray(props.data)) {
-    return {
-      ...defaultChinaMapConfig,
+    baseConfig = {
+      ...baseConfig,
       series: [
-        {
-          ...defaultChinaMapConfig.series[0],
-          data: props.data
-        },
-        defaultChinaMapConfig.series[1]
-      ],
-      ...props.config
+        { ...baseConfig.series[0], data: props.data },
+        baseConfig.series[1]
+      ]
     }
   }
 
-  return {
-    ...defaultChinaMapConfig,
-    ...props.config
-  }
+  return safeChartConfigMerge(baseConfig, props.config, 'map')
 })
 </script>

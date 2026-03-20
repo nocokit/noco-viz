@@ -12,10 +12,10 @@
     <!-- 登录表单 -->
     <a-flex vertical align="center" justify="center" :style="containerStyle">
       <a-card :style="cardStyle" class="login-card">
-        <a-space direction="vertical" :size="24" style="width: 100%">
+        <a-space direction="vertical" :size="16" style="width: 100%">
           <a-flex vertical align="center" :gap="16">
-            <img src="/logo.png" alt="NocoViz" :style="logoStyle" />
-            <a-typography-title :level="3" style="margin: 0">NocoViz</a-typography-title>
+            <img src="/logo.png" alt="数镜" :style="logoStyle" />
+            <a-typography-title :level="3" style="margin: 0">数镜</a-typography-title>
             <a-typography-text type="secondary">数据可视化平台</a-typography-text>
           </a-flex>
 
@@ -27,17 +27,17 @@
           >
             <a-form-item name="username">
               <a-input
+                class="input"
                 v-model:value="formData.username"
                 placeholder="用户名"
-                size="large"
               />
             </a-form-item>
 
             <a-form-item name="password">
               <a-input-password
+                     class="input"
                 v-model:value="formData.password"
                 placeholder="密码"
-                size="large"
               />
             </a-form-item>
 
@@ -214,7 +214,7 @@ const containerStyle = computed(() => ({
 
 const cardStyle = computed(() => ({
   width: '100%',
-  maxWidth: '380px',
+  maxWidth: '480px',
   padding: '24px'
 }))
 
@@ -301,27 +301,15 @@ const logoStyle = computed(() => ({
 
 /* 登录卡片 */
 .login-card {
-  backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    0 0 80px rgba(64, 150, 255, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  animation: cardFloat 3s ease-in-out infinite;
-}
-
-@keyframes cardFloat {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+  background: rgba(248, 250, 255, 0.96) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-top: 3px solid #1677ff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  border-radius: 8px;
 }
 
 :deep(.ant-input) {
-  padding: 8px 11px !important;
+  padding: 6px 11px !important;
 }
 
 :deep(.ant-input-password) {
@@ -329,18 +317,26 @@ const logoStyle = computed(() => ({
 }
 
 :deep(.ant-input-password .ant-input) {
-  padding: 8px 0 8px 11px !important;
+  padding: 6px 0 6px 11px !important;
 }
 
 :deep(.ant-input-affix-wrapper) {
   padding: 0 11px 0 0 !important;
+  border-radius: 0 !important;
 }
 
 :deep(.ant-input-affix-wrapper .ant-input) {
-  padding: 8px 0 8px 11px !important;
+  padding: 6px 0 6px 11px !important;
 }
 
 :deep(.ant-input-password .ant-input-suffix) {
   margin-left: 8px;
+}
+
+:deep(.ant-form-item) {
+  margin-bottom: 12px;
+}
+:deep(.input) {
+  border-radius: 0 !important;
 }
 </style>

@@ -64,6 +64,8 @@
             <span class="filter-count">{{ getTypeCount('audio') }}</span>
           </div>
         </div>
+
+        <!-- 分类筛选 -->
       </aside>
 
       <!-- 右侧内容区 -->
@@ -138,8 +140,23 @@
 
       <!-- 资源网格 -->
       <div class="grid-scroll">
+        <!-- 空状态 -->
+        <div v-if="!loading && filteredMedia.length === 0" class="empty-state">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" class="empty-icon">
+            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+          </svg>
+          <div class="empty-title">{{ searchQuery ? '未找到匹配的文件' : '暂无媒体资源' }}</div>
+          <div class="empty-desc">{{ searchQuery ? '尝试修改搜索关键词' : '点击「上传文件」添加图片、视频等媒体资源' }}</div>
+          <button v-if="!searchQuery" class="btn btn-primary" @click="showUploadDialog" style="margin-top: 16px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+            </svg>
+            上传文件
+          </button>
+        </div>
+
         <!-- 网格视图 -->
-        <div v-if="viewMode === 'grid'" class="asset-grid">
+        <div v-else-if="viewMode === 'grid'" class="asset-grid">
           <div
             v-for="item in filteredMedia"
             :key="item.id"
@@ -367,6 +384,13 @@
             <input v-model="editForm.name" class="form-input" placeholder="请输入文件名" />
           </div>
           <div class="form-group">
+            <label>分类</label>
+            <select v-model="editForm.category" class="form-input">
+              <option value="">无分类</option>
+              <option value="screen-bg">大屏背景</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label>标签</label>
             <div class="tag-input-wrapper">
               <div class="selected-tags">
@@ -448,6 +472,7 @@ const editForm = ref({
   id: null,
   name: '',
   tags: [],
+  category: '',
   folderId: null
 })
 
@@ -495,6 +520,11 @@ const filteredMedia = computed(() => {
       return false
     }
 
+    // Category Filter
+    if (activeCategoryFilter.value !== 'all' && item.category !== activeCategoryFilter.value) {
+      return false
+    }
+
     // Search Filter
     if (searchQuery.value && !item.name.toLowerCase().includes(searchQuery.value.toLowerCase())) {
       return false
@@ -506,6 +536,11 @@ const filteredMedia = computed(() => {
 // 获取指定类型的资源数量
 const getTypeCount = (type) => {
   return mockMediaList.value.filter(item => item.type === type).length
+}
+
+// 获取指定分类的资源数量
+const getCategoryCount = (category) => {
+  return mockMediaList.value.filter(item => item.category === category).length
 }
 
 // 获取媒体URL（优先使用thumbnail，其次url）
@@ -763,6 +798,7 @@ const showEditDialog = (item) => {
     id: item.id,
     name: item.name,
     tags: [...(item.tags || [])],
+    category: item.category || '',
     folderId: item.folderId
   }
   newTag.value = ''
@@ -788,7 +824,7 @@ const handleEdit = async () => {
   try {
     await updateMedia(editForm.value.id, {
       name: editForm.value.name,
-      category: editForm.value.folderId,
+      category: editForm.value.category,
       tags: editForm.value.tags
     })
 
@@ -798,7 +834,7 @@ const handleEdit = async () => {
         ...mockMediaList.value[index],
         name: editForm.value.name,
         tags: editForm.value.tags,
-        folderId: editForm.value.folderId
+        category: editForm.value.category
       }
 
       // Update selected asset if it's the one being edited
@@ -830,6 +866,7 @@ const handleEdit = async () => {
   display: flex;
   flex: 1;
   overflow: hidden;
+  padding: 8px;
 }
 
 /* 左侧筛选面板 */
@@ -912,7 +949,7 @@ const handleEdit = async () => {
 
 /* 工具栏 */
 .toolbar {
-  padding: 16px 24px;
+  padding: 8px 24px;
   border-bottom: 1px solid #f0f0f0;
   background: #fff;
 }
@@ -931,6 +968,40 @@ const handleEdit = async () => {
   gap: 12px;
   flex: 1;
 }
+
+.category-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.category-tab {
+  padding: 4px 12px;
+  font-size: 13px;
+  color: #595959;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.category-tab:hover {
+  color: #262626;
+  background: #e6e6e6;
+}
+
+.category-tab.active {
+  background: #fff;
+  color: #1890ff;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+
 
 .toolbar-right {
   display: flex;
@@ -1052,6 +1123,35 @@ const handleEdit = async () => {
   flex: 1;
   overflow-y: auto;
   padding: 24px;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 15%;
+  min-height: 320px;
+  color: #bfbfbf;
+  text-align: center;
+}
+
+.empty-icon {
+  color: #d9d9d9;
+  margin-bottom: 16px;
+}
+
+.empty-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #8c8c8c;
+  margin-bottom: 8px;
+}
+
+.empty-desc {
+  font-size: 14px;
+  color: #bfbfbf;
 }
 
 .asset-grid {

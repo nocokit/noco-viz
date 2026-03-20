@@ -1,5 +1,7 @@
 import { showMessage } from './useMessage'
 import { getChartByType } from '@/config/chartComponents'
+import { getComponentDefaults } from '@/config/componentDefaults'
+import { mockRadarData } from '@/components/charts/configs/radarConfig'
 
 /**
  * 组件操作 Composable
@@ -28,6 +30,9 @@ export function useComponents(canvasComponents, selectedComponentIds, canvasScal
     }
 
     // 创建新组件，所有位置和尺寸取整
+    // 获取组件类型的默认属性配置
+    const defaults = getComponentDefaults(chartType)
+
     const newComp = {
       id: Date.now(),
       type: chartType,
@@ -38,17 +43,22 @@ export function useComponents(canvasComponents, selectedComponentIds, canvasScal
       h: Math.round(chartConfig.defaultSize.h),
       rotation: 0, // 旋转角度
 
-      // 视觉样式
-      bgColor: 'transparent',
-      opacity: 100,
+      // 视觉样式 - 使用默认配置
+      bgColor: defaults.bgColor,
+      opacity: defaults.opacity,
       showBorder: chartConfig.defaultBorder?.width > 0,
-      borderWidth: chartConfig.defaultBorder?.width ?? 1,
+      borderWidth: chartConfig.defaultBorder?.width ?? defaults.borderWidth,
       borderColor: chartConfig.defaultBorder?.color ?? 'rgba(64, 158, 255, 0.4)',
-      borderRadius: chartConfig.defaultBorder?.radius ?? 4,
+      borderRadius: chartConfig.defaultBorder?.radius ?? defaults.borderRadius,
+
+      // 内边距 - 使用默认配置
+      paddingVertical: defaults.paddingVertical,
+      paddingHorizontal: defaults.paddingHorizontal,
 
       color: chartConfig.color,
       config: {}, // 图表配置项（空对象，使用图表组件的默认配置）
-      data: null // 后续绑定数据
+      data: chartType === 'radar' ? mockRadarData : null, // 雷达图默认数据，其他后续绑定
+      dataSource: chartType === 'radar' ? { mode: 'static', json: JSON.stringify(mockRadarData, null, 2) } : undefined
     }
 
     canvasComponents.value.push(newComp)

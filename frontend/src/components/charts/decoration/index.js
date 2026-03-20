@@ -10,6 +10,7 @@ import Decoration01 from './Decoration01.vue'
 import Decoration02 from './Decoration02.vue'
 import Decoration03 from './Decoration03.vue'
 import BgBox from './BgBox.vue'
+import BgImage from './BgImage.vue'
 
 export {
   Border01,
@@ -19,7 +20,8 @@ export {
   Decoration01,
   Decoration02,
   Decoration03,
-  BgBox
+  BgBox,
+  BgImage
 }
 
 // 装饰组件映射表
@@ -31,7 +33,8 @@ export const decorationComponents = {
   'decoration-01': Decoration01,
   'decoration-02': Decoration02,
   'decoration-03': Decoration03,
-  'bg-box': BgBox
+  'bg-box': BgBox,
+  'bg-image': BgImage
 }
 
 export default decorationComponents

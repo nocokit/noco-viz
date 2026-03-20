@@ -27,7 +27,7 @@ defineProps({
 
 <style scoped>
 .editor-form-field {
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 
 .field-label {

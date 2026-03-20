@@ -123,7 +123,7 @@ const columnsWithRender = computed(() => {
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 16px;
+  padding: 8px;
   overflow: hidden;
 }
 

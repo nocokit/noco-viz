@@ -40,8 +40,10 @@
             transform: `rotate(${comp.rotation || 0}deg)`,
             background: comp.bgColor || 'transparent',
             opacity: (comp.opacity || 100) / 100,
-            border: `${comp.borderWidth || 0}px solid ${comp.borderColor || 'transparent'}`,
-            borderRadius: `${comp.borderRadius || 0}px`
+            border: `${comp.showBorder && comp.borderWidth ? comp.borderWidth : 0}px solid ${comp.borderColor || 'transparent'}`,
+            borderRadius: `${comp.borderRadius || 0}px`,
+            padding: `${comp.paddingVertical ?? 8}px ${comp.paddingHorizontal ?? 8}px`,
+            zIndex: comp.zIndex || 1
           }"
         >
           <!-- 渲染图表组件 -->
@@ -64,7 +66,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { getChartComponent } from '@/components/charts/index'
@@ -79,6 +81,12 @@ const canvasHeight = ref(1080)
 const screenBackground = ref('#0a0e27')
 const isFullscreen = ref(false)
 
+// 窗口尺寸响应式数据
+const windowSize = reactive({
+  width: window.innerWidth,
+  height: window.innerHeight
+})
+
 // 加载项目数据
 const loadProject = async () => {
   try {
@@ -89,22 +97,32 @@ const loadProject = async () => {
     if (projectData) {
       projectName.value = projectData.name || '大屏预览'
       components.value = projectData.components || []
+      canvasWidth.value = projectData.canvasWidth || 1920
+      canvasHeight.value = projectData.canvasHeight || 1080
+      screenBackground.value = projectData.screenBackground || '#0a0e27'
+
+      console.log('预览加载成功:', {
+        projectName: projectName.value,
+        componentCount: components.value.length,
+        canvasSize: `${canvasWidth.value}×${canvasHeight.value}`
+      })
     } else {
       message.warning('未找到项目数据')
     }
   } catch (error) {
+    console.error('加载失败:', error)
     message.error(`加载失败: ${error.message}`)
   }
 }
 
 // 容器高度
 const containerHeight = computed(() => {
-  return isFullscreen.value ? '100vh' : 'calc(100vh - 60px)'
+  return isFullscreen.value ? '100vh' : 'calc(100vh - 48px)'
 })
 
 // 实际容器高度（数值）
 const actualContainerHeight = computed(() => {
-  return isFullscreen.value ? window.innerHeight : window.innerHeight - 60
+  return isFullscreen.value ? windowSize.height : windowSize.height - 48
 })
 
 // 画布样式
@@ -118,11 +136,15 @@ const containerStyle = computed(() => ({
 }))
 
 const canvasStyle = computed(() => {
-  // 计算缩放比例以适应屏幕
-  const containerWidth = window.innerWidth
+  // 计算缩放比例以适应屏幕（填满100%）
+  const containerWidth = windowSize.width
+  const containerHeightValue = actualContainerHeight.value
+
   const scaleX = containerWidth / canvasWidth.value
-  const scaleY = actualContainerHeight.value / canvasHeight.value
-  const scale = Math.min(scaleX, scaleY, 1)
+  const scaleY = containerHeightValue / canvasHeight.value
+
+  // 使用较小的缩放比例，保持宽高比，确保完整显示
+  const scale = Math.min(scaleX, scaleY)
 
   return {
     position: 'relative',
@@ -166,6 +188,12 @@ const handleExit = () => {
   }
 }
 
+// 监听窗口尺寸变化
+const handleResize = () => {
+  windowSize.width = window.innerWidth
+  windowSize.height = window.innerHeight
+}
+
 // 监听ESC键退出全屏
 const handleKeydown = (e) => {
   if (e.key === 'Escape' && isFullscreen.value) {
@@ -175,6 +203,7 @@ const handleKeydown = (e) => {
 
 onMounted(() => {
   loadProject()
+  window.addEventListener('resize', handleResize)
   document.addEventListener('keydown', handleKeydown)
   document.addEventListener('fullscreenchange', () => {
     if (!document.fullscreenElement) {
@@ -184,7 +213,94 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
   document.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
+<style scoped>
+.preview-screen {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #0a0e27;
+}
+
+.preview-toolbar {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.project-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tool-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.tool-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.preview-component {
+  position: absolute;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.exit-fullscreen-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  padding: 6px 14px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  cursor: pointer;
+  z-index: 9999;
+  transition: all 0.2s;
+}
+
+.exit-fullscreen-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+}
+</style>

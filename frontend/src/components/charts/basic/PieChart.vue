@@ -1,44 +1,18 @@
-<!--
-  饼图组件
-  展示数据占比关系
--->
+<!-- 饼图 - 展示数据占比关系 -->
 <template>
   <BaseChart :option="chartOption" v-bind="$attrs" />
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import BaseChart from '../BaseChart.vue'
 import { defaultPieConfig } from '../configs/pieConfig'
+import { useChartOption, mapSeriesData } from '../utils/useChartOption'
 
 const props = defineProps({
-  config: {
-    type: Object,
-    default: () => ({})
-  },
-  data: {
-    type: Array,
-    default: null
-  }
+  config: { type: Object, default: () => ({}) },
+  data: { type: Array, default: null },
+  transform: { type: Function, default: null }
 })
 
-const chartOption = computed(() => {
-  if (props.data && Array.isArray(props.data)) {
-    return {
-      ...defaultPieConfig,
-      series: [
-        {
-          ...defaultPieConfig.series[0],
-          data: props.data
-        }
-      ],
-      ...props.config
-    }
-  }
-
-  return {
-    ...defaultPieConfig,
-    ...props.config
-  }
-})
+const chartOption = useChartOption(props, defaultPieConfig, 'pie', mapSeriesData)
 </script>

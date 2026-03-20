@@ -51,7 +51,7 @@
                 <EditorFormField :label="field.label" :inline="field.inline">
                   <component
                     :is="getControlComponent(field.type)"
-                    v-model="modelValue[field.key]"
+                    :modelValue="modelValue[field.key]"
                     v-bind="field.props"
                     @update:modelValue="handleUpdate(field.key, $event)"
                   />
@@ -68,7 +68,7 @@
               <EditorFormField :label="field.label" grid>
                 <component
                   :is="getControlComponent(field.type)"
-                  v-model="modelValue[field.key]"
+                  :modelValue="modelValue[field.key]"
                   v-bind="field.props"
                   @update:modelValue="handleUpdate(field.key, $event)"
                 />
@@ -89,7 +89,7 @@
               <!-- 控件 -->
               <component
                 :is="getControlComponent(field.type)"
-                v-model="modelValue[field.key]"
+                :modelValue="modelValue[field.key]"
                 v-bind="field.props"
                 @update:modelValue="handleUpdate(field.key, $event)"
               />
@@ -113,6 +113,7 @@ import EditorSlider from './EditorSlider.vue'
 import EditorSelect from './EditorSelect.vue'
 import EditorSwitch from './EditorSwitch.vue'
 import EditorTextAlign from './EditorTextAlign.vue'
+import EditorImagePicker from './EditorImagePicker.vue'
 
 const props = defineProps({
   schema: {
@@ -149,7 +150,8 @@ const controlComponents = {
   slider: EditorSlider,
   select: EditorSelect,
   switch: EditorSwitch,
-  textAlign: EditorTextAlign
+  textAlign: EditorTextAlign,
+  'image-picker': EditorImagePicker
 }
 
 const getControlComponent = (type) => {

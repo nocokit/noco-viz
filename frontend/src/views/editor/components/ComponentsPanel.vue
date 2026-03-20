@@ -169,6 +169,24 @@ const handleDragStart = (event, chart) => {
   overflow-y: auto;
 }
 
+/* 滚动条美化 */
+.panel-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.panel-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel-body::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 2px;
+}
+
+.panel-body::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
 .category-block {
   padding: 0 12px 16px 12px;
 }
@@ -249,6 +267,7 @@ const handleDragStart = (event, chart) => {
   padding: 6px 8px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: rgba(0, 0, 0, 0.2);
   border-top: 1px solid rgba(255, 255, 255, 0.05);
@@ -273,7 +292,7 @@ const handleDragStart = (event, chart) => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex: 1;
+  text-align: center;
 }
 
 .no-results {

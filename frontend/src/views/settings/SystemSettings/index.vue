@@ -447,14 +447,14 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: 8px;
   overflow: hidden;
 }
 
 .config-container {
   flex: 1;
   display: flex;
-  gap: 16px;
+  gap: 8px;
   overflow: hidden;
 }
 

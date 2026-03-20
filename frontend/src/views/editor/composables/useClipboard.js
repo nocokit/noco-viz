@@ -2,6 +2,23 @@ import { ref, computed } from 'vue'
 import { showMessage } from './useMessage'
 
 /**
+ * 创建组件副本
+ * @param {Object} comp - 原始组件
+ * @param {Number} index - 索引（用于生成唯一ID）
+ * @param {Object} offset - 偏移量 { x, y }
+ * @returns {Object} 新组件
+ */
+const createComponentCopy = (comp, index, offset = { x: 20, y: 20 }) => {
+  return {
+    ...JSON.parse(JSON.stringify(comp)),
+    id: Date.now() + index,
+    x: comp.x + offset.x,
+    y: comp.y + offset.y,
+    name: comp.name + ' (副本)'
+  }
+}
+
+/**
  * 剪贴板管理 Composable
  * 提供复制、粘贴、快速复制功能
  */
@@ -33,13 +50,7 @@ export function useClipboard(canvasComponents, selectedComponentIds) {
     const components = Array.isArray(copiedComponent.value) ? copiedComponent.value : [copiedComponent.value]
 
     components.forEach((comp, index) => {
-      const newComp = {
-        ...JSON.parse(JSON.stringify(comp)),
-        id: Date.now() + index,
-        x: comp.x + 20,
-        y: comp.y + 20,
-        name: comp.name + ' (副本)'
-      }
+      const newComp = createComponentCopy(comp, index)
       canvasComponents.value.push(newComp)
       newIds.push(newComp.id)
     })
@@ -57,13 +68,7 @@ export function useClipboard(canvasComponents, selectedComponentIds) {
 
     const newIds = []
     selectedComponents.value.forEach((comp, index) => {
-      const newComp = {
-        ...JSON.parse(JSON.stringify(comp)),
-        id: Date.now() + index,
-        x: comp.x + 20,
-        y: comp.y + 20,
-        name: comp.name + ' (副本)'
-      }
+      const newComp = createComponentCopy(comp, index)
       canvasComponents.value.push(newComp)
       newIds.push(newComp.id)
     })

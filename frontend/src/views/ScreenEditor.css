@@ -1225,7 +1225,8 @@
 
 /* Right Config Panel - 科技感重构 */
 .config-panel {
-  width: 300px;
+  width: 320px;
+  height: 100vh;
   background: linear-gradient(180deg, #16171b 0%, #18181c 100%);
   border-left: 1px solid rgba(64, 158, 255, 0.15);
   display: flex;
@@ -1271,13 +1272,22 @@
     inset 0 1px 0 rgba(64, 158, 255, 0.1),
     0 2px 8px rgba(64, 158, 255, 0.15);
 }
+.tab-item.disabled {
+  color: #92b0dd;
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+.tab-item.disabled:hover {
+  color: #92b0dd;
+  background: transparent;
+}
 
 /* 内容滚动区 */
 .panel-content {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 12px 20px 12px;
+  padding: 8px 8px;
 }
 
 /* 滚动条美化 */
@@ -1561,7 +1571,7 @@
   font-weight: 600;
   font-size: 12px;
   color: #e5e5e5;
-  margin-bottom: 8px;
+  margin-bottom: 0px;
 }
 
 .divider {
@@ -1576,7 +1586,7 @@
   display: flex;
   background: #252529;
   border-bottom: 1px solid var(--border);
-  padding: 4px;
+  padding: 0spx;
   gap: 4px;
   margin-bottom: 0;
 }
@@ -1599,7 +1609,7 @@
 }
 
 .mode-content {
-  padding: 16px;
+  padding: 8px 0;
 }
 
 /* 提示框 */
@@ -2765,63 +2775,63 @@
 /* ==================== Ant Design Vue 深色主题优化 ==================== */
 
 /* 右侧配置面板内的 Ant Design 组件样式覆盖 */
-.config-panel :deep(.ant-input),
-.config-panel :deep(.ant-input-number),
-.config-panel :deep(.ant-select-selector),
-.config-panel :deep(.ant-textarea) {
+.config-panel .ant-input,
+.config-panel .ant-input-number,
+.config-panel .ant-select-selector,
+.config-panel .ant-textarea {
   background: #1a1a1d !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   color: #e5e5e5 !important;
   font-size: 12px !important;
 }
 
-.config-panel :deep(.ant-input:hover),
-.config-panel :deep(.ant-input-number:hover),
-.config-panel :deep(.ant-select-selector:hover),
-.config-panel :deep(.ant-textarea:hover) {
-  border-color: rgba(255, 255, 255, 0.4) !important;
+.config-panel .ant-input:hover,
+.config-panel .ant-input-number:hover,
+.config-panel .ant-select-selector:hover,
+.config-panel .ant-textarea:hover {
+  border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
-.config-panel :deep(.ant-input:focus),
-.config-panel :deep(.ant-input-number:focus),
-.config-panel :deep(.ant-select-focused .ant-select-selector),
-.config-panel :deep(.ant-textarea:focus) {
+.config-panel .ant-input:focus,
+.config-panel .ant-input-number:focus,
+.config-panel .ant-select-focused .ant-select-selector,
+.config-panel .ant-textarea:focus {
   border-color: #409eff !important;
   box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1) !important;
 }
 
 /* Input Number 组件优化 */
-.config-panel :deep(.ant-input-number) {
+.config-panel .ant-input-number {
   width: 100%;
 }
 
-.config-panel :deep(.ant-input-number-input) {
+.config-panel .ant-input-number-input {
   background: transparent !important;
   color: #e5e5e5 !important;
   padding: 0 8px !important;
   height: 28px !important;
 }
 
-.config-panel :deep(.ant-input-number-handler-wrap) {
+.config-panel .ant-input-number-handler-wrap {
   background: #1a1a1d !important;
   border-left-color: #333 !important;
 }
 
-.config-panel :deep(.ant-input-number-handler) {
+.config-panel .ant-input-number-handler {
   border-color: #333 !important;
 }
 
-.config-panel :deep(.ant-input-number-handler:hover) {
+.config-panel .ant-input-number-handler:hover {
   background: #2a2a2d !important;
 }
 
-.config-panel :deep(.ant-input-number-handler-up-inner),
-.config-panel :deep(.ant-input-number-handler-down-inner) {
+.config-panel .ant-input-number-handler-up-inner,
+.config-panel .ant-input-number-handler-down-inner {
   color: #909399 !important;
 }
 
 /* Input Number 后缀单位样式 */
-.config-panel :deep(.ant-input-number-group-addon) {
+.config-panel .ant-input-number-group-addon {
   background: #2a2a2d !important;
   border-color: #333 !important;
   color: #909399 !important;
@@ -2830,30 +2840,30 @@
 }
 
 /* Select 下拉框优化 */
-.config-panel :deep(.ant-select-arrow) {
+.config-panel .ant-select-arrow {
   color: #909399 !important;
 }
 
-.config-panel :deep(.ant-select-selection-item) {
+.config-panel .ant-select-selection-item {
   color: #e5e5e5 !important;
 }
 
 /* Slider 滑块优化 */
-.config-panel :deep(.ant-slider) {
+.config-panel .ant-slider {
   margin: 0 !important;
 }
 
-.config-panel :deep(.ant-slider-rail) {
+.config-panel .ant-slider-rail {
   background: #333 !important;
   height: 4px !important;
 }
 
-.config-panel :deep(.ant-slider-track) {
+.config-panel .ant-slider-track {
   background: #409eff !important;
   height: 4px !important;
 }
 
-.config-panel :deep(.ant-slider-handle) {
+.config-panel .ant-slider-handle {
   width: 12px !important;
   height: 12px !important;
   background: #e5e5e5 !important;
@@ -2861,13 +2871,13 @@
   margin-top: -4px !important;
 }
 
-.config-panel :deep(.ant-slider-handle:hover),
-.config-panel :deep(.ant-slider-handle:focus) {
+.config-panel .ant-slider-handle:hover,
+.config-panel .ant-slider-handle:focus {
   box-shadow: 0 0 0 4px rgba(64, 158, 255, 0.2) !important;
 }
 
 /* Textarea 优化 */
-.config-panel :deep(.ant-textarea) {
+.config-panel .ant-textarea {
   font-family: 'Monaco', 'Menlo', 'Consolas', monospace !important;
   line-height: 1.5 !important;
 }
@@ -2975,9 +2985,9 @@
 }
 
 /* Placeholder 颜色 */
-.config-panel :deep(.ant-input::placeholder),
-.config-panel :deep(.ant-input-number-input::placeholder),
-.config-panel :deep(.ant-textarea::placeholder) {
+.config-panel .ant-input::placeholder,
+.config-panel .ant-input-number-input::placeholder,
+.config-panel .ant-textarea::placeholder {
   color: #666 !important;
 }
 
@@ -3001,73 +3011,73 @@
 }
 
 /* Switch 开关优化 */
-.config-panel :deep(.ant-switch) {
+.config-panel .ant-switch {
   background: #333 !important;
 }
 
-.config-panel :deep(.ant-switch-checked) {
+.config-panel .ant-switch-checked {
   background: #409eff !important;
 }
 
-.config-panel :deep(.ant-switch:hover:not(.ant-switch-disabled)) {
+.config-panel .ant-switch:hover:not(.ant-switch-disabled) {
   background: #444 !important;
 }
 
-.config-panel :deep(.ant-switch-checked:hover:not(.ant-switch-disabled)) {
+.config-panel .ant-switch-checked:hover:not(.ant-switch-disabled) {
   background: #66b1ff !important;
 }
 
 /* Radio Group 单选按钮组优化 */
-.config-panel :deep(.ant-radio-button-wrapper) {
+.config-panel .ant-radio-button-wrapper {
   background: transparent !important;
   border-color: #333 !important;
   color: rgba(255, 255, 255, 0.55) !important;
 }
 
-.config-panel :deep(.ant-radio-button-wrapper:hover) {
+.config-panel .ant-radio-button-wrapper:hover {
   color: rgba(255, 255, 255, 0.75) !important;
 }
 
-.config-panel :deep(.ant-radio-button-wrapper-checked) {
+.config-panel .ant-radio-button-wrapper-checked {
   background: rgba(64, 158, 255, 0.15) !important;
   border-color: #409eff !important;
   color: #409eff !important;
 }
 
-.config-panel :deep(.ant-radio-button-wrapper-checked:hover) {
+.config-panel .ant-radio-button-wrapper-checked:hover {
   color: #66b1ff !important;
   border-color: #66b1ff !important;
 }
 
 /* Color Picker 颜色选择器优化 */
-.config-panel :deep(.ant-color-picker-trigger) {
+.config-panel .ant-color-picker-trigger {
   background: #1a1a1d !important;
   border-color: #333 !important;
 }
 
-.config-panel :deep(.ant-color-picker-trigger:hover) {
+.config-panel .ant-color-picker-trigger:hover {
   border-color: #444 !important;
 }
 
-.config-panel :deep(.ant-color-picker-color-block) {
+.config-panel .ant-color-picker-color-block {
   border-radius: 2px;
 }
 
 /* 控件标签统一样式 - 穿透到子组件 */
-.config-panel :deep(.prop-label) {
+.config-panel .prop-label {
   color: #e5e5e5 !important;
 }
 
-.config-panel :deep(.prop-row) {
+.config-panel .prop-row {
   margin-bottom: 12px;
 }
 
 /* ========== 质感提升补丁 v1.0 - 参考竞品设计 ========== */
 
 /* 1. 全局输入框质感升级 - 添加内阴影和更柔和的边框 */
-.config-panel :deep(.ant-input),
-.config-panel :deep(.ant-input-number),
-.config-panel :deep(.ant-select-selector) {
+.config-panel .ant-input,
+.config-panel .ant-input-number,
+.config-panel .ant-select-selector {
   background: #18181c !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   border-radius: 6px !important;
@@ -3075,18 +3085,18 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.config-panel :deep(.ant-input:hover),
-.config-panel :deep(.ant-input-number:hover),
-.config-panel :deep(.ant-select-selector:hover) {
+.config-panel .ant-input:hover,
+.config-panel .ant-input-number:hover,
+.config-panel .ant-select-selector:hover {
   border-color: rgba(255, 255, 255, 0.4) !important;
   box-shadow:
     inset 0 1px 3px rgba(0,0,0,0.5),
     0 0 0 1px rgba(64, 158, 255, 0.1) !important;
 }
 
-.config-panel :deep(.ant-input:focus),
-.config-panel :deep(.ant-input-number:focus),
-.config-panel :deep(.ant-select-focused .ant-select-selector) {
+.config-panel .ant-input:focus,
+.config-panel .ant-input-number:focus,
+.config-panel .ant-select-focused .ant-select-selector {
   border-color: #409eff !important;
   box-shadow:
     inset 0 1px 3px rgba(0,0,0,0.3),
@@ -3094,20 +3104,20 @@
 }
 
 /* 2. 滑块质感升级 - 添加渐变和发光效果 */
-.config-panel :deep(.ant-slider-rail) {
+.config-panel .ant-slider-rail {
   background: linear-gradient(to bottom, #1a1a1d, #0f0f11) !important;
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.5) !important;
   border-radius: 3px !important;
   height: 6px !important;
 }
 
-.config-panel :deep(.ant-slider-track) {
+.config-panel .ant-slider-track {
   background: linear-gradient(135deg, #409eff, #66b1ff) !important;
   box-shadow: 0 0 8px rgba(64, 158, 255, 0.4) !important;
   height: 6px !important;
 }
 
-.config-panel :deep(.ant-slider-handle) {
+.config-panel .ant-slider-handle {
   width: 14px !important;
   height: 14px !important;
   top: 4px;
@@ -3119,8 +3129,8 @@
     0 0 0 2px rgba(64, 158, 255, 0.2) !important;
 }
 
-.config-panel :deep(.ant-slider-handle:hover),
-.config-panel :deep(.ant-slider-handle:focus) {
+.config-panel .ant-slider-handle:hover,
+.config-panel .ant-slider-handle:focus {
   box-shadow:
     0 2px 12px rgba(0,0,0,0.4),
     0 0 0 4px rgba(64, 158, 255, 0.3) !important;
@@ -3149,7 +3159,7 @@
 }
 
 /* 4. 按钮质感升级 - 渐变背景和悬停效果 */
-.config-panel :deep(.ant-btn-primary) {
+.config-panel .ant-btn-primary {
   background: linear-gradient(135deg, #409eff, #66b1ff) !important;
   border: none !important;
   box-shadow:
@@ -3158,14 +3168,14 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.config-panel :deep(.ant-btn-primary:hover) {
+.config-panel .ant-btn-primary:hover {
   transform: translateY(-1px);
   box-shadow:
     0 4px 16px rgba(64, 158, 255, 0.4),
     inset 0 1px 0 rgba(255,255,255,0.3) !important;
 }
 
-.config-panel :deep(.ant-btn-primary:active) {
+.config-panel .ant-btn-primary:active {
   transform: translateY(0);
   box-shadow:
     0 2px 4px rgba(64, 158, 255, 0.3),
@@ -3173,27 +3183,27 @@
 }
 
 /* 5. 数字输入框控制按钮优化 */
-.config-panel :deep(.ant-input-number-handler-wrap) {
+.config-panel .ant-input-number-handler-wrap {
   background: linear-gradient(to bottom, #2a2a2d, #1a1a1d) !important;
   border-left: 1px solid #3a3a3d !important;
   border-radius: 0 6px 6px 0 !important;
 }
 
-.config-panel :deep(.ant-input-number-handler) {
+.config-panel .ant-input-number-handler {
   border-color: #3a3a3d !important;
   transition: all 0.15s !important;
 }
 
-.config-panel :deep(.ant-input-number-handler:hover) {
+.config-panel .ant-input-number-handler:hover {
   background: rgba(64, 158, 255, 0.1) !important;
 }
 
-.config-panel :deep(.ant-input-number-handler:active) {
+.config-panel .ant-input-number-handler:active {
   background: rgba(64, 158, 255, 0.2) !important;
 }
 
 /* 6. 分段控制器优化（Segmented） */
-.config-panel :deep(.ant-segmented) {
+.config-panel .ant-segmented {
   background: #18181c !important;
   border: 1px solid #2a2a2d !important;
   padding: 3px !important;
@@ -3201,13 +3211,13 @@
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.4) !important;
 }
 
-.config-panel :deep(.ant-segmented-item) {
+.config-panel .ant-segmented-item {
   color: #909399 !important;
   border-radius: 4px !important;
   transition: all 0.2s !important;
 }
 
-.config-panel :deep(.ant-segmented-item-selected) {
+.config-panel .ant-segmented-item-selected {
   background: linear-gradient(135deg, #2a2a2d, #3a3a3d) !important;
   color: #409eff !important;
   box-shadow:
@@ -3216,34 +3226,34 @@
 }
 
 /* 7. Switch 开关优化 */
-.config-panel :deep(.ant-switch) {
+.config-panel .ant-switch {
   background: #2a2a2d !important;
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.4) !important;
 }
 
-.config-panel :deep(.ant-switch-checked) {
+.config-panel .ant-switch-checked {
   background: linear-gradient(135deg, #409eff, #66b1ff) !important;
   box-shadow:
     0 0 8px rgba(64, 158, 255, 0.3),
     inset 0 1px 0 rgba(255,255,255,0.2) !important;
 }
 
-.config-panel :deep(.ant-switch-handle) {
+.config-panel .ant-switch-handle {
   box-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
 }
 
 /* 8. 下拉选择器优化 */
-.config-panel :deep(.ant-select-arrow) {
+.config-panel .ant-select-arrow {
   color: #909399 !important;
   transition: all 0.2s !important;
 }
 
-.config-panel :deep(.ant-select-open .ant-select-arrow) {
+.config-panel .ant-select-open .ant-select-arrow {
   color: #409eff !important;
 }
 
 /* 9. Textarea 优化 */
-.config-panel :deep(.ant-textarea) {
+.config-panel .ant-textarea {
   background: #18181c !important;
   border: 1px solid #2a2a2d !important;
   border-radius: 6px !important;
@@ -3252,11 +3262,11 @@
   line-height: 1.6 !important;
 }
 
-.config-panel :deep(.ant-textarea:hover) {
+.config-panel .ant-textarea:hover {
   border-color: #3a3a3d !important;
 }
 
-.config-panel :deep(.ant-textarea:focus) {
+.config-panel .ant-textarea:focus {
   border-color: #409eff !important;
   box-shadow:
     inset 0 1px 3px rgba(0,0,0,0.3),
@@ -3264,19 +3274,19 @@
 }
 
 /* 10. Radio Button 单选按钮组优化 */
-.config-panel :deep(.ant-radio-button-wrapper) {
+.config-panel .ant-radio-button-wrapper {
   background: transparent !important;
   border-color: #2a2a2d !important;
   color: #909399 !important;
   transition: all 0.2s !important;
 }
 
-.config-panel :deep(.ant-radio-button-wrapper:hover) {
+.config-panel .ant-radio-button-wrapper:hover {
   color: #e5e5e5 !important;
   border-color: #3a3a3d !important;
 }
 
-.config-panel :deep(.ant-radio-button-wrapper-checked) {
+.config-panel .ant-radio-button-wrapper-checked {
   background: linear-gradient(135deg, rgba(64, 158, 255, 0.15), rgba(64, 158, 255, 0.1)) !important;
   border-color: #409eff !important;
   color: #409eff !important;
@@ -3300,9 +3310,9 @@
 }
 
 /* 13. 禁用状态优化 */
-.config-panel :deep(.ant-input[disabled]),
-.config-panel :deep(.ant-input-number-disabled),
-.config-panel :deep(.ant-select-disabled .ant-select-selector) {
+.config-panel .ant-input[disabled],
+.config-panel .ant-input-number-disabled,
+.config-panel .ant-select-disabled .ant-select-selector {
   background: #0f0f11 !important;
   color: #666 !important;
   border-color: #1a1a1d !important;

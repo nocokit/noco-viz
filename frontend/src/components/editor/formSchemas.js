@@ -39,9 +39,8 @@ export const pageConfigSchema = [
       {
         label: '背景图',
         key: 'backgroundImage',
-        type: 'input',
-        inline: true,
-        props: { placeholder: '图片URL' }
+        type: 'image-picker',
+        inline: false
       }
     ]
   },
@@ -150,6 +149,18 @@ export const basicComponentSchema = [
           step: 1,
           suffix: '°'
         }
+      },
+      {
+        label: '图层顺序',
+        key: 'zIndex',
+        type: 'number',
+        inline: true,
+        props: {
+          min: -10,
+          max: 100,
+          step: 1,
+          placeholder: '自动'
+        }
       }
     ]
   }
@@ -246,6 +257,18 @@ export const componentFormSchemaFlat = [
           max: 360,
           step: 1,
           suffix: '°'
+        }
+      },
+      {
+        label: '图层顺序',
+        key: 'zIndex',
+        type: 'number',
+        inline: true,
+        props: {
+          min: -10,
+          max: 100,
+          step: 1,
+          placeholder: '自动'
         }
       }
     ]
@@ -363,12 +386,12 @@ export const componentFormSchemaFlat = [
  * 包含：基础信息、布局和变换、颜色和背景、字体配置
  */
 export const fullComponentSchema = [
-  // 基础信息 - 可折叠
+  // 基础信息
   {
     title: '基础信息',
     icon: 'info',
     divider: true,
-    collapsible: true,
+    collapsible: false,
     defaultCollapsed: false,
     fields: [
       {
@@ -376,19 +399,14 @@ export const fullComponentSchema = [
         key: 'id',
         type: 'input',
         inline: true,
-        props: {
-          readonly: true,
-          disabled: true
-        }
+        props: { readonly: true, disabled: true }
       },
       {
         label: '组件名称',
         key: 'name',
         type: 'input',
         inline: true,
-        props: {
-          placeholder: '请输入组件名称'
-        }
+        props: { placeholder: '请输入组件名称' }
       }
     ]
   },
@@ -398,7 +416,7 @@ export const fullComponentSchema = [
     title: '布局和变换',
     icon: 'layout',
     divider: true,
-    collapsible: true,
+    collapsible: false,
     defaultCollapsed: false,
     grid: { columns: 2 },
     fields: [
@@ -406,35 +424,25 @@ export const fullComponentSchema = [
         label: 'W',
         key: 'w',
         type: 'number',
-        props: {
-          min: 1,
-          step: 1
-        }
+        props: { min: 1, step: 1 }
       },
       {
         label: 'H',
         key: 'h',
         type: 'number',
-        props: {
-          min: 1,
-          step: 1
-        }
+        props: { min: 1, step: 1 }
       },
       {
         label: 'X',
         key: 'x',
         type: 'number',
-        props: {
-          step: 1
-        }
+        props: { step: 1 }
       },
       {
         label: 'Y',
         key: 'y',
         type: 'number',
-        props: {
-          step: 1
-        }
+        props: { step: 1 }
       }
     ]
   },
@@ -465,7 +473,7 @@ export const fullComponentSchema = [
     title: '颜色和背景',
     icon: 'color',
     divider: true,
-    collapsible: true,
+    collapsible: false,
     defaultCollapsed: false,
     fields: [
       {
@@ -497,7 +505,7 @@ export const fullComponentSchema = [
     title: '边框样式',
     icon: 'border',
     divider: true,
-    collapsible: true,
+    collapsible: false,
     defaultCollapsed: false,
     fields: [
       {
@@ -543,7 +551,7 @@ export const fullComponentSchema = [
     title: '内边距',
     icon: 'padding',
     divider: true,
-    collapsible: true,
+    collapsible: false,
     defaultCollapsed: false,
     grid: { columns: 2 },
     fields: [
@@ -551,23 +559,13 @@ export const fullComponentSchema = [
         label: '上下',
         key: 'paddingVertical',
         type: 'number',
-        props: {
-          min: 0,
-          step: 1,
-          suffix: 'px',
-          defaultValue: 8
-        }
+        props: { min: 0, step: 1, suffix: 'px', defaultValue: 8 }
       },
       {
         label: '左右',
         key: 'paddingHorizontal',
         type: 'number',
-        props: {
-          min: 0,
-          step: 1,
-          suffix: 'px',
-          defaultValue: 8
-        }
+        props: { min: 0, step: 1, suffix: 'px', defaultValue: 8 }
       }
     ]
   }

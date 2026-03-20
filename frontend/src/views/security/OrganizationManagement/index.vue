@@ -461,8 +461,8 @@ onMounted(async () => {
 .content-wrapper {
   flex: 1;
   display: flex;
-  gap: 16px;
-  padding: 16px;
+  gap: 8px;
+  padding: 8px;
   overflow: hidden;
 }
 
@@ -505,7 +505,7 @@ onMounted(async () => {
 }
 
 .tree-search :deep(.ant-input-affix-wrapper) {
-  border-radius: 6px;
+  border-radius: 0px;
   border-color: #e8e8e8;
   transition: all 0.3s;
 }

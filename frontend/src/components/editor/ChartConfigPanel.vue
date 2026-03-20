@@ -1,89 +1,80 @@
 <!--
-  图表配置面板 - 带左侧垂直标签页和可展开子项
+  图表配置面板 - 分组布局
   用于图表组件的高级配置交互
 -->
 <template>
   <div class="chart-config-panel">
-    <!-- 左侧垂直标签页 -->
-    <div class="vertical-tabs">
-      <div
-        v-for="tab in tabs"
-        :key="tab.key"
-        :class="['tab-item', { active: activeTab === tab.key }]"
-        @click="activeTab = tab.key"
+    <!-- 空状态 -->
+    <div v-if="tabs.length === 0" class="empty-state">
+      <p>暂无配置项</p>
+    </div>
+
+    <!-- 所有分组展开显示 -->
+    <template v-for="tab in tabs" :key="tab.key">
+      <EditorFormSection
+        :title="tab.label"
+        :divider="true"
+        :collapsible="false"
       >
-        {{ tab.label }}
-      </div>
-    </div>
+        <template v-for="(field, index) in tab.fields" :key="index">
+          <!-- 普通字段 -->
+          <EditorFormField
+            v-if="!field.isGroup"
+            :label="field.label"
+            inline
+          >
+            <component
+              :is="getControlComponent(field.type)"
+              :modelValue="getFieldValue(tab.key, field.key)"
+              @update:modelValue="updateFieldValue(tab.key, field.key, $event)"
+              v-bind="field.props"
+            />
+          </EditorFormField>
 
-    <!-- 右侧配置内容 -->
-    <div class="tab-content">
-      <!-- 空状态 -->
-      <div v-if="tabs.length === 0" class="empty-state">
-        <p>暂无配置项</p>
-      </div>
-
-      <template v-for="tab in tabs" :key="tab.key">
-        <div v-show="activeTab === tab.key" class="content-section">
-          <template v-for="(field, index) in tab.fields" :key="index">
-            <!-- 普通字段 -->
-            <EditorFormField
-              v-if="!field.isGroup"
-              :label="field.label"
-              inline
+          <!-- 可展开分组 -->
+          <div v-else class="expandable-group">
+            <div
+              class="group-header"
+              @click="toggleGroup(tab.key, field.key)"
             >
-              <component
-                :is="getControlComponent(field.type)"
-                :modelValue="getFieldValue(tab.key, field.key)"
-                @update:modelValue="updateFieldValue(tab.key, field.key, $event)"
-                v-bind="field.props"
-              />
-            </EditorFormField>
-
-            <!-- 可展开分组 -->
-            <div v-else class="expandable-group">
-              <div
-                class="group-header"
-                @click="toggleGroup(tab.key, field.key)"
+              <svg
+                class="expand-icon"
+                :class="{ expanded: isGroupExpanded(tab.key, field.key) }"
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
               >
-                <svg
-                  class="expand-icon"
-                  :class="{ expanded: isGroupExpanded(tab.key, field.key) }"
-                  viewBox="0 0 24 24"
-                  width="16"
-                  height="16"
-                >
-                  <path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
-                </svg>
-                <span class="group-label">{{ field.label }}</span>
-              </div>
-
-              <!-- 展开的子字段 -->
-              <div v-show="isGroupExpanded(tab.key, field.key)" class="group-content">
-                <EditorFormField
-                  v-for="(subField, subIndex) in field.fields"
-                  :key="subIndex"
-                  :label="subField.label"
-                  inline
-                >
-                  <component
-                    :is="getControlComponent(subField.type)"
-                    :modelValue="getFieldValue(tab.key, field.key, subField.key)"
-                    @update:modelValue="updateFieldValue(tab.key, field.key, $event, subField.key)"
-                    v-bind="subField.props"
-                  />
-                </EditorFormField>
-              </div>
+                <path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+              </svg>
+              <span class="group-label">{{ field.label }}</span>
             </div>
-          </template>
-        </div>
-      </template>
-    </div>
+
+            <!-- 展开的子字段 -->
+            <div v-show="isGroupExpanded(tab.key, field.key)" class="group-content">
+              <EditorFormField
+                v-for="(subField, subIndex) in field.fields"
+                :key="subIndex"
+                :label="subField.label"
+                inline
+              >
+                <component
+                  :is="getControlComponent(subField.type)"
+                  :modelValue="getFieldValue(tab.key, field.key, subField.key)"
+                  @update:modelValue="updateFieldValue(tab.key, field.key, $event, subField.key)"
+                  v-bind="subField.props"
+                />
+              </EditorFormField>
+            </div>
+          </div>
+        </template>
+      </EditorFormSection>
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
+import EditorFormSection from './EditorFormSection.vue'
 import EditorFormField from './EditorFormField.vue'
 import EditorSwitch from './EditorSwitch.vue'
 import EditorInputNumber from './EditorInputNumber.vue'
@@ -103,9 +94,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
-
-// 当前激活的标签页
-const activeTab = ref('')
 
 // 展开状态管理 { 'xAxis.axisLine': true }
 const expandedGroups = ref({})
@@ -130,7 +118,6 @@ const getControlProps = (schema) => {
 
 // 将 schema 转换为标签页结构
 const tabs = computed(() => {
-  console.log('ChartConfigPanel schema:', props.schema)
   const tabList = []
   const tabLabels = {
     series: '图形',
@@ -206,13 +193,6 @@ const tabs = computed(() => {
   return tabList
 })
 
-// 初始化第一个标签页
-watch(tabs, (newTabs) => {
-  if (newTabs.length > 0 && !activeTab.value) {
-    activeTab.value = newTabs[0].key
-  }
-}, { immediate: true })
-
 const getFieldValue = (tabKey, fieldKey, subKey) => {
   const tabValue = props.modelValue[tabKey] || {}
   if (subKey) {
@@ -268,41 +248,42 @@ const isGroupExpanded = (tabKey, groupKey) => {
 <style scoped>
 .chart-config-panel {
   display: flex;
-  min-height: 400px;
-  max-height: 600px;
+  flex-direction: column;
   background: #1a1d24;
   border-radius: 4px;
   overflow: hidden;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
 .vertical-tabs {
-  width: 80px;
-  background: rgba(0, 0, 0, 0.2);
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
-  flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 8px 8px 0;
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .vertical-tabs .tab-item {
-  padding: 16px 8px;
-  text-align: center;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.55);
+  padding: 4px 10px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
   cursor: pointer;
   transition: all 0.2s;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 3px;
   user-select: none;
+  margin-bottom: 6px;
 }
 
 .vertical-tabs .tab-item:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.06);
   color: rgba(255, 255, 255, 0.75);
 }
 
 .vertical-tabs .tab-item.active {
   background: rgba(22, 119, 255, 0.15);
   color: #1677ff;
-  border-left: 3px solid #1677ff;
   font-weight: 500;
 }
 
@@ -315,11 +296,11 @@ const isGroupExpanded = (tabKey, groupKey) => {
 .content-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .expandable-group {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .group-header {
@@ -357,11 +338,11 @@ const isGroupExpanded = (tabKey, groupKey) => {
 }
 
 .group-content {
-  margin-top: 8px;
+  margin-top: 6px;
   padding-left: 24px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .empty-state {

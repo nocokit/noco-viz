@@ -180,8 +180,8 @@ const handleReset = () => {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  margin-bottom: 16px;
-  gap: 16px;
+  margin-bottom: 8px;
+  gap: 8px;
 }
 
 .toolbar-left {

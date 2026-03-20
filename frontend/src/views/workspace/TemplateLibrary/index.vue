@@ -134,12 +134,53 @@
         </div>
       </div>
     </a-modal>
+
+    <!-- 使用模板弹窗 -->
+    <a-modal
+      v-model:open="useTemplateVisible"
+      title="使用模板创建项目"
+      :width="600"
+      @cancel="handleUseTemplateCancel"
+    >
+      <a-form
+        ref="useTemplateFormRef"
+        :model="useTemplateForm"
+        :rules="useTemplateRules"
+        layout="vertical"
+      >
+        <a-form-item label="项目名称" name="name">
+          <a-input
+            v-model:value="useTemplateForm.name"
+            placeholder="请输入项目名称"
+            :maxlength="100"
+          />
+        </a-form-item>
+
+        <a-form-item label="项目描述" name="description">
+          <a-textarea
+            v-model:value="useTemplateForm.description"
+            placeholder="请输入项目描述（可选）"
+            :rows="4"
+            :maxlength="500"
+            show-count
+          />
+        </a-form-item>
+      </a-form>
+
+      <template #footer>
+        <a-button @click="handleUseTemplateCancel">取消</a-button>
+        <a-button type="primary" @click="handleUseTemplateOk" :loading="useTemplateSubmitting">
+          创建项目
+        </a-button>
+      </template>
+    </a-modal>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
+import { useRouter } from 'vue-router'
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import { confirm } from '@/utils/confirm'
 import { useViewModes } from '@/composables/useViewModes'
@@ -147,9 +188,12 @@ import { getImageUrl } from '@/utils/image'
 import WorkspaceLayout from '@/components/workspace/WorkspaceLayout.vue'
 import TemplateCard from './components/TemplateCard.vue'
 import TemplateListItem from './components/TemplateListItem.vue'
-import { getTemplates, createTemplate, updateTemplate, deleteTemplate } from '@/api/template'
+import { getTemplates, createTemplate, updateTemplate, deleteTemplate, incrementUsageCount } from '@/api/template'
+import { createProjectFromTemplate } from '@/api/project'
 
 const formRef = ref()
+const useTemplateFormRef = ref()
+const router = useRouter()
 const { viewModes } = useViewModes()
 
 const templates = ref([])
@@ -282,7 +326,47 @@ const handleModalCancel = () => {
 }
 
 // 使用模板
-const handleUseTemplate = () => message.info('使用模板功能开发中')
+const useTemplateVisible = ref(false)
+const useTemplateSubmitting = ref(false)
+const selectedTemplate = ref(null)
+const useTemplateForm = ref({ name: '', description: '' })
+const useTemplateRules = {
+  name: [{ required: true, message: '请输入项目名称', trigger: 'blur' }]
+}
+
+const handleUseTemplate = (template) => {
+  selectedTemplate.value = template
+  useTemplateForm.value = {
+    name: template.title ? `${template.title} - 副本` : '',
+    description: template.description || ''
+  }
+  useTemplateVisible.value = true
+}
+
+const handleUseTemplateOk = async () => {
+  try {
+    await useTemplateFormRef.value.validate()
+    useTemplateSubmitting.value = true
+    await incrementUsageCount(selectedTemplate.value.id)
+    await createProjectFromTemplate(selectedTemplate.value.id, {
+      name: useTemplateForm.value.name,
+      description: useTemplateForm.value.description
+    })
+    message.success('项目创建成功')
+    useTemplateVisible.value = false
+    router.push({ name: 'ProjectList' })
+  } catch (error) {
+    if (error?.errorFields) return
+    console.error('从模板创建项目失败:', error)
+    message.error('创建失败，请重试')
+  } finally {
+    useTemplateSubmitting.value = false
+  }
+}
+
+const handleUseTemplateCancel = () => {
+  useTemplateVisible.value = false
+}
 
 const previewVisible = ref(false)
 const previewTemplate = ref(null)
