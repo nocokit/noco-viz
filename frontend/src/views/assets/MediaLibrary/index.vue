@@ -485,7 +485,8 @@ const loadMediaList = async () => {
   try {
     loading.value = true
     const response = await getMediaList()
-    const mediaData = response.data || response || []
+    // 后端返回 { data: [], total: number } 结构
+    const mediaData = response.data?.data || response.data || []
     mockMediaList.value = mediaData.map(item => ({
       ...item,
       meta1: item.metadata?.resolution || item.metadata?.dimensions || 'N/A',
@@ -517,11 +518,6 @@ const filteredMedia = computed(() => {
   return mockMediaList.value.filter(item => {
     // Type Filter
     if (activeTypeFilter.value !== 'all' && item.type !== activeTypeFilter.value) {
-      return false
-    }
-
-    // Category Filter
-    if (activeCategoryFilter.value !== 'all' && item.category !== activeCategoryFilter.value) {
       return false
     }
 

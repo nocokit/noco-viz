@@ -39,6 +39,7 @@ import Border01 from './decoration/Border01.vue'
 import Border02 from './decoration/Border02.vue'
 import Border03 from './decoration/Border03.vue'
 import Border04 from './decoration/Border04.vue'
+import Border05 from './decoration/Border05.vue'
 import Decoration01 from './decoration/Decoration01.vue'
 import Decoration02 from './decoration/Decoration02.vue'
 import Decoration03 from './decoration/Decoration03.vue'
@@ -83,6 +84,7 @@ export const chartComponents = {
   'border-02': Border02,
   'border-03': Border03,
   'border-04': Border04,
+  'border-05': Border05,
   'decoration-01': Decoration01,
   'decoration-02': Decoration02,
   'decoration-03': Decoration03,
@@ -127,6 +129,7 @@ export {
   Border02,
   Border03,
   Border04,
+  Border05,
   Decoration01,
   Decoration02,
   Decoration03,

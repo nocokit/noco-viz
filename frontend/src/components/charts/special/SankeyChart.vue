@@ -6,7 +6,7 @@
 <script setup>
 import BaseChart from '../BaseChart.vue'
 import { defaultSankeyConfig } from '../configs/sankeyConfig'
-import { useChartOption } from '../utils/useChartOption'
+import { useChartOption, mapSankeyData } from '../utils/useChartOption'
 
 const props = defineProps({
   config: { type: Object, default: () => ({}) },
@@ -14,5 +14,5 @@ const props = defineProps({
   transform: { type: Function, default: null }
 })
 
-const chartOption = useChartOption(props, defaultSankeyConfig, 'sankey')
+const chartOption = useChartOption(props, defaultSankeyConfig, 'sankey', mapSankeyData)
 </script>

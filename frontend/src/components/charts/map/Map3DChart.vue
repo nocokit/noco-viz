@@ -19,7 +19,7 @@ const props = defineProps({
     default: () => ({})
   },
   data: {
-    type: [Array, Object],
+    type: [Array, Object, String],
     default: null
   }
 })
@@ -27,6 +27,17 @@ const props = defineProps({
 const chartRef = ref(null)
 let chartInstance = null
 const mapReady = ref(false)
+
+/** 将 props.data 规范化为数组或 null */
+function resolveData(raw) {
+  if (raw == null) return null
+  if (typeof raw === 'string') {
+    const t = raw.trim()
+    if (!t) return null
+    try { return JSON.parse(t) } catch { return null }
+  }
+  return raw
+}
 
 // 加载中国地图数据
 const loadChinaMap = async () => {
@@ -58,7 +69,7 @@ const initChart = async () => {
   chartInstance = echarts.init(chartRef.value)
 
   // 获取配置选项
-  const option = getMap3DOption(props.config, props.data)
+  const option = getMap3DOption(props.config, resolveData(props.data))
 
   // 设置配置
   chartInstance.setOption(option)
@@ -87,7 +98,7 @@ const showError = (message) => {
 const updateChart = () => {
   if (!chartInstance || !mapReady.value) return
 
-  const option = getMap3DOption(props.config, props.data)
+  const option = getMap3DOption(props.config, resolveData(props.data))
   chartInstance.setOption(option, true)
 }
 

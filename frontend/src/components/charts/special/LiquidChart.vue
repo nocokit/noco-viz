@@ -7,7 +7,7 @@
 import 'echarts-liquidfill'
 import BaseChart from '../BaseChart.vue'
 import { defaultLiquidConfig } from '../configs/liquidConfig'
-import { useChartOption } from '../utils/useChartOption'
+import { useChartOption, mapLiquidData } from '../utils/useChartOption'
 
 const props = defineProps({
   config: { type: Object, default: () => ({}) },
@@ -15,9 +15,5 @@ const props = defineProps({
   transform: { type: Function, default: null }
 })
 
-const chartOption = useChartOption(props, defaultLiquidConfig, 'liquidFill', (base, data) => {
-  if (data?.value !== undefined) {
-    return { ...base, series: [{ ...base.series[0], data: [data.value] }] }
-  }
-})
+const chartOption = useChartOption(props, defaultLiquidConfig, 'liquidFill', mapLiquidData)
 </script>

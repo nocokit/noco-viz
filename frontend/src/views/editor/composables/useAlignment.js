@@ -184,7 +184,7 @@ export function useAlignment(canvasComponents, selectedComponentIds) {
 
   /**
    * 对齐选中的组件
-   * @param {String} type - 对齐类型: left, right, center-x, top, bottom, center-y, dist-h, dist-v
+   * @param {String} type - 对齐类型: left, right, center-x, top, bottom, center-y, same-width, same-height, dist-h, dist-v
    */
   const alignSelectedComponents = (type) => {
     if (selectedComponentIds.value.length < 2) return
@@ -200,6 +200,20 @@ export function useAlignment(canvasComponents, selectedComponentIds) {
     const maxY = Math.max(...comps.map(c => c.y + c.h))
     const midX = (minX + maxX) / 2
     const midY = (minY + maxY) / 2
+
+    // 等宽等高：使用第一个选中组件的尺寸
+    if (type === 'same-width' || type === 'same-height') {
+      const referenceComp = comps[0]
+      comps.forEach(comp => {
+        if (type === 'same-width') {
+          comp.w = referenceComp.w
+        } else {
+          comp.h = referenceComp.h
+        }
+      })
+      showMessage.success(`已统一${type === 'same-width' ? '宽度' : '高度'}`)
+      return
+    }
 
     comps.forEach(comp => {
       switch (type) {

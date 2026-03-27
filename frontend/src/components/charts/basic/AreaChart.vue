@@ -6,7 +6,7 @@
 <script setup>
 import BaseChart from '../BaseChart.vue'
 import { defaultAreaConfig } from '../configs/areaConfig'
-import { useChartOption, mapCategoryValues } from '../utils/useChartOption'
+import { useChartOption, mapAreaData } from '../utils/useChartOption'
 
 const props = defineProps({
   config: { type: Object, default: () => ({}) },
@@ -14,5 +14,5 @@ const props = defineProps({
   transform: { type: Function, default: null }
 })
 
-const chartOption = useChartOption(props, defaultAreaConfig, 'line', mapCategoryValues)
+const chartOption = useChartOption(props, defaultAreaConfig, 'area', mapAreaData)
 </script>

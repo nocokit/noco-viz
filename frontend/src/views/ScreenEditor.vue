@@ -370,6 +370,7 @@ import { useAlignment } from './editor/composables/useAlignment'
 import { useComponents } from './editor/composables/useComponents'
 import { useKeyboardShortcuts } from './editor/composables/useKeyboardShortcuts'
 import { showMessage } from './editor/composables/useMessage'
+import { getProjectDetail, updateProject } from '@/api/project'
 
 // 配置消息提示位置
 ElMessage.config({
@@ -500,34 +501,40 @@ const handleSave = async () => {
   isSaving.value = true
   saveStatus.value = '保存中...'
 
+  const projectId = route.params.id
+  const canvasConfig = {
+    components: canvasComponents.value,
+    canvasWidth: pageConfig.width,
+    canvasHeight: pageConfig.height,
+    screenBackground: pageConfig.backgroundColor,
+    screenBackgroundImage: pageConfig.backgroundImage,
+    canvasScale: canvasScale.value,
+    canvasPanX: canvasPanX.value,
+    canvasPanY: canvasPanY.value,
+  }
+
   try {
-    const projectId = route.params.id
-    const projectData = {
-      id: projectId,
-      name: projectName.value,
-      components: canvasComponents.value,
-      canvasWidth: pageConfig.width,
-      canvasHeight: pageConfig.height,
-      screenBackground: pageConfig.backgroundColor,
-      screenBackgroundImage: pageConfig.backgroundImage,
-      canvasScale: canvasScale.value,
-      canvasPanX: canvasPanX.value,
-      canvasPanY: canvasPanY.value,
-      updatedAt: new Date().toISOString()
-    }
-
-    // 保存到 localStorage (实际项目应该调用API保存到后端)
-    const savedProjects = JSON.parse(localStorage.getItem('nocoviz_projects') || '{}')
-    savedProjects[projectId] = projectData
-    localStorage.setItem('nocoviz_projects', JSON.stringify(savedProjects))
-
+    await updateProject(projectId, {
+      title: projectName.value,
+      config: canvasConfig
+    })
     isSaving.value = false
     saveStatus.value = '已保存'
     showMessage.success('大屏配置已保存')
   } catch (error) {
-    isSaving.value = false
-    saveStatus.value = '保存失败'
-    showMessage.error(`保存失败: ${error.message}`)
+    // 后端不可用时降级到 localStorage
+    try {
+      const savedProjects = JSON.parse(localStorage.getItem('nocoviz_projects') || '{}')
+      savedProjects[projectId] = { id: projectId, name: projectName.value, ...canvasConfig }
+      localStorage.setItem('nocoviz_projects', JSON.stringify(savedProjects))
+      isSaving.value = false
+      saveStatus.value = '已保存(本地)'
+      showMessage.success('大屏配置已保存（本地）')
+    } catch {
+      isSaving.value = false
+      saveStatus.value = '保存失败'
+      showMessage.error(`保存失败: ${error.message}`)
+    }
   }
 }
 
@@ -1022,42 +1029,50 @@ const fitToScreen = () => {
   }
 }
 
+// 从项目数据对象恢复画布状态
+const restoreProjectData = (projectData) => {
+  projectName.value = projectData.name || projectData.title || '未命名大屏项目'
+  canvasComponents.value = projectData.components || []
+  if (projectData.screenBackground) pageConfig.backgroundColor = projectData.screenBackground
+  if (projectData.screenBackgroundImage) pageConfig.backgroundImage = projectData.screenBackgroundImage
+  if (projectData.canvasWidth) pageConfig.width = projectData.canvasWidth
+  if (projectData.canvasHeight) pageConfig.height = projectData.canvasHeight
+  canvasScale.value = projectData.canvasScale || 0.4
+  canvasPanX.value = projectData.canvasPanX || 0
+  canvasPanY.value = projectData.canvasPanY || 0
+  selectedComponentIds.value = []
+}
+
 // 加载项目
 const loadProject = async () => {
+  const projectId = route.params.id
+
   try {
-    const projectId = route.params.id
+    const res = await getProjectDetail(projectId)
+    const project = res?.data || res
+    if (project) {
+      // config 字段存放画布数据，title/name 存放项目名
+      const canvasData = project.config || project
+      restoreProjectData({ ...canvasData, name: project.title || project.name })
+      showMessage.success('项目已加载')
+      return true
+    }
+  } catch {
+    // 后端不可用时降级到 localStorage
     const savedProjects = JSON.parse(localStorage.getItem('nocoviz_projects') || '{}')
     const projectData = savedProjects[projectId]
-
     if (projectData) {
-      projectName.value = projectData.name || '未命名大屏项目'
-      canvasComponents.value = projectData.components || []
-
-      // 恢复页面配置
-      if (projectData.screenBackground) pageConfig.backgroundColor = projectData.screenBackground
-      if (projectData.screenBackgroundImage) pageConfig.backgroundImage = projectData.screenBackgroundImage
-      if (projectData.canvasWidth) pageConfig.width = projectData.canvasWidth
-      if (projectData.canvasHeight) pageConfig.height = projectData.canvasHeight
-
-      // 恢复画布视图状态
-      canvasScale.value = projectData.canvasScale || 0.4
-      canvasPanX.value = projectData.canvasPanX || 0
-      canvasPanY.value = projectData.canvasPanY || 0
-
-      selectedComponentIds.value = []
-      showMessage.success('项目已加载')
-      return true // 返回 true 表示加载了已有项目
-    } else {
-      // 新项目,使用默认值
-      projectName.value = '未命名大屏项目'
-      canvasComponents.value = []
-      selectedComponentIds.value = []
-      return false // 返回 false 表示是新项目
+      restoreProjectData(projectData)
+      showMessage.success('项目已加载（本地）')
+      return true
     }
-  } catch (error) {
-    showMessage.error(`加载项目失败: ${error.message}`)
-    return false
   }
+
+  // 新项目默认值
+  projectName.value = '未命名大屏项目'
+  canvasComponents.value = []
+  selectedComponentIds.value = []
+  return false
 }
 
 // 清空画布
@@ -1218,7 +1233,7 @@ const handleAutoLayout = () => {
     comp.h = cellHeight
   })
 
-  addHistory()
+  addHistory(canvasComponents.value)
   ElMessage.success(`已按 ${gridType} 网格对齐 ${canvasComponents.value.length} 个组件`)
 }
 

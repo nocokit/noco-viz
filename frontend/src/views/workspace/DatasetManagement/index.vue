@@ -3,7 +3,7 @@
     :breadcrumb="[
       { label: '首页', path: '/' },
       { label: '工作台', path: '/projects' },
-      { label: '数据资源管理' }
+      { label: '数据集管理' }
     ]"
     :config="crudConfig"
     :data="datasetStore.datasetList"

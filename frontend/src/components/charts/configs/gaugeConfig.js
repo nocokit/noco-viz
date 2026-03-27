@@ -60,12 +60,7 @@ export const defaultGaugeConfig = {
         formatter: '{value}%',
         color: '#fff'
       },
-      data: [
-        {
-          value: 75,
-          name: '完成率'
-        }
-      ]
+      data: []
     }
   ]
 }

@@ -8,7 +8,6 @@ import { dataSourceOptions } from './config/typeorm.config';
 import { UsersModule } from './modules/users/users.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { ProjectsModule } from './modules/projects/projects.module';
-import { DatasetsModule } from './modules/datasets/datasets.module';
 import { TemplatesModule } from './modules/templates/templates.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { IpWhitelistModule } from './ip-whitelist/ip-whitelist.module';
@@ -22,8 +21,9 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
 import { DepartmentsModule } from './modules/departments/departments.module';
 import { ComponentsModule } from './modules/components/components.module';
 import { DatasourcesModule } from './modules/datasources/datasources.module';
-import { MonitorModule } from './modules/monitor/monitor.module';
 import { IntegrationPublishModule } from './integration-publish/integration-publish.module';
+import { DataGroupsModule } from './modules/data-groups/data-groups.module';
+import { DataItemsModule } from './modules/data-items/data-items.module';
 
 @Module({
   imports: [
@@ -41,7 +41,6 @@ import { IntegrationPublishModule } from './integration-publish/integration-publ
     UsersModule,
     RolesModule,
     ProjectsModule,
-    DatasetsModule,
     TemplatesModule,
     IpWhitelistModule,
     SystemConfigModule,
@@ -53,7 +52,8 @@ import { IntegrationPublishModule } from './integration-publish/integration-publ
     DepartmentsModule,
     ComponentsModule,
     DatasourcesModule,
-    MonitorModule,
+    DataGroupsModule,
+    DataItemsModule,
     IntegrationPublishModule,
   ],
   providers: [

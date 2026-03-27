@@ -171,6 +171,14 @@ export const componentDefaults = {
     borderWidth: 0,
     borderRadius: 0
   },
+  'border-05': {
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    bgColor: 'transparent',
+    opacity: 100,
+    borderWidth: 0,
+    borderRadius: 0
+  },
   'decoration-01': {
     paddingVertical: 0,
     paddingHorizontal: 0,

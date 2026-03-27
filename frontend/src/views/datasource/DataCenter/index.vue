@@ -367,75 +367,11 @@ const datasetsLoading = ref(false)
 const connectionsLoading = ref(false)
 
 // 模拟数据集数据
-const datasets = ref([
-  {
-    id: 1,
-    name: 'Q1_门店物料清单',
-    description: '静态数据导入，包含库存明细',
-    type: 'excel',
-    connectionId: null,
-    status: 'active',
-    rowCount: 1200
-  },
-  {
-    id: 2,
-    name: '华东区_销售大屏汇总',
-    description: '聚合了订单表，按季度统计GMV',
-    type: 'sql',
-    connectionId: 1,
-    status: 'active',
-    rowCount: 2845
-  },
-  {
-    id: 3,
-    name: '实时天气服务',
-    description: 'External Weather API',
-    type: 'api',
-    connectionId: null,
-    status: 'active',
-    rowCount: '自动刷新'
-  },
-  {
-    id: 4,
-    name: '2025Q1_销售总表',
-    description: '第一季度完整销售数据',
-    type: 'excel',
-    connectionId: null,
-    status: 'active',
-    rowCount: 856
-  }
-])
+// 数据集列表（从后端API加载）
+const datasets = ref([])
 
-// 模拟连接数据
-const connections = ref([
-  {
-    id: 1,
-    name: '交易订单主库',
-    type: 'mysql',
-    dbType: 'MySQL 8.0',
-    host: '192.168.1.100:3306',
-    status: 'active',
-    usedByDatasets: 5
-  },
-  {
-    id: 2,
-    name: '财务数仓_只读',
-    type: 'oracle',
-    dbType: 'Oracle 11g',
-    host: '192.168.1.102:1521',
-    status: 'error',
-    usedByDatasets: 2
-  },
-  {
-    id: 3,
-    name: '用户行为分析库',
-    type: 'postgresql',
-    dbType: 'PostgreSQL 14',
-    host: '192.168.1.103:5432',
-    status: 'active',
-    usedByDatasets: 3
-  }
-])
+// 连接列表（从后端API加载）
+const connections = ref([])
 
 // 过滤后的数据集
 const filteredDatasets = computed(() => {

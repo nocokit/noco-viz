@@ -383,75 +383,8 @@ const jsonFormData = ref({
 const jsonPreviewData = ref([])
 const jsonPreviewKeys = ref([])
 
-// Mock Data
-const datasources = ref([
-  // Excel/CSV 文件
-  {
-    id: 1,
-    name: '2025Q1_销售总表.xlsx',
-    type: 'excel',
-    typeLabel: 'Excel',
-    host: '本地上传',
-    status: 'connected',
-    category: 'file',
-    fileSize: '2.4 MB',
-    rowCount: '12,405',
-    lastUpdate: '2025-12-10 更新'
-  },
-  {
-    id: 2,
-    name: '设备_IoT_日志.csv',
-    type: 'excel',
-    typeLabel: 'CSV',
-    host: '本地上传',
-    status: 'connected',
-    category: 'file',
-    fileSize: '512 KB',
-    rowCount: '5,000',
-    lastUpdate: '10分钟前 更新'
-  },
-
-  // 数据库连接
-  {
-    id: 3,
-    name: '交易订单主库',
-    type: 'mysql',
-    typeLabel: 'MySQL 8.0',
-    host: '192.168.1.100:3306',
-    status: 'connected',
-    category: 'database'
-  },
-  {
-    id: 4,
-    name: '财务数仓_只读',
-    type: 'oracle',
-    typeLabel: 'Oracle 11g',
-    host: '192.168.1.102:1521',
-    status: 'error',
-    category: 'database'
-  },
-  {
-    id: 5,
-    name: '用户行为日志',
-    type: 'postgresql',
-    typeLabel: 'PostgreSQL 14',
-    host: '10.0.0.5:5432',
-    status: 'connected',
-    category: 'database'
-  },
-
-  // API 接口
-  {
-    id: 6,
-    name: '实时天气服务',
-    type: 'api',
-    typeLabel: 'RESTful API',
-    host: 'https://api.weather.com/v3/now',
-    status: 'connected',
-    category: 'api',
-    method: 'GET'
-  }
-])
+// 数据源列表（从后端API加载）
+const datasources = ref([])
 
 // Form Data
 const dsTypes = [

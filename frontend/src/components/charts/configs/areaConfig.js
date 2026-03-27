@@ -22,7 +22,7 @@ export const defaultAreaConfig = {
   xAxis: {
     ...commonCategoryXAxis,
     boundaryGap: false,
-    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+    data: []
   },
   yAxis: commonValueYAxis,
   series: [
@@ -30,7 +30,7 @@ export const defaultAreaConfig = {
       name: '数据A',
       type: 'line',
       smooth: true,
-      data: [120, 132, 101, 134, 90, 230, 210],
+      data: [],
       areaStyle: {
         color: {
           type: 'linear',
@@ -56,7 +56,7 @@ export const defaultAreaConfig = {
       name: '数据B',
       type: 'line',
       smooth: true,
-      data: [220, 182, 191, 234, 290, 330, 310],
+      data: [],
       areaStyle: {
         color: {
           type: 'linear',

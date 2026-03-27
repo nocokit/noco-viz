@@ -53,13 +53,7 @@ export const defaultPieConfig = {
           color: '#555'
         }
       },
-      data: [
-        { value: 1048, name: '搜索引擎', itemStyle: { color: cyberpunkColors.cyan, shadowColor: 'rgba(0, 240, 255, 0.5)' } },
-        { value: 735, name: '直接访问', itemStyle: { color: cyberpunkColors.purple, shadowColor: 'rgba(185, 103, 255, 0.5)' } },
-        { value: 580, name: '邮件营销', itemStyle: { color: cyberpunkColors.green, shadowColor: 'rgba(5, 255, 161, 0.5)' } },
-        { value: 484, name: '联盟广告', itemStyle: { color: cyberpunkColors.pink, shadowColor: 'rgba(255, 0, 110, 0.5)' } },
-        { value: 300, name: '视频广告', itemStyle: { color: cyberpunkColors.yellow, shadowColor: 'rgba(255, 190, 11, 0.5)' } }
-      ]
+      data: []
     }
   ]
 }

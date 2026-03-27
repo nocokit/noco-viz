@@ -5,8 +5,6 @@ import Layout from '@/layout/MainLayout.vue'
 // 使用懒加载优化性能
 const ComingSoon = () => import('@/components/ComingSoon.vue')
 const ProjectList = () => import('@/views/workspace/ProjectList')
-const SystemMonitor = () => import('@/views/operations/SystemMonitor')
-const DatasourceMonitor = () => import('@/views/operations/DatasourceMonitor')
 const TemplateLibrary = () => import('@/views/workspace/TemplateLibrary')
 const SystemSettings = () => import('@/views/settings/SystemSettings')
 
@@ -114,26 +112,6 @@ const routes = [
         name: 'AuditLog',
         component: () => import('@/views/security/AuditLog'),
         meta: { title: '审计日志', hideLayoutHeader: true }
-      },
-
-      // ========== 运维中心 ==========
-      {
-        path: 'monitor',
-        name: 'SystemMonitor',
-        component: SystemMonitor,
-        meta: { title: '系统监控', hideLayoutHeader: true }
-      },
-      {
-        path: 'datasource-monitor',
-        name: 'DatasourceMonitor',
-        component: DatasourceMonitor,
-        meta: { title: '数据源监控', hideLayoutHeader: true }
-      },
-      {
-        path: 'integration',
-        name: 'IntegrationPublish',
-        component: () => import('@/views/operations/IntegrationPublish'),
-        meta: { title: '集成发布', hideLayoutHeader: true }
       },
 
       // ========== 系统设置 ==========

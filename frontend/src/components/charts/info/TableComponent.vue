@@ -1,5 +1,5 @@
 <template>
-  <div class="table-component">
+  <div class="table-component" :style="cssVars">
     <table class="data-table">
       <thead>
         <tr>
@@ -17,6 +17,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { generateCSSVars } from '../utils/fontSizeAdapter'
 
 const props = defineProps({
   config: { type: Object, default: () => ({}) },
@@ -31,6 +32,8 @@ const tableData = computed(() => props.data?.rows || props.config.rows || [
   ['王五', '市场部', '¥45,000'],
   ['赵六', '运营部', '¥38,000']
 ])
+
+const cssVars = computed(() => generateCSSVars(props.config?.fontSize || 12))
 </script>
 
 <style scoped>
@@ -59,7 +62,7 @@ const tableData = computed(() => props.data?.rows || props.config.rows || [
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: var(--form-font-size, 12px);
 }
 
 thead tr {
@@ -68,12 +71,13 @@ thead tr {
 }
 
 thead th {
-  padding: 9px 12px;
+  padding: var(--form-padding-v, 9px) var(--form-padding-h, 12px);
   text-align: left;
   font-weight: 600;
   color: rgba(0, 242, 242, 0.8);
   letter-spacing: 0.5px;
   white-space: nowrap;
+  line-height: var(--form-line-height, 18px);
 }
 
 tbody tr {
@@ -94,9 +98,10 @@ tbody tr.row-even:hover {
 }
 
 tbody td {
-  padding: 8px 12px;
+  padding: var(--form-padding-v, 8px) var(--form-padding-h, 12px);
   color: rgba(188, 208, 227, 0.75);
   white-space: nowrap;
+  line-height: var(--form-line-height, 18px);
 }
 
 tbody td.cell-first {

@@ -6,7 +6,7 @@
 <script setup>
 import BaseChart from '../BaseChart.vue'
 import { defaultGaugeConfig } from '../configs/gaugeConfig'
-import { useChartOption } from '../utils/useChartOption'
+import { useChartOption, mapSingleValue } from '../utils/useChartOption'
 
 const props = defineProps({
   config: { type: Object, default: () => ({}) },
@@ -14,12 +14,5 @@ const props = defineProps({
   transform: { type: Function, default: null }
 })
 
-const chartOption = useChartOption(props, defaultGaugeConfig, 'gauge', (base, data) => {
-  if (data?.value !== undefined) {
-    return {
-      ...base,
-      series: [{ ...base.series[0], data: [{ value: data.value, name: data.name || '完成率' }] }]
-    }
-  }
-})
+const chartOption = useChartOption(props, defaultGaugeConfig, 'gauge', mapSingleValue)
 </script>

@@ -481,6 +481,15 @@ export const decorationComponentSchema = {
       animated: { type: 'boolean', default: true, label: '流光动画' }
     }
   },
+  'border-05': {
+    type: 'object',
+    properties: {
+      color: { type: 'color', default: '#6586ec', label: '主色' },
+      accentColor: { type: 'color', default: '#2cf7fe', label: '高亮色' },
+      borderWidth: { type: 'number', default: 1, label: '边框宽度', min: 1, max: 5, unit: 'px' },
+      opacity: { type: 'number', default: 100, label: '透明度', min: 0, max: 100, unit: '%' }
+    }
+  },
 
   // 装饰元素
   'decoration-01': {
@@ -528,6 +537,7 @@ export function getComponentSchema(componentType) {
     bar: ['title', 'legend', 'tooltip', 'grid', 'xAxis', 'yAxis', 'series', 'animation'],
     line: ['title', 'legend', 'tooltip', 'grid', 'xAxis', 'yAxis', 'series', 'animation'],
     pie: ['title', 'legend', 'tooltip', 'series', 'animation'],
+    doughnut: ['title', 'legend', 'tooltip', 'series', 'animation'],
     area: ['title', 'legend', 'tooltip', 'grid', 'xAxis', 'yAxis', 'series', 'animation'],
 
     // 高级图表
@@ -560,6 +570,7 @@ export function getComponentSchema(componentType) {
     'border-02': ['border-02'],
     'border-03': ['border-03'],
     'border-04': ['border-04'],
+    'border-05': ['border-05'],
     'decoration-01': ['decoration-01'],
     'decoration-02': ['decoration-02'],
     'decoration-03': ['decoration-03'],
@@ -610,10 +621,10 @@ export function getDefaultConfig(schema) {
  * 组件类型分类配置
  */
 export const componentCategories = {
-  chart: ['bar', 'line', 'pie', 'area', 'scatter', 'radar', 'gauge', 'funnel',
+  chart: ['bar', 'line', 'pie', 'doughnut', 'area', 'scatter', 'radar', 'gauge', 'funnel',
           'map-china', 'map-3d', 'heatmap', 'liquid', 'word-cloud', 'sankey', 'treemap', 'sunburst'],
   info: ['text', 'number-flip', 'kpi-card', 'progress-bar', 'table'],
-  decoration: ['border-01', 'border-02', 'border-03', 'border-04',
+  decoration: ['border-01', 'border-02', 'border-03', 'border-04', 'border-05',
                'decoration-01', 'decoration-02', 'decoration-03', 'bg-box']
 }
 

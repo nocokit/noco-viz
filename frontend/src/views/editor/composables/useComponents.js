@@ -1,7 +1,44 @@
 import { showMessage } from './useMessage'
 import { getChartByType } from '@/config/chartComponents'
 import { getComponentDefaults } from '@/config/componentDefaults'
+import { getComponentSchema, getDefaultConfig } from '@/config/componentSchema'
+import { mockBarData } from '@/components/charts/configs/barConfig'
+import { mockLineData } from '@/components/charts/configs/lineConfig'
+import { mockAreaData } from '@/components/charts/configs/areaConfig'
+import { mockPieData } from '@/components/charts/configs/pieConfig'
+import { mockFunnelData } from '@/components/charts/configs/funnelConfig'
+import { mockGaugeData } from '@/components/charts/configs/gaugeConfig'
+import { mockHeatmapData } from '@/components/charts/configs/heatmapConfig'
+import { mockLiquidData } from '@/components/charts/configs/liquidConfig'
 import { mockRadarData } from '@/components/charts/configs/radarConfig'
+import { mockScatterData } from '@/components/charts/configs/scatterConfig'
+import { mockSankeyData } from '@/components/charts/configs/sankeyConfig'
+import { mockSunburstData } from '@/components/charts/configs/sunburstConfig'
+import { mockTreemapData } from '@/components/charts/configs/treemapConfig'
+import { mockWordCloudData } from '@/components/charts/configs/wordCloudConfig'
+import { mockChinaMapData } from '@/components/charts/configs/chinaMapConfig'
+import { mockMap3DData } from '@/config/charts/map3DConfig'
+
+/** 各图表类型的默认初始数据（拖入画布时使用） */
+const MOCK_DATA_MAP = {
+  bar:        mockBarData,
+  line:       mockLineData,
+  area:       mockAreaData,
+  pie:        mockPieData,
+  doughnut:   mockPieData,
+  funnel:     mockFunnelData,
+  gauge:      mockGaugeData,
+  heatmap:    mockHeatmapData,
+  liquid:     mockLiquidData,
+  radar:      mockRadarData,
+  scatter:    mockScatterData,
+  sankey:     mockSankeyData,
+  sunburst:   mockSunburstData,
+  treemap:    mockTreemapData,
+  'word-cloud': mockWordCloudData,
+  'map-china': mockChinaMapData,
+  'map-3d':    mockMap3DData,
+}
 
 /**
  * 组件操作 Composable
@@ -33,6 +70,13 @@ export function useComponents(canvasComponents, selectedComponentIds, canvasScal
     // 获取组件类型的默认属性配置
     const defaults = getComponentDefaults(chartType)
 
+    // 从 schema 生成初始 config（含动画等所有字段的默认值）
+    const schema = getComponentSchema(chartType)
+    const initialConfig = {}
+    Object.keys(schema).forEach(key => {
+      initialConfig[key] = getDefaultConfig(schema[key])
+    })
+
     const newComp = {
       id: Date.now(),
       type: chartType,
@@ -56,9 +100,12 @@ export function useComponents(canvasComponents, selectedComponentIds, canvasScal
       paddingHorizontal: defaults.paddingHorizontal,
 
       color: chartConfig.color,
-      config: {}, // 图表配置项（空对象，使用图表组件的默认配置）
-      data: chartType === 'radar' ? mockRadarData : null, // 雷达图默认数据，其他后续绑定
-      dataSource: chartType === 'radar' ? { mode: 'static', json: JSON.stringify(mockRadarData, null, 2) } : undefined
+      config: initialConfig, // 图表配置项（由 schema 默认值初始化）
+      data: MOCK_DATA_MAP[chartType] ?? null,
+      dataSource: MOCK_DATA_MAP[chartType]
+        ? { mode: 'static', jsonDataType: 'echarts', json: JSON.stringify(MOCK_DATA_MAP[chartType], null, 2) }
+        : undefined,
+      refreshConfig: { enabled: false, interval: 30 }
     }
 
     canvasComponents.value.push(newComp)

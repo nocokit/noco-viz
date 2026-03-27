@@ -57,7 +57,7 @@ export const defaultWordCloudConfig = {
       focus: 'self',
       textStyle: { textShadowBlur: 10, textShadowColor: '#00f2f2' }
     },
-    data: mockData
+    data: []
   }]
 }
 

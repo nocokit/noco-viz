@@ -274,6 +274,16 @@ export const chartCategories = [
         previewSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60" viewBox="0 0 80 60"><defs><linearGradient id="p4h" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#66ffff" stop-opacity="0"/><stop offset="50%" stop-color="#66ffff" stop-opacity="1"/><stop offset="100%" stop-color="#66ffff" stop-opacity="0"/></linearGradient><linearGradient id="p4v" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#66ffff" stop-opacity="0"/><stop offset="50%" stop-color="#66ffff" stop-opacity="1"/><stop offset="100%" stop-color="#66ffff" stop-opacity="0"/></linearGradient></defs><rect x="1" y="1" width="78" height="58" stroke="#66ffff" stroke-width="1" fill="none" opacity="0.3"/><line x1="40" y1="1" x2="40" y2="59" stroke="#66ffff" stroke-width="0.5" opacity="0.15"/><line x1="1" y1="30" x2="79" y2="30" stroke="#66ffff" stroke-width="0.5" opacity="0.15"/><line x1="0" y1="0" x2="80" y2="0" stroke="url(#p4h)" stroke-width="2"/><line x1="80" y1="0" x2="80" y2="60" stroke="url(#p4v)" stroke-width="2"/><line x1="80" y1="60" x2="0" y2="60" stroke="url(#p4h)" stroke-width="2"/><line x1="0" y1="60" x2="0" y2="0" stroke="url(#p4v)" stroke-width="2"/><circle cx="0" cy="0" r="3" fill="#66ffff" opacity="0.8"/><circle cx="80" cy="0" r="3" fill="#66ffff" opacity="0.8"/><circle cx="80" cy="60" r="3" fill="#66ffff" opacity="0.8"/><circle cx="0" cy="60" r="3" fill="#66ffff" opacity="0.8"/><line x1="20" y1="0" x2="20" y2="8" stroke="#66ffff" stroke-width="1" opacity="0.5"/><line x1="60" y1="0" x2="60" y2="8" stroke="#66ffff" stroke-width="1" opacity="0.5"/></svg>`
       },
       {
+        type: 'border-05',
+        name: '边框05',
+        icon: 'border-05',
+        defaultSize: { w: 540, h: 310 },
+        defaultBorder: { width: 0, color: 'rgba(64, 158, 255, 0.4)', radius: 0 },
+        description: '不规则切角多边形边框',
+        color: '#6586ec',
+        previewSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60" viewBox="0 0 80 60"><path fill="transparent" d="M 1 5 L 1 3 L 2 1 L 10 1 L 12 3 L 76 3 L 79 6 L 79 59 L 4 59 L 1 56 Z" stroke="#6586ec" stroke-width="1"/><path fill="transparent" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3,2" d="M 3 2 L 11 2" stroke="#6586ec"/><path fill="transparent" d="M 1 5 L 1 3 L 2 1 L 10 1 L 12 3" stroke="#2cf7fe" stroke-width="1"/><path fill="transparent" d="M 79 53 L 79 59 L 73 59" stroke="#2cf7fe" stroke-width="1"/></svg>`
+      },
+      {
         type: 'decoration-01',
         name: '装饰01',
         icon: 'decoration-01',
@@ -443,6 +453,9 @@ export const chartIcons = {
 
   // 边框04 - 动态流光边框
   'border-04': 'M2,2 L22,2 L22,22 L2,22 Z M2,12 L22,12 M12,2 L12,22 M7,2 L7,5 M17,2 L17,5 M22,7 L19,7 M22,17 L19,17 M17,22 L17,19 M7,22 L7,19 M2,17 L5,17 M2,7 L5,7 M7,12 L7,10 M17,12 L17,10 M12,7 L14,7 M12,17 L14,17',
+
+  // 边框05 - 不规则切角多边形
+  'border-05': 'M2,6 L2,3 L4,1 L10,1 L12,3 L20,3 L22,5 L22,22 L4,22 L2,20 Z M2,6 L2,3 L4,1 L10,1 L12,3 M3,2 L10,2 M22,17 L22,22 L17,22',
 
   // 装饰01 - 中心扩散装饰
   'decoration-01': 'M2,12 L8,12 M16,12 L22,12 M12,2 L12,8 M12,16 L12,22 M12,12 A1,1 0 1,0 12.01,12 M10,10 L14,10 L14,14 L10,14 Z M8,8 L9,9 M16,8 L15,9 M16,16 L15,15 M8,16 L9,15',

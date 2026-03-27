@@ -18,14 +18,14 @@ export const defaultBarConfig = {
   },
   xAxis: {
     ...commonCategoryXAxis,
-    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+    data: []
   },
   yAxis: commonValueYAxis,
   series: [
     {
       name: '销量',
       type: 'bar',
-      data: [120, 200, 150, 80, 70, 110, 130],
+      data: [],
       barMaxWidth: 40,
       itemStyle: {
         color: {

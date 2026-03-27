@@ -1,5 +1,5 @@
 <template>
-  <div class="simple-search-form">
+  <div class="simple-search-form" :style="cssVars">
     <div class="search-fields">
       <!-- 搜索字段 -->
       <div
@@ -57,29 +57,21 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { reactive, computed } from 'vue'
 import { SearchOutlined } from '@ant-design/icons-vue'
+import { generateCSSVars } from '../charts/utils/fontSizeAdapter'
 
 const props = defineProps({
   // 搜索配置
   config: {
     type: Object,
     required: true,
-    // 配置示例：
-    // {
-    //   fields: [
-    //     { key: 'keyword', label: '关键词', type: 'text', placeholder: '搜索IP或备注' },
-    //     { key: 'type', label: '类型', type: 'select', options: [
-    //       { label: '单IP', value: 'single' },
-    //       { label: 'CIDR', value: 'cidr' }
-    //     ]},
-    //     { key: 'date', label: '日期', type: 'date' }
-    //   ]
-    // }
   }
 })
 
 const emit = defineEmits(['search', 'reset'])
+
+const cssVars = computed(() => generateCSSVars(props.config?.fontSize || 14))
 
 // 搜索数据
 const searchData = reactive({})
@@ -112,3 +104,24 @@ const handleReset = () => {
 }
 </script>
 
+<style scoped>
+.simple-search-form :deep(.ant-input),
+.simple-search-form :deep(.ant-select-selector),
+.simple-search-form :deep(.ant-picker) {
+  height: var(--form-input-height, 32px) !important;
+  font-size: var(--form-font-size, 14px) !important;
+  line-height: var(--form-line-height, 21px) !important;
+}
+
+.simple-search-form :deep(.ant-btn) {
+  height: var(--form-button-height, 32px) !important;
+  font-size: var(--form-font-size, 14px) !important;
+  padding: 0 var(--form-padding-h, 15px) !important;
+}
+
+.simple-search-form :deep(.ant-select-selection-item),
+.simple-search-form :deep(.ant-input),
+.simple-search-form :deep(.ant-picker-input > input) {
+  line-height: var(--form-line-height, 21px) !important;
+}
+</style>

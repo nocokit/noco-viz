@@ -110,33 +110,6 @@ export const menuConfig = [
     ]
   },
 
-  // ========== 运维中心 (Operations) ==========
-  {
-    id: 'operations',
-    label: '运维中心',
-    type: 'group',
-    items: [
-      {
-        id: 'monitor',
-        title: '系统监控',
-        icon: 'Monitor',
-        path: '/monitor'
-      },
-      {
-        id: 'datasource-monitor',
-        title: '数据源监控',
-        icon: 'Connection',
-        path: '/datasource-monitor'
-      },
-      {
-        id: 'integration',
-        title: '集成发布',
-        icon: 'Upload',
-        path: '/integration'
-      }
-    ]
-  },
-
   // ========== 系统设置 (System) ==========
   {
     id: 'system',

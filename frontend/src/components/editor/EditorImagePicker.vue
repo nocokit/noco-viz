@@ -68,6 +68,11 @@
 import { ref, computed } from 'vue'
 import { getMediaList } from '@/api/media'
 
+// 内置预设图片（始终可用，不依赖后端）
+const PRESET_IMAGES = [
+  { id: 'preset-top-bar', name: '顶部装饰条', type: 'image', url: 'https://www.gaobug.com/bigscreen/static/img/top.41ada94a.png' }
+]
+
 const props = defineProps({
   modelValue: { type: String, default: '' }
 })
@@ -93,9 +98,10 @@ const openPicker = async () => {
     loading.value = true
     try {
       const res = await getMediaList({ type: 'image', limit: 200 })
-      mediaList.value = res.data || res || []
+      mediaList.value = [...PRESET_IMAGES, ...(res.data || res || [])]
     } catch (e) {
       console.error('加载媒体列表失败', e)
+      mediaList.value = [...PRESET_IMAGES]
     } finally {
       loading.value = false
     }

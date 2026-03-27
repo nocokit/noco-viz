@@ -30,29 +30,22 @@ export const defaultSankeyConfig = {
         color: '#fff',
         fontSize: 12
       },
-      data: [
-        { name: 'A' },
-        { name: 'B' },
-        { name: 'C' },
-        { name: 'D' },
-        { name: 'E' }
-      ],
-      links: [
-        { source: 'A', target: 'B', value: 10 },
-        { source: 'A', target: 'C', value: 15 },
-        { source: 'B', target: 'D', value: 8 },
-        { source: 'B', target: 'E', value: 5 },
-        { source: 'C', target: 'D', value: 12 },
-        { source: 'C', target: 'E', value: 6 }
-      ]
+      data: [],
+      links: []
     }
   ]
 }
 
 export const mockSankeyData = {
-  nodes: ['A', 'B', 'C', 'D', 'E'],
+  data: [
+    { name: 'A' }, { name: 'B' }, { name: 'C' }, { name: 'D' }, { name: 'E' }
+  ],
   links: [
     { source: 'A', target: 'B', value: 10 },
-    { source: 'A', target: 'C', value: 15 }
+    { source: 'A', target: 'C', value: 15 },
+    { source: 'B', target: 'D', value: 8 },
+    { source: 'B', target: 'E', value: 5 },
+    { source: 'C', target: 'D', value: 12 },
+    { source: 'C', target: 'E', value: 6 }
   ]
 }

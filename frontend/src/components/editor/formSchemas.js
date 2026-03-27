@@ -6,6 +6,20 @@
 // 页面配置 Schema
 export const pageConfigSchema = [
   {
+    title: '页面信息',
+    icon: 'info',
+    divider: false,
+    fields: [
+      {
+        label: '页面标题',
+        key: 'title',
+        type: 'input',
+        inline: true,
+        props: { placeholder: '请输入页面标题' }
+      }
+    ]
+  },
+  {
     title: '画布尺寸',
     icon: 'canvas',
     divider: false,
@@ -41,20 +55,6 @@ export const pageConfigSchema = [
         key: 'backgroundImage',
         type: 'image-picker',
         inline: false
-      }
-    ]
-  },
-  {
-    title: '页面信息',
-    icon: 'info',
-    divider: false,
-    fields: [
-      {
-        label: '页面标题',
-        key: 'title',
-        type: 'input',
-        inline: true,
-        props: { placeholder: '请输入页面标题' }
       }
     ]
   }

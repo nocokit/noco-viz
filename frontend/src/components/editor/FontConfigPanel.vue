@@ -76,130 +76,82 @@ const tabs = [
     key: 'title',
     label: '标题',
     fields: [
-      {
-        label: '字号',
-        key: 'titleFontSize',
-        type: 'number',
-        props: {
-          min: 10,
-          max: 72,
-          step: 1,
-          suffix: 'px'
-        }
-      },
-      {
-        label: '颜色',
-        key: 'titleColor',
-        type: 'color',
-        props: {
-          placeholder: '#000000'
-        }
-      },
-      {
-        label: '粗细',
-        key: 'titleFontWeight',
-        type: 'select',
-        props: {
-          options: [
-            { label: '正常', value: 'normal' },
-            { label: '粗体', value: 'bold' },
-            { label: '100', value: '100' },
-            { label: '200', value: '200' },
-            { label: '300', value: '300' },
-            { label: '400', value: '400' },
-            { label: '500', value: '500' },
-            { label: '600', value: '600' },
-            { label: '700', value: '700' },
-            { label: '800', value: '800' },
-            { label: '900', value: '900' }
-          ]
-        }
-      },
-      {
-        label: '对齐',
-        key: 'titleTextAlign',
-        type: 'textAlign'
-      }
+      { label: '字号', key: 'titleFontSize', type: 'number', props: { min: 10, max: 72, step: 1, suffix: 'px' } },
+      { label: '颜色', key: 'titleColor', type: 'color', props: { placeholder: '#000000' } },
+      { label: '粗细', key: 'titleFontWeight', type: 'select', props: {
+        options: [
+          { label: '正常', value: 'normal' }, { label: '粗体', value: 'bold' },
+          { label: '100', value: '100' }, { label: '200', value: '200' }, { label: '300', value: '300' },
+          { label: '400', value: '400' }, { label: '500', value: '500' }, { label: '600', value: '600' },
+          { label: '700', value: '700' }, { label: '800', value: '800' }, { label: '900', value: '900' }
+        ]
+      }},
+      { label: '对齐', key: 'titleTextAlign', type: 'textAlign' }
     ]
   },
   {
-    key: 'label',
-    label: 'Label',
+    key: 'body',
+    label: '正文',
     fields: [
-      {
-        label: '字号',
-        key: 'labelFontSize',
-        type: 'number',
-        props: {
-          min: 10,
-          max: 48,
-          step: 1,
-          suffix: 'px'
-        }
-      },
-      {
-        label: '颜色',
-        key: 'labelColor',
-        type: 'color',
-        props: {
-          placeholder: '#666666'
-        }
-      },
-      {
-        label: '对齐',
-        key: 'labelTextAlign',
-        type: 'textAlign'
-      }
+      { label: '字号', key: 'bodyFontSize', type: 'number', props: { min: 10, max: 48, step: 1, suffix: 'px' } },
+      { label: '颜色', key: 'bodyColor', type: 'color', props: { placeholder: '#333333' } },
+      { label: '粗细', key: 'bodyFontWeight', type: 'select', props: {
+        options: [
+          { label: '正常', value: 'normal' }, { label: '粗体', value: 'bold' },
+          { label: '400', value: '400' }, { label: '500', value: '500' }, { label: '600', value: '600' }
+        ]
+      }}
     ]
   },
   {
-    key: 'display',
-    label: '数值',
+    key: 'menu',
+    label: '菜单',
     fields: [
-      {
-        label: '字号',
-        key: 'displayFontSize',
-        type: 'number',
-        props: {
-          min: 10,
-          max: 96,
-          step: 1,
-          suffix: 'px'
-        }
-      },
-      {
-        label: '颜色',
-        key: 'displayColor',
-        type: 'color',
-        props: {
-          placeholder: '#333333'
-        }
-      },
-      {
-        label: '粗细',
-        key: 'displayFontWeight',
-        type: 'select',
-        props: {
-          options: [
-            { label: '正常', value: 'normal' },
-            { label: '粗体', value: 'bold' },
-            { label: '100', value: '100' },
-            { label: '200', value: '200' },
-            { label: '300', value: '300' },
-            { label: '400', value: '400' },
-            { label: '500', value: '500' },
-            { label: '600', value: '600' },
-            { label: '700', value: '700' },
-            { label: '800', value: '800' },
-            { label: '900', value: '900' }
-          ]
-        }
-      },
-      {
-        label: '对齐',
-        key: 'displayTextAlign',
-        type: 'textAlign'
-      }
+      { label: '字号', key: 'menuFontSize', type: 'number', props: { min: 10, max: 24, step: 1, suffix: 'px' } },
+      { label: '颜色', key: 'menuColor', type: 'color', props: { placeholder: '#333333' } }
+    ]
+  },
+  {
+    key: 'button',
+    label: '按钮',
+    fields: [
+      { label: '字号', key: 'buttonFontSize', type: 'number', props: { min: 10, max: 24, step: 1, suffix: 'px' } },
+      { label: '颜色', key: 'buttonColor', type: 'color', props: { placeholder: '#ffffff' } }
+    ]
+  },
+  {
+    key: 'hint',
+    label: '提示',
+    fields: [
+      { label: '字号', key: 'hintFontSize', type: 'number', props: { min: 10, max: 18, step: 1, suffix: 'px' } },
+      { label: '颜色', key: 'hintColor', type: 'color', props: { placeholder: '#999999' } }
+    ]
+  },
+  {
+    key: 'tag',
+    label: 'Tag',
+    fields: [
+      { label: '字号', key: 'tagFontSize', type: 'number', props: { min: 10, max: 18, step: 1, suffix: 'px' } },
+      { label: '颜色', key: 'tagColor', type: 'color', props: { placeholder: '#666666' } }
+    ]
+  },
+  {
+    key: 'tableHeader',
+    label: 'Table标题',
+    fields: [
+      { label: '字号', key: 'tableHeaderFontSize', type: 'number', props: { min: 10, max: 24, step: 1, suffix: 'px' } },
+      { label: '颜色', key: 'tableHeaderColor', type: 'color', props: { placeholder: '#000000' } },
+      { label: '粗细', key: 'tableHeaderFontWeight', type: 'select', props: {
+        options: [{ label: '正常', value: 'normal' }, { label: '粗体', value: 'bold' }, { label: '600', value: '600' }]
+      }}
+    ]
+  },
+  {
+    key: 'tableBody',
+    label: 'Table文本',
+    fields: [
+      { label: '字号', key: 'tableBodyFontSize', type: 'number', props: { min: 10, max: 24, step: 1, suffix: 'px' } },
+      { label: '颜色', key: 'tableBodyColor', type: 'color', props: { placeholder: '#333333' } }
     ]
   }
 ]

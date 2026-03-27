@@ -16,7 +16,7 @@ export const defaultLiquidConfig = {
   series: [
     {
       type: 'liquidFill',
-      data: [0.75, 0.70, 0.65],
+      data: [],
       radius: '80%',
       center: ['50%', '50%'],
       color: ['#06b6d4', '#0891b2', '#0e7490'],

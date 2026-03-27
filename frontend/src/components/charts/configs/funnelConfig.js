@@ -49,13 +49,7 @@ export const defaultFunnelConfig = {
           fontWeight: 'bold'
         }
       },
-      data: [
-        { value: 100, name: '访问', itemStyle: { color: '#14b8a6' } },
-        { value: 80, name: '咨询', itemStyle: { color: '#3b82f6' } },
-        { value: 60, name: '订单', itemStyle: { color: '#8b5cf6' } },
-        { value: 40, name: '点击', itemStyle: { color: '#ec4899' } },
-        { value: 20, name: '成交', itemStyle: { color: '#f59e0b' } }
-      ]
+      data: []
     }
   ]
 }

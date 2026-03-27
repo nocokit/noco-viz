@@ -43,7 +43,7 @@
             border: `${comp.showBorder && comp.borderWidth ? comp.borderWidth : 0}px solid ${comp.borderColor || 'transparent'}`,
             borderRadius: `${comp.borderRadius || 0}px`,
             padding: `${comp.paddingVertical ?? 8}px ${comp.paddingHorizontal ?? 8}px`,
-            zIndex: comp.zIndex || 1
+            zIndex: getComponentZIndex(comp)
           }"
         >
           <!-- 渲染图表组件 -->
@@ -70,6 +70,8 @@ import { ref, computed, onMounted, onUnmounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { getChartComponent } from '@/components/charts/index'
+import { useAutoRefresh } from '@/composables/useAutoRefresh'
+import { getProjectDetail } from '@/api/project'
 
 const route = useRoute()
 const router = useRouter()
@@ -81,38 +83,54 @@ const canvasHeight = ref(1080)
 const screenBackground = ref('#0a0e27')
 const isFullscreen = ref(false)
 
+const { setupAll, cleanupAll } = useAutoRefresh(components)
+
+const getComponentZIndex = (comp) => {
+  if (comp.zIndex !== undefined && comp.zIndex !== null) return comp.zIndex
+  if (/^(border|decoration|bgbox)-/.test(comp.type)) return 0
+  return 1
+}
+
 // 窗口尺寸响应式数据
 const windowSize = reactive({
   width: window.innerWidth,
   height: window.innerHeight
 })
 
+// 从数据对象应用到预览状态
+const applyProjectData = (data) => {
+  projectName.value = data.name || data.title || '大屏预览'
+  components.value = data.components || []
+  canvasWidth.value = data.canvasWidth || 1920
+  canvasHeight.value = data.canvasHeight || 1080
+  screenBackground.value = data.screenBackground || '#0a0e27'
+  cleanupAll()
+  setupAll()
+}
+
 // 加载项目数据
 const loadProject = async () => {
+  const projectId = route.params.id
+
   try {
-    const projectId = route.params.id
+    const res = await getProjectDetail(projectId)
+    const project = res?.data || res
+    if (project) {
+      const canvasData = project.config || project
+      applyProjectData({ ...canvasData, name: project.title || project.name })
+      return
+    }
+  } catch {
+    // 后端不可用时降级到 localStorage
     const savedProjects = JSON.parse(localStorage.getItem('nocoviz_projects') || '{}')
     const projectData = savedProjects[projectId]
-
     if (projectData) {
-      projectName.value = projectData.name || '大屏预览'
-      components.value = projectData.components || []
-      canvasWidth.value = projectData.canvasWidth || 1920
-      canvasHeight.value = projectData.canvasHeight || 1080
-      screenBackground.value = projectData.screenBackground || '#0a0e27'
-
-      console.log('预览加载成功:', {
-        projectName: projectName.value,
-        componentCount: components.value.length,
-        canvasSize: `${canvasWidth.value}×${canvasHeight.value}`
-      })
-    } else {
-      message.warning('未找到项目数据')
+      applyProjectData(projectData)
+      return
     }
-  } catch (error) {
-    console.error('加载失败:', error)
-    message.error(`加载失败: ${error.message}`)
   }
+
+  message.warning('未找到项目数据')
 }
 
 // 容器高度

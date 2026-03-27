@@ -6,7 +6,7 @@
 <script setup>
 import BaseChart from '../BaseChart.vue'
 import { defaultScatterConfig } from '../configs/scatterConfig'
-import { useChartOption } from '../utils/useChartOption'
+import { useChartOption, mapScatterData } from '../utils/useChartOption'
 
 const props = defineProps({
   config: { type: Object, default: () => ({}) },
@@ -14,5 +14,5 @@ const props = defineProps({
   transform: { type: Function, default: null }
 })
 
-const chartOption = useChartOption(props, defaultScatterConfig, 'scatter')
+const chartOption = useChartOption(props, defaultScatterConfig, 'scatter', mapScatterData)
 </script>

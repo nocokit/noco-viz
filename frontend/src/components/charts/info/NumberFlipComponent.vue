@@ -1,5 +1,5 @@
 <template>
-  <div class="number-flip-component">
+  <div class="number-flip-component" :style="cssVars">
     <div class="nf-label">{{ label }}</div>
     <div class="nf-digits">
       <span
@@ -14,6 +14,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { generateCSSVars } from '../utils/fontSizeAdapter'
 
 const props = defineProps({
   config: { type: Object, default: () => ({}) },
@@ -27,6 +28,8 @@ const unit = computed(() => props.data?.unit || props.config.unit || '')
 const formattedNumber = computed(() => numberValue.value.toLocaleString())
 const digitChars = computed(() => formattedNumber.value.split(''))
 const isDigit = (c) => /\d/.test(c)
+
+const cssVars = computed(() => generateCSSVars(props.config?.fontSize || 14))
 </script>
 
 <style scoped>
@@ -58,7 +61,7 @@ const isDigit = (c) => /\d/.test(c)
 }
 
 .nf-label {
-  font-size: 12px;
+  font-size: var(--label-font-size, 12px);
   color: rgba(0, 242, 242, 0.6);
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -77,25 +80,25 @@ const isDigit = (c) => /\d/.test(c)
 }
 
 .nf-digit {
-  font-size: 36px;
+  font-size: var(--value-font-size, 36px);
   color: #00f2f2;
   text-shadow: 0 0 16px rgba(0, 242, 242, 0.7), 0 0 4px rgba(0, 242, 242, 0.9);
   background: rgba(0, 242, 242, 0.06);
   border: 1px solid rgba(0, 242, 242, 0.2);
   border-radius: 3px;
   padding: 2px 5px;
-  min-width: 28px;
+  min-width: calc(var(--value-font-size, 36px) * 0.78);
   text-align: center;
 }
 
 .nf-sep {
-  font-size: 28px;
+  font-size: calc(var(--value-font-size, 36px) * 0.78);
   color: rgba(0, 242, 242, 0.4);
   padding: 0 1px;
 }
 
 .nf-unit {
-  font-size: 11px;
+  font-size: var(--unit-font-size, 11px);
   color: rgba(255, 255, 255, 0.35);
   letter-spacing: 1px;
   min-height: 14px;

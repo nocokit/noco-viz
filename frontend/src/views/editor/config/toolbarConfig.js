@@ -52,6 +52,9 @@ export const alignButtonsConfig = [
   { type: 'center-y', title: '垂直居中', minCount: 2, iconPath: 'M22 11v2h-5v8h-3v-8H10v5H7v-5H2v-2h5V6h3v5h4V3h3v8z' },
   { type: 'bottom', title: '底对齐', minCount: 2, iconPath: 'M22 22H2v-2h20v2zM7 6h3v12H7V6zm7 6h3v6h-3v-6z' },
   { divider: true },
+  { type: 'same-width', title: '等宽', minCount: 2, iconPath: 'M2 4h20v2H2V4zm0 14h20v2H2v-2zM9 8h6v8H9V8z' },
+  { type: 'same-height', title: '等高', minCount: 2, iconPath: 'M4 2v20h2V2H4zm14 0v20h2V2h-2zM8 9v6h8V9H8z' },
+  { divider: true },
   { type: 'dist-h', title: '水平分布', minCount: 3, iconPath: 'M4 22H2V2h2v20zM22 2h-2v20h2V2zm-5 5H7v10h10V7z' },
   { type: 'dist-v', title: '垂直分布', minCount: 3, iconPath: 'M22 4v2H2V4h20zM2 22h20v-2H2v2zm5-5h10V7H7v10z' }
 ]

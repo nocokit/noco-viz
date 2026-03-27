@@ -190,42 +190,7 @@ export const defaultChinaMapConfig = {
       },
 
       // 默认数据
-      data: [
-        { name: '北京', value: 850 },
-        { name: '天津', value: 420 },
-        { name: '上海', value: 920 },
-        { name: '重庆', value: 380 },
-        { name: '河北', value: 450 },
-        { name: '河南', value: 520 },
-        { name: '云南', value: 280 },
-        { name: '辽宁', value: 390 },
-        { name: '黑龙江', value: 310 },
-        { name: '湖南', value: 480 },
-        { name: '安徽', value: 410 },
-        { name: '山东', value: 680 },
-        { name: '新疆', value: 220 },
-        { name: '江苏', value: 750 },
-        { name: '浙江', value: 820 },
-        { name: '江西', value: 360 },
-        { name: '湖北', value: 490 },
-        { name: '广西', value: 340 },
-        { name: '甘肃', value: 210 },
-        { name: '山西', value: 330 },
-        { name: '内蒙古', value: 260 },
-        { name: '陕西', value: 380 },
-        { name: '吉林', value: 290 },
-        { name: '福建', value: 560 },
-        { name: '贵州', value: 270 },
-        { name: '广东', value: 980 },
-        { name: '青海', value: 150 },
-        { name: '西藏', value: 120 },
-        { name: '四川', value: 530 },
-        { name: '宁夏', value: 180 },
-        { name: '海南', value: 240 },
-        { name: '台湾', value: 460 },
-        { name: '香港', value: 580 },
-        { name: '澳门', value: 320 }
-      ]
+      data: []
     },
 
     // 添加散点图层（可选，用于标注重点城市）

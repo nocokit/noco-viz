@@ -3,8 +3,20 @@
  * 需要安装: npm install echarts-gl
  */
 
+export const mockMap3DData = [
+  { name: '北京', value: 1200 },
+  { name: '上海', value: 2400 },
+  { name: '广东', value: 3600 },
+  { name: '浙江', value: 2100 },
+  { name: '江苏', value: 1800 },
+  { name: '四川', value: 1500 },
+  { name: '湖北', value: 1200 },
+  { name: '河南', value: 900 },
+  { name: '山东', value: 1100 },
+  { name: '福建', value: 800 }
+]
+
 export const map3DConfig = {
-  title: '3D地图数据可视化',
   description: '立体地图展示，支持3D视角交互',
   configSchema: {
     map: {
@@ -47,18 +59,7 @@ export const map3DConfig = {
       default: true
     }
   },
-  mockData: [
-    { name: '北京', value: 1200 },
-    { name: '上海', value: 2400 },
-    { name: '广东', value: 3600 },
-    { name: '浙江', value: 2100 },
-    { name: '江苏', value: 1800 },
-    { name: '四川', value: 1500 },
-    { name: '湖北', value: 1200 },
-    { name: '河南', value: 900 },
-    { name: '山东', value: 1100 },
-    { name: '福建', value: 800 }
-  ]
+  mockData: mockMap3DData
 }
 
 /**

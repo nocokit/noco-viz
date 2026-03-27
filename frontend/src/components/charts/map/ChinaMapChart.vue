@@ -22,6 +22,10 @@ const props = defineProps({
   data: {
     type: Array,
     default: null
+  },
+  transform: {
+    type: Function,
+    default: null
   }
 })
 
@@ -45,13 +49,27 @@ onMounted(async () => {
 const chartOption = computed(() => {
   if (!mapReady.value) return {}
 
-  let baseConfig = { ...defaultChinaMapConfig }
+  // 规范化数据：兼容 string / null / array
+  let normalized = props.data
+  if (typeof normalized === 'string') {
+    const t = normalized.trim()
+    try { normalized = t ? JSON.parse(t) : null } catch { normalized = null }
+  }
 
-  if (props.data && Array.isArray(props.data)) {
+  let rawData = normalized
+  if (typeof props.transform === 'function') {
+    try {
+      const result = props.transform(normalized)
+      if (result != null) rawData = result
+    } catch { /* transform 异常，使用原始数据 */ }
+  }
+
+  let baseConfig = { ...defaultChinaMapConfig }
+  if (Array.isArray(rawData) && rawData.length > 0) {
     baseConfig = {
       ...baseConfig,
       series: [
-        { ...baseConfig.series[0], data: props.data },
+        { ...baseConfig.series[0], data: rawData },
         baseConfig.series[1]
       ]
     }

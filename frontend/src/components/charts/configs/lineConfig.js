@@ -14,7 +14,7 @@ export const defaultLineConfig = {
   xAxis: {
     ...commonCategoryXAxis,
     boundaryGap: false,
-    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+    data: []
   },
   yAxis: commonValueYAxis,
   series: [
@@ -22,7 +22,7 @@ export const defaultLineConfig = {
       name: '销量',
       type: 'line',
       smooth: true,
-      data: [120, 132, 101, 134, 90, 230, 210],
+      data: [],
       lineStyle: {
         color: cyberpunkColors.cyan,
         width: 3,

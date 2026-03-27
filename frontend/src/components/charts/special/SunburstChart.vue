@@ -9,7 +9,7 @@
 <script setup>
 import BaseChart from '../BaseChart.vue'
 import { defaultSunburstConfig } from '../configs/sunburstConfig'
-import { useChartOption } from '../utils/useChartOption'
+import { useChartOption, mapSeriesData } from '../utils/useChartOption'
 
 const props = defineProps({
   config: { type: Object, default: () => ({}) },
@@ -17,5 +17,5 @@ const props = defineProps({
   transform: { type: Function, default: null }
 })
 
-const chartOption = useChartOption(props, defaultSunburstConfig, 'sunburst')
+const chartOption = useChartOption(props, defaultSunburstConfig, 'sunburst', mapSeriesData)
 </script>

@@ -12,8 +12,9 @@ import {
 import { Exclude } from 'class-transformer';
 import { Role } from '../../roles/entities/role.entity';
 import { Project } from '../../projects/entities/project.entity';
-import { Dataset } from '../../datasets/entities/dataset.entity';
-import { Connection } from '../../datasets/entities/connection.entity';
+import { DataGroup } from '../../data-groups/entities/data-group.entity';
+import { DataItem } from '../../data-items/entities/data-item.entity';
+import { Datasource } from '../../datasources/entities/datasource.entity';
 import { Department } from '../../departments/entities/department.entity';
 
 @Entity('users')
@@ -80,12 +81,16 @@ export class User {
   projects: Project[];
 
   // 创建的数据集
-  @OneToMany(() => Dataset, (dataset) => dataset.createdBy)
-  datasets: Dataset[];
+  @OneToMany(() => DataGroup, (group) => group.createdBy)
+  dataGroups: DataGroup[];
 
-  // 创建的连接
-  @OneToMany(() => Connection, (connection) => connection.createdBy)
-  connections: Connection[];
+  // 创建的数据项
+  @OneToMany(() => DataItem, (item) => item.createdBy)
+  dataItems: DataItem[];
+
+  // 创建的数据源
+  @OneToMany(() => Datasource, (datasource) => datasource.createdBy)
+  datasources: Datasource[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
