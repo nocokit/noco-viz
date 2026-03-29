@@ -71,12 +71,7 @@
         />
 
         <!-- Panel C: 资源中心 -->
-        <div v-if="currentTab === 'assets'" class="panel-view center-flex">
-          <div style="text-align:center">
-            <svg style="width:40px;height:40px;margin-bottom:10px;opacity:0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"></path></svg>
-            <div>暂无上传素材</div>
-          </div>
-        </div>
+        <MediaLibraryPanel v-if="currentTab === 'assets'" />
 
       </div>
     </aside>
@@ -241,11 +236,12 @@
                   :key="`${comp.id}-${comp.w}-${comp.h}`"
                   :config="comp.config"
                   :data="comp.data"
-                  :width="comp.w"
-                  :height="comp.h"
+                  :width="getContentWidth(comp)"
+                  :height="getContentHeight(comp)"
                 />
-                <!-- Resize handles -->
-                <template v-if="selectedComponentId === comp.id">
+
+                <!-- Resize handles - 仅单选且为主选中组件时显示 -->
+                <template v-if="selectedComponentId === comp.id && selectedComponentIds.length === 1">
                   <div class="resize-handle n" @mousedown.stop="startResize($event, comp, 'n')"></div>
                   <div class="resize-handle ne" @mousedown.stop="startResize($event, comp, 'ne')"></div>
                   <div class="resize-handle e" @mousedown.stop="startResize($event, comp, 'e')"></div>
@@ -254,10 +250,6 @@
                   <div class="resize-handle sw" @mousedown.stop="startResize($event, comp, 'sw')"></div>
                   <div class="resize-handle w" @mousedown.stop="startResize($event, comp, 'w')"></div>
                   <div class="resize-handle nw" @mousedown.stop="startResize($event, comp, 'nw')"></div>
-
-                  <!-- 尺寸标注 -->
-                  <div class="size-label size-label-top">{{ Math.round(comp.w) }}</div>
-                  <div class="size-label size-label-left">{{ Math.round(comp.h) }}</div>
                 </template>
               </div>
 
@@ -357,6 +349,7 @@ import EditorHeader from './editor/components/EditorHeader.vue'
 import ActivityBar from './editor/components/ActivityBar.vue'
 import ComponentsPanel from './editor/components/ComponentsPanel.vue'
 import LayersPanel from './editor/components/LayersPanel.vue'
+import MediaLibraryPanel from './editor/components/MediaLibraryPanel.vue'
 import ConfigPanel from './editor/components/ConfigPanel/index.vue'
 import * as echarts from 'echarts'
 import { getChartPreviewOption } from './editor/config/chartPreviewOptions'
@@ -663,6 +656,38 @@ const getComponentZIndex = (comp) => {
 
   // 其他组件默认在内容层
   return 1
+}
+
+// 获取组件显示名称
+const getComponentDisplayName = (comp) => {
+  const chart = getChartByType(comp.type)
+  return chart?.name || comp.type
+}
+
+// 计算组件内容区域的宽度（减去padding和border）
+const getContentWidth = (comp) => {
+  let width = comp.w
+  // 减去左右padding
+  const paddingH = comp.paddingHorizontal ?? (/^(border|decoration|bgbox)-/.test(comp.type) ? 0 : 8)
+  width -= paddingH * 2
+  // 减去左右border
+  if (comp.showBorder && comp.borderWidth) {
+    width -= comp.borderWidth * 2
+  }
+  return Math.max(0, width)
+}
+
+// 计算组件内容区域的高度（减去padding和border）
+const getContentHeight = (comp) => {
+  let height = comp.h
+  // 减去上下padding
+  const paddingV = comp.paddingVertical ?? (/^(border|decoration|bgbox)-/.test(comp.type) ? 0 : 8)
+  height -= paddingV * 2
+  // 减去上下border
+  if (comp.showBorder && comp.borderWidth) {
+    height -= comp.borderWidth * 2
+  }
+  return Math.max(0, height)
 }
 
 // 面板切换
@@ -1165,14 +1190,20 @@ onMounted(async () => {
 
   // 初始化画布和标尺
   setTimeout(() => {
-    // 只有新项目才自动居中,已有项目使用保存的视图状态
-    if (!isExistingProject) {
-      fitToScreen()
-    }
+    // 默认使用自适应屏幕布局
+    fitToScreen()
     drawRulers()
 
-    // 监听窗口大小变化
-    window.addEventListener('resize', drawRulers)
+    // 监听窗口大小变化，使用防抖优化性能
+    let resizeTimer = null
+    const handleResize = () => {
+      if (resizeTimer) clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(() => {
+        fitToScreen()
+        drawRulers()
+      }, 300)
+    }
+    window.addEventListener('resize', handleResize)
   }, 100)
 })
 
