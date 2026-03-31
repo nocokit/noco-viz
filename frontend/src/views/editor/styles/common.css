@@ -1,0 +1,205 @@
+/**
+ * 编辑器公共样式
+ * 提取可复用的样式，减少重复代码
+ */
+
+/* 工具栏按钮通用样式 */
+.toolbar-btn,
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md, 6px);
+  color: var(--text-primary, #fff);
+  cursor: pointer;
+  transition: var(--transition-normal, 0.2s);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 0;
+}
+
+.toolbar-btn:hover:not(.disabled),
+.icon-btn:hover:not(.disabled) {
+  background: var(--bg-hover, rgba(255, 255, 255, 0.15));
+  border-color: var(--border-hover, rgba(255, 255, 255, 0.1));
+}
+
+.toolbar-btn.active,
+.icon-btn.active {
+  color: var(--primary, #1890ff);
+  background: rgba(22, 119, 255, 0.15);
+  border-color: rgba(22, 119, 255, 0.3);
+}
+
+.toolbar-btn.disabled,
+.icon-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toolbar-btn.danger,
+.icon-btn.danger {
+  color: var(--danger, #ff6b6b);
+}
+
+.toolbar-btn.danger:hover:not(.disabled),
+.icon-btn.danger:hover:not(.disabled) {
+  color: #fff;
+  background: rgba(255, 107, 107, 0.2);
+  border-color: rgba(255, 107, 107, 0.3);
+}
+
+/* 分隔线 */
+.divider-v {
+  width: 1px;
+  height: 20px;
+  background: var(--border, rgba(255, 255, 255, 0.12));
+}
+
+.divider-mini {
+  width: 1px;
+  height: 14px;
+  background: var(--border, rgba(255, 255, 255, 0.06));
+  margin: 0 2px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--border, rgba(255, 255, 255, 0.12));
+  margin: 0 4px;
+}
+
+/* 工具栏分组 */
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 4px);
+  padding: var(--spacing-xs, 4px);
+  background: var(--bg-hover, rgba(255, 255, 255, 0.04));
+  border-radius: var(--radius-md, 6px);
+}
+
+/* 输入框通用样式 */
+.toolbar-input {
+  background: transparent;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-sm, 4px);
+  color: var(--text-primary, #d4d4d4);
+  font-size: 12px;
+  font-family: monospace;
+  font-weight: 500;
+  text-align: center;
+  padding: 2px 4px;
+  outline: none;
+  transition: var(--transition-normal, 0.2s);
+}
+
+.toolbar-input:focus {
+  border-color: var(--border-hover, rgba(255, 255, 255, 0.2));
+  background: var(--bg-hover, rgba(255, 255, 255, 0.05));
+}
+
+.toolbar-input::-webkit-inner-spin-button,
+.toolbar-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.toolbar-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* 按钮组 */
+.btn-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 8px);
+}
+
+/* 通用按钮样式 */
+.btn {
+  height: 34px;
+  padding: 0 var(--spacing-lg, 18px);
+  border-radius: var(--radius-md, 6px);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 8px);
+  transition: var(--transition-normal, 0.2s);
+  border: 1px solid transparent;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-hover, rgba(255, 255, 255, 0.15));
+  color: var(--text-primary, #e5e5e5);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.btn-primary {
+  background: var(--primary, #1890ff);
+  color: white;
+  font-weight: 500;
+  box-shadow: none;
+  border-color: var(--primary, #1890ff);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover, #40a9ff);
+  border-color: var(--primary-hover, #40a9ff);
+}
+
+/* 加载动画 */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--primary, #409eff);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* 徽章 */
+.badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm, 3px);
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.badge-warning {
+  background: rgba(255, 152, 0, 0.15);
+  color: var(--warning, #ffa940);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.badge-success {
+  background: rgba(82, 196, 26, 0.15);
+  color: var(--success, #52c41a);
+  border: 1px solid rgba(82, 196, 26, 0.3);
+}
+
+.badge-danger {
+  background: rgba(255, 107, 107, 0.15);
+  color: var(--danger, #ff6b6b);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+}

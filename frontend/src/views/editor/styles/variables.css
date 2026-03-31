@@ -1,0 +1,61 @@
+/**
+ * 编辑器全局 CSS 变量
+ * 将 theme.js 中的配置注入到 CSS 变量中
+ */
+
+:root {
+  /* 颜色系统 */
+  --primary: #1890ff;
+  --primary-hover: #40a9ff;
+  --success: #52c41a;
+  --warning: #ffa940;
+  --danger: #ff6b6b;
+
+  /* 背景色 */
+  --bg-dark: #18181c;
+  --bg-darker: #000;
+  --bg-overlay: rgba(24, 24, 28, 0.9);
+  --bg-hover: rgba(255, 255, 255, 0.04);
+  --bg-active: rgba(255, 255, 255, 0.08);
+
+  /* 边框色 */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.15);
+  --border-active: rgba(255, 255, 255, 0.25);
+
+  /* 文字色 */
+  --text-primary: #e5e5e5;
+  --text-secondary: #909399;
+  --text-disabled: #888;
+
+  /* 间距系统 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-xxl: 24px;
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* 动画时长 */
+  --transition-fast: 0.15s;
+  --transition-normal: 0.2s;
+  --transition-slow: 0.3s;
+
+  /* z-index 层级 */
+  --z-canvas: 1;
+  --z-toolbar: 100;
+  --z-panel: 200;
+  --z-dropdown: 500;
+  --z-modal: 1000;
+  --z-toast: 2000;
+
+  /* 响应式断点 */
+  --breakpoint-small: 1900px;
+  --breakpoint-medium: 2560px;
+  --breakpoint-large: 3840px;
+}

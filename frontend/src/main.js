@@ -1,0 +1,21 @@
+import { createApp } from 'vue'
+import Antd from 'ant-design-vue'
+import 'ant-design-vue/dist/reset.css'
+import App from './App.vue'
+import router from './router'
+import pinia from './store'
+import directives from './directives'
+import i18n from './i18n'
+
+// 引入编辑器样式系统
+import '@/views/editor/styles/variables.css'
+import '@/views/editor/styles/common.css'
+
+const app = createApp(App)
+
+app.use(Antd)
+app.use(pinia)
+app.use(router)
+app.use(directives)
+app.use(i18n)
+app.mount('#app')
