@@ -8,10 +8,9 @@
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-
-
-
 </div>
+
+![Noco-Viz Screenshot](frontend/public/viz.png)
 
 ## ✨ 特性
 
