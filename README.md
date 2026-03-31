@@ -10,7 +10,8 @@
 
 </div>
 
-![Noco-Viz Screenshot](frontend/public/viz.png)
+![Noco-Viz Screenshot](frontend/public/viz_0.png)
+![Noco-Viz Screenshot](frontend/public/viz_1.png)
 
 ## ✨ 特性
 
