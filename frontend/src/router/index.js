@@ -138,14 +138,6 @@ const routes = [
         name: 'Recycle',
         component: () => import('@/views/settings/RecycleBin'),
         meta: { title: '回收站', hideLayoutHeader: true }
-      },
-
-      // ========== 用户中心 ==========
-      {
-        path: 'user/profile',
-        name: 'UserProfile',
-        component: () => import('@/views/user/UserProfile'),
-        meta: { title: '个人资料', hideLayoutHeader: true }
       }
     ]
   },

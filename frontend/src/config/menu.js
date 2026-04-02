@@ -22,12 +22,12 @@ export const menuConfig = [
         icon: 'VideoPlay',
         path: '/playlist'
       },
-      {
-        id: 'templates',
-        title: '企业模板库',
-        icon: 'DocumentCopy',
-        path: '/templates'
-      }
+      // {
+      //   id: 'templates',
+      //   title: '企业模板库',
+      //   icon: 'DocumentCopy',
+      //   path: '/templates'
+      // }
     ]
   },
 

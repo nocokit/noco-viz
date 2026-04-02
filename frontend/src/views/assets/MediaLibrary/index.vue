@@ -1087,6 +1087,8 @@ const handleEdit = async () => {
   padding: 2px;
   background: #f5f5f5;
   border-radius: 6px;
+  height: 32px;
+  align-items: center;
 }
 
 .toggle-btn {
