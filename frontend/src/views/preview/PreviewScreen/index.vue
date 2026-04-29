@@ -167,31 +167,32 @@ const actualContainerHeight = computed(() => {
 
 // 画布样式
 const containerStyle = computed(() => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
   width: '100%',
   height: containerHeight.value,
   overflow: 'hidden'
 }))
 
 const canvasStyle = computed(() => {
-  // 计算缩放比例以适应屏幕（填满100%）
   const containerWidth = windowSize.width
   const containerHeightValue = actualContainerHeight.value
 
   const scaleX = containerWidth / canvasWidth.value
   const scaleY = containerHeightValue / canvasHeight.value
-
-  // 使用较小的缩放比例，保持宽高比，确保完整显示
   const scale = Math.min(scaleX, scaleY)
+
+  // scale 后元素实际占用空间仍是原始尺寸，用负 margin 补偿多余空间使其真正居中
+  const scaledWidth = canvasWidth.value * scale
+  const scaledHeight = canvasHeight.value * scale
+  const marginX = (scaledWidth - canvasWidth.value) / 2
+  const marginY = (scaledHeight - canvasHeight.value) / 2
 
   const style = {
     position: 'relative',
     width: `${canvasWidth.value}px`,
     height: `${canvasHeight.value}px`,
     transform: `scale(${scale})`,
-    transformOrigin: 'center center',
+    transformOrigin: 'top left',
+    margin: `${marginY}px ${marginX}px`,
     background: screenBackground.value,
     boxShadow: '0 0 50px rgba(0, 0, 0, 0.5)'
   }

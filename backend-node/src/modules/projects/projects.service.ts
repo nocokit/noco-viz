@@ -19,19 +19,19 @@ export class ProjectsService extends BaseService<Project> {
     super(projectsRepository);
   }
 
-  async create(createProjectDto: CreateProjectDto, userId?: number): Promise<Project> {
-    // Check license limit
+  private async checkProjectLimit(): Promise<void> {
     const currentCount = await this.projectsRepository.count();
-    const license = getCurrentLicense();
-
     if (isProjectLimitReached(currentCount)) {
+      const license = getCurrentLicense();
+      const communityNote = license.type === 'community' ? 'Community edition is limited to 15 projects. ' : '';
       throw new BadRequestException(
-        `Project limit reached. You have ${currentCount} projects. ` +
-        `${license.type === 'community' ? 'Community edition is limited to 15 projects. ' : ''}` +
-        `Upgrade to Professional or Enterprise for unlimited projects. ` +
-        `Visit https://noco-viz.com/pricing for more information.`
+        `Project limit reached. You have ${currentCount} projects. ${communityNote}Upgrade to Professional or Enterprise for unlimited projects.`
       );
     }
+  }
+
+  async create(createProjectDto: CreateProjectDto, userId?: number): Promise<Project> {
+    await this.checkProjectLimit();
 
     const project = this.projectsRepository.create({
       ...createProjectDto,
@@ -66,17 +66,7 @@ export class ProjectsService extends BaseService<Project> {
   }
 
   async clone(id: number, newTitle: string, userId: number): Promise<Project> {
-    // Check license limit
-    const currentCount = await this.projectsRepository.count();
-    const license = getCurrentLicense();
-
-    if (isProjectLimitReached(currentCount)) {
-      throw new BadRequestException(
-        `Project limit reached. You have ${currentCount} projects. ` +
-        `${license.type === 'community' ? 'Community edition is limited to 15 projects. ' : ''}` +
-        `Upgrade to Professional or Enterprise for unlimited projects.`
-      );
-    }
+    await this.checkProjectLimit();
 
     const originalProject = await this.findOne(id);
 
@@ -137,67 +127,31 @@ export class ProjectsService extends BaseService<Project> {
     data: { name: string; description?: string },
     userId: number,
   ): Promise<Project> {
-    // Check license limit
-    const currentCount = await this.projectsRepository.count();
-    const license = getCurrentLicense();
+    await this.checkProjectLimit();
 
-    if (isProjectLimitReached(currentCount)) {
-      throw new BadRequestException(
-        `Project limit reached. You have ${currentCount} projects. ` +
-        `${license.type === 'community' ? 'Community edition is limited to 15 projects. ' : ''}` +
-        `Upgrade to Professional or Enterprise for unlimited projects.`
-      );
-    }
-
-    // 获取模板信息
     const template = await this.templatesService.findOne(templateId);
 
-    // 从模板创建项目
     const project = this.projectsRepository.create({
       title: data.name,
       description: data.description || template.description || '',
       type: ProjectType.SCREEN,
       status: ProjectStatus.DRAFT,
       createdById: userId,
-      config: template.config || {}, // 从模板复制配置
+      config: template.config || {},
     });
 
     return this.projectsRepository.save(project);
   }
 
-  /**
-   * 批量删除项目
-   */
-  async batchDelete(ids: number[]): Promise<{
-    successCount: number;
-    failureCount: number;
-    failures: Array<{ id: number; error: string }>;
-  }> {
-    // 使用 BaseService 的通用批量删除方法
+  async batchDelete(ids: number[]) {
     return super.batchDelete(ids);
   }
 
-  /**
-   * 批量发布项目
-   */
-  async batchPublish(ids: number[]): Promise<{
-    successCount: number;
-    failureCount: number;
-    failures: Array<{ id: number; error: string }>;
-  }> {
-    // 使用 BaseService 的批量更新状态方法
+  async batchPublish(ids: number[]) {
     return this.batchUpdateStatus(ids, ProjectStatus.PUBLISHED);
   }
 
-  /**
-   * 批量取消发布项目
-   */
-  async batchUnpublish(ids: number[]): Promise<{
-    successCount: number;
-    failureCount: number;
-    failures: Array<{ id: number; error: string }>;
-  }> {
-    // 使用 BaseService 的批量更新状态方法
+  async batchUnpublish(ids: number[]) {
     return this.batchUpdateStatus(ids, ProjectStatus.DRAFT);
   }
 }
