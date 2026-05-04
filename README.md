@@ -25,7 +25,7 @@
 
 ### 在线体验
 
-访问 [在线演示](https://viz.nocokit.cn) 立即体验
+访问 [在线演示](http://viz.nocokit.cn) 立即体验
 
 ### 本地部署
 
