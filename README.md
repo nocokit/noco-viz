@@ -22,11 +22,6 @@
 
 #### 手动部署
 
-**环境要求：**
-- Node.js >= 18
-- MySQL >= 8.0
-- pnpm >= 8.0
-
 ```bash
 # 1. 克隆项目
 git clone https://github.com/nocokit/noco-viz.git
