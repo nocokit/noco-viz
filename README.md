@@ -12,35 +12,13 @@
 
 ![Noco-Viz Screenshot](frontend/public/viz_1.png)
 
-## ✨ 特性
-
-- 🎨 **拖拽式设计** - 所见即所得的可视化编辑器
-- 📊 **丰富的图表** - 30+ 种专业图表组件
-- 🔌 **多数据源** - 支持 MySQL、PostgreSQL、API 等
-- 🎯 **零代码** - 无需编程，3分钟上手
-- 📱 **响应式** - 自适应各种屏幕尺寸
-- 🚀 **高性能** - 基于 Vue 3 + ECharts
 
 ## 🚀 快速开始
 
 ### 在线体验
 
-访问 [在线演示](http://viz.nocokit.cn) 立即体验
+访问 [在线演示](http://viz.nocokit.cn) 立即体验:admin/123456
 
-### 本地部署
-
-#### 使用 Docker（推荐）
-
-```bash
-# 克隆项目
-git clone https://github.com/nocokit/noco-viz.git
-cd noco-viz
-
-# 启动服务
-docker-compose up -d
-
-# 访问 http://localhost:5173
-```
 
 #### 手动部署
 
