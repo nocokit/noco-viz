@@ -17,7 +17,7 @@
 
 ### 在线体验
 
-访问 [在线演示](http://viz.nocokit.cn) 立即体验:admin/123456
+访问 [在线演示](http://viz.nocokit.cn)
 
 
 #### 手动部署
